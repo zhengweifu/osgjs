@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>CullVisitor.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>CullVisitor.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Notify'</span>,
+    <span class="hljs-string">'osg/Utils'</span>,
+    <span class="hljs-string">'osg/NodeVisitor'</span>,
+    <span class="hljs-string">'osg/CullSettings'</span>,
+    <span class="hljs-string">'osg/CullStack'</span>,
+    <span class="hljs-string">'osg/Matrix'</span>,
+    <span class="hljs-string">'osg/MatrixTransform'</span>,
+    <span class="hljs-string">'osg/Projection'</span>,
+    <span class="hljs-string">'osg/LightSource'</span>,
+    <span class="hljs-string">'osg/Geometry'</span>,
+    <span class="hljs-string">'osg/RenderStage'</span>,
+    <span class="hljs-string">'osg/Node'</span>,
+    <span class="hljs-string">'osg/Camera'</span>,
+    <span class="hljs-string">'osg/TransformEnums'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Camera, TransformEnums )</span> {</span>
+
+    <span class="hljs-comment">/**
+     * CullVisitor traverse the tree and collect Matrix/State for the rendering traverse
+     * @class CullVisitor
+     */</span>
+    <span class="hljs-keyword">var</span> CullVisitor = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        NodeVisitor.call( <span class="hljs-keyword">this</span> );
+        CullSettings.call( <span class="hljs-keyword">this</span> );
+        CullStack.call( <span class="hljs-keyword">this</span> );
+
+        <span class="hljs-keyword">this</span>._rootStateGraph = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._currentStateGraph = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._currentRenderBin = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._currentRenderStage = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._rootRenderStage = <span class="hljs-literal">undefined</span>;
+
+        <span class="hljs-keyword">this</span>._computedNear = <span class="hljs-built_in">Number</span>.POSITIVE_INFINITY;
+        <span class="hljs-keyword">this</span>._computedFar = <span class="hljs-built_in">Number</span>.NEGATIVE_INFINITY;
+
+        <span class="hljs-keyword">var</span> lookVector = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, -<span class="hljs-number">1.0</span> ];
+
+        <span class="hljs-comment">/*jshint bitwise: false */</span>
+        <span class="hljs-keyword">this</span>._bbCornerFar = ( lookVector[ <span class="hljs-number">0</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span> ) | ( lookVector[ <span class="hljs-number">1</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">2</span> : <span class="hljs-number">0</span> ) | ( lookVector[ <span class="hljs-number">2</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">4</span> : <span class="hljs-number">0</span> );
+        <span class="hljs-keyword">this</span>._bbCornerNear = ( ~<span class="hljs-keyword">this</span>._bbCornerFar ) &amp; <span class="hljs-number">7</span>;
+        <span class="hljs-comment">/*jshint bitwise: true */</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>keep a matrix in memory to avoid to create matrix</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">this</span>._reserveMatrixStack = [
+            []
+        ];
+        <span class="hljs-keyword">this</span>._reserveMatrixStack.current = <span class="hljs-number">0</span>;
+
+        <span class="hljs-keyword">this</span>._reserveLeafStack = [ {} ];
+        <span class="hljs-keyword">this</span>._reserveLeafStack.current = <span class="hljs-number">0</span>;
+
+        <span class="hljs-keyword">this</span>._renderBinStack = [];
+    };
+
+    <span class="hljs-comment">/** @lends CullVisitor.prototype */</span>
+    CullVisitor.prototype = MACROUTILS.objectInehrit( CullStack.prototype, MACROUTILS.objectInehrit( CullSettings.prototype, MACROUTILS.objectInehrit( NodeVisitor.prototype, {
+        distance: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( coord, matrix )</span> {</span>
+            <span class="hljs-keyword">return</span> -( coord[ <span class="hljs-number">0</span> ] * matrix[ <span class="hljs-number">2</span> ] + coord[ <span class="hljs-number">1</span> ] * matrix[ <span class="hljs-number">6</span> ] + coord[ <span class="hljs-number">2</span> ] * matrix[ <span class="hljs-number">10</span> ] + matrix[ <span class="hljs-number">14</span> ] );
+        },
+
+        handleCullCallbacksAndTraverse: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+            <span class="hljs-keyword">var</span> ccb = node.getCullCallback();
+            <span class="hljs-keyword">if</span> ( ccb ) {
+                <span class="hljs-keyword">if</span> ( !ccb.cull( node, <span class="hljs-keyword">this</span> ) ) {
+                    <span class="hljs-keyword">return</span>;
+                }
+            }
+            <span class="hljs-keyword">this</span>.traverse( node );
+        },
+
+        updateCalculatedNearFar: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, drawable )</span> {</span>
+
+            <span class="hljs-keyword">var</span> bb = drawable.getBoundingBox();
+            <span class="hljs-keyword">var</span> dNear, dFar;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>efficient computation of near and far, only taking into account the nearest and furthest
+corners of the bounding box.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            dNear = <span class="hljs-keyword">this</span>.distance( bb.corner( <span class="hljs-keyword">this</span>._bbCornerNear ), matrix );
+            dFar = <span class="hljs-keyword">this</span>.distance( bb.corner( <span class="hljs-keyword">this</span>._bbCornerFar ), matrix );
+
+            <span class="hljs-keyword">if</span> ( dNear &gt; dFar ) {
+                <span class="hljs-keyword">var</span> tmp = dNear;
+                dNear = dFar;
+                dFar = tmp;
+            }
+
+            <span class="hljs-keyword">if</span> ( dFar &lt; <span class="hljs-number">0.0</span> ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>whole object behind the eye point so discard</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+            }
+
+            <span class="hljs-keyword">if</span> ( dNear &lt; <span class="hljs-keyword">this</span>._computedNear ) {
+                <span class="hljs-keyword">this</span>._computedNear = dNear;
+            }
+
+            <span class="hljs-keyword">if</span> ( dFar &gt; <span class="hljs-keyword">this</span>._computedFar ) {
+                <span class="hljs-keyword">this</span>._computedFar = dFar;
+            }
+
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+        },
+
+        clampProjectionMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( projection, znear, zfar, nearFarRatio, resultNearFar )</span> {</span>
+            <span class="hljs-keyword">var</span> epsilon = <span class="hljs-number">1e-6</span>;
+            <span class="hljs-keyword">if</span> ( zfar &lt; znear - epsilon ) {
+                Notify.log( <span class="hljs-string">'clampProjectionMatrix not applied, invalid depth range, znear = '</span> + znear + <span class="hljs-string">'  zfar = '</span> + zfar );
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+            }
+
+            <span class="hljs-keyword">var</span> desiredZnear, desiredZfar;
+            <span class="hljs-keyword">if</span> ( zfar &lt; znear + epsilon ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>znear and zfar are too close together and could cause divide by zero problems
+late on in the clamping code, so move the znear and zfar apart.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">var</span> average = ( znear + zfar ) * <span class="hljs-number">0.5</span>;
+                znear = average - epsilon;
+                zfar = average + epsilon;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>OSG_INFO &lt;&lt; ‘_clampProjectionMatrix widening znear and zfar to ‘&lt;&lt;znear&lt;&lt;’ ‘&lt;&lt;zfar&lt;&lt;std::endl;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            }
+
+            <span class="hljs-keyword">if</span> ( <span class="hljs-built_in">Math</span>.abs( Matrix.get( projection, <span class="hljs-number">0</span>, <span class="hljs-number">3</span> ) ) &lt; epsilon &amp;&amp;
+                <span class="hljs-built_in">Math</span>.abs( Matrix.get( projection, <span class="hljs-number">1</span>, <span class="hljs-number">3</span> ) ) &lt; epsilon &amp;&amp;
+                <span class="hljs-built_in">Math</span>.abs( Matrix.get( projection, <span class="hljs-number">2</span>, <span class="hljs-number">3</span> ) ) &lt; epsilon ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>OSG_INFO &lt;&lt; ‘Orthographic matrix before clamping’&lt;&lt;projection&lt;&lt;std::endl;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+                <span class="hljs-keyword">var</span> deltaSpan = ( zfar - znear ) * <span class="hljs-number">0.02</span>;
+                <span class="hljs-keyword">if</span> ( deltaSpan &lt; <span class="hljs-number">1.0</span> ) {
+                    deltaSpan = <span class="hljs-number">1.0</span>;
+                }
+                desiredZnear = znear - deltaSpan;
+                desiredZfar = zfar + deltaSpan;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>assign the clamped values back to the computed values.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                znear = desiredZnear;
+                zfar = desiredZfar;
+
+                Matrix.set( projection, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, -<span class="hljs-number">2.0</span> / ( desiredZfar - desiredZnear ) );
+                Matrix.set( projection, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, -( desiredZfar + desiredZnear ) / ( desiredZfar - desiredZnear ) );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>OSG_INFO &lt;&lt; ‘Orthographic matrix after clamping ‘&lt;&lt;projection&lt;&lt;std::endl;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            } <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>OSG_INFO &lt;&lt; ‘Persepective matrix before clamping’&lt;&lt;projection&lt;&lt;std::endl;
+std::cout &lt;&lt; ‘_computed_znear’&lt;&lt;_computed_znear&lt;&lt;std::endl;
+std::cout &lt;&lt; ‘_computed_zfar’&lt;&lt;_computed_zfar&lt;&lt;std::endl;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+                <span class="hljs-keyword">var</span> zfarPushRatio = <span class="hljs-number">1.02</span>;
+                <span class="hljs-keyword">var</span> znearPullRatio = <span class="hljs-number">0.98</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>znearPullRatio = 0.99;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+                desiredZnear = znear * znearPullRatio;
+                desiredZfar = zfar * zfarPushRatio;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>near plane clamping.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">var</span> minNearPlane = zfar * nearFarRatio;
+                <span class="hljs-keyword">if</span> ( desiredZnear &lt; minNearPlane ) {
+                    desiredZnear = minNearPlane;
+                }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>assign the clamped values back to the computed values.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                znear = desiredZnear;
+                zfar = desiredZfar;
+
+                <span class="hljs-keyword">var</span> m22 = Matrix.get( projection, <span class="hljs-number">2</span>, <span class="hljs-number">2</span> );
+                <span class="hljs-keyword">var</span> m32 = Matrix.get( projection, <span class="hljs-number">3</span>, <span class="hljs-number">2</span> );
+                <span class="hljs-keyword">var</span> m23 = Matrix.get( projection, <span class="hljs-number">2</span>, <span class="hljs-number">3</span> );
+                <span class="hljs-keyword">var</span> m33 = Matrix.get( projection, <span class="hljs-number">3</span>, <span class="hljs-number">3</span> );
+                <span class="hljs-keyword">var</span> transNearPlane = ( -desiredZnear * m22 + m32 ) / ( -desiredZnear * m23 + m33 );
+                <span class="hljs-keyword">var</span> transFarPlane = ( -desiredZfar * m22 + m32 ) / ( -desiredZfar * m23 + m33 );
+
+                <span class="hljs-keyword">var</span> ratio = <span class="hljs-built_in">Math</span>.abs( <span class="hljs-number">2.0</span> / ( transNearPlane - transFarPlane ) );
+                <span class="hljs-keyword">var</span> center = -( transNearPlane + transFarPlane ) / <span class="hljs-number">2.0</span>;
+
+                <span class="hljs-keyword">var</span> matrix = [ <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>,
+                    <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>,
+                    <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, ratio, <span class="hljs-number">0.0</span>,
+                    <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, center * ratio, <span class="hljs-number">1.0</span>
+                ];
+                Matrix.postMult( matrix, projection );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>OSG_INFO &lt;&lt; ‘Persepective matrix after clamping’&lt;&lt;projection&lt;&lt;std::endl;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            }
+            <span class="hljs-keyword">if</span> ( resultNearFar !== <span class="hljs-literal">undefined</span> ) {
+                resultNearFar[ <span class="hljs-number">0</span> ] = znear;
+                resultNearFar[ <span class="hljs-number">1</span> ] = zfar;
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+        },
+
+        setStateGraph: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( sg )</span> {</span>
+            <span class="hljs-keyword">this</span>._rootStateGraph = sg;
+            <span class="hljs-keyword">this</span>._currentStateGraph = sg;
+        },
+        setRenderStage: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( rg )</span> {</span>
+            <span class="hljs-keyword">this</span>._rootRenderStage = rg;
+            <span class="hljs-keyword">this</span>._currentRenderBin = rg;
+        },
+        reset: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>this._modelviewMatrixStack.length = 0;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._modelviewMatrixStack.splice( <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>._modelviewMatrixStack.length );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>this._projectionMatrixStack.length = 0;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._projectionMatrixStack.splice( <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>._projectionMatrixStack.length );
+            <span class="hljs-keyword">this</span>._reserveMatrixStack.current = <span class="hljs-number">0</span>;
+            <span class="hljs-keyword">this</span>._reserveLeafStack.current = <span class="hljs-number">0</span>;
+
+            <span class="hljs-keyword">this</span>._computedNear = <span class="hljs-built_in">Number</span>.POSITIVE_INFINITY;
+            <span class="hljs-keyword">this</span>._computedFar = <span class="hljs-built_in">Number</span>.NEGATIVE_INFINITY;
+        },
+        getCurrentRenderBin: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._currentRenderBin;
+        },
+        setCurrentRenderBin: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( rb )</span> {</span>
+            <span class="hljs-keyword">this</span>._currentRenderBin = rb;
+        },
+        addPositionedAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attribute )</span> {</span>
+            <span class="hljs-keyword">var</span> matrix = <span class="hljs-keyword">this</span>._modelviewMatrixStack[ <span class="hljs-keyword">this</span>._modelviewMatrixStack.length - <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">this</span>._currentRenderBin.getStage().positionedAttribute.push( [ matrix, attribute ] );
+        },
+
+        pushStateSet: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( stateset )</span> {</span>
+            <span class="hljs-keyword">this</span>._currentStateGraph = <span class="hljs-keyword">this</span>._currentStateGraph.findOrInsert( stateset );
+            <span class="hljs-keyword">if</span> ( stateset.getBinName() !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">var</span> renderBinStack = <span class="hljs-keyword">this</span>._renderBinStack;
+                <span class="hljs-keyword">var</span> currentRenderBin = <span class="hljs-keyword">this</span>._currentRenderBin;
+                renderBinStack.push( currentRenderBin );
+                <span class="hljs-keyword">this</span>._currentRenderBin = currentRenderBin.getStage().findOrInsert( stateset.getBinNumber(), stateset.getBinName() );
+            }
+        },
+
+        <span class="hljs-comment">/** Pop the top state set and hence associated state group.
+         * Move the current state group to the parent of the popped
+         * state group.
+         */</span>
+        popStateSet: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> currentStateGraph = <span class="hljs-keyword">this</span>._currentStateGraph;
+            <span class="hljs-keyword">var</span> stateset = currentStateGraph.getStateSet();
+            <span class="hljs-keyword">this</span>._currentStateGraph = currentStateGraph.parent;
+            <span class="hljs-keyword">if</span> ( stateset.getBinName() !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">var</span> renderBinStack = <span class="hljs-keyword">this</span>._renderBinStack;
+                <span class="hljs-keyword">if</span> ( renderBinStack.length === <span class="hljs-number">0</span> ) {
+                    <span class="hljs-keyword">this</span>._currentRenderBin = <span class="hljs-keyword">this</span>._currentRenderBin.getStage();
+                } <span class="hljs-keyword">else</span> {
+                    <span class="hljs-keyword">this</span>._currentRenderBin = renderBinStack.pop();
+                }
+            }
+        },
+
+        popProjectionMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._computeNearFar === <span class="hljs-literal">true</span> &amp;&amp; <span class="hljs-keyword">this</span>._computedFar &gt;= <span class="hljs-keyword">this</span>._computedNear ) {
+                <span class="hljs-keyword">var</span> m = <span class="hljs-keyword">this</span>._projectionMatrixStack[ <span class="hljs-keyword">this</span>._projectionMatrixStack.length - <span class="hljs-number">1</span> ];
+                <span class="hljs-keyword">this</span>.clampProjectionMatrix( m, <span class="hljs-keyword">this</span>._computedNear, <span class="hljs-keyword">this</span>._computedFar, <span class="hljs-keyword">this</span>._nearFarRatio );
+            }
+            CullStack.prototype.popProjectionMatrix.call( <span class="hljs-keyword">this</span> );
+        },
+
+        apply: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+            <span class="hljs-keyword">this</span>[ node.typeID ].call( <span class="hljs-keyword">this</span>, node );
+        },
+
+        _getReservedMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> m = <span class="hljs-keyword">this</span>._reserveMatrixStack[ <span class="hljs-keyword">this</span>._reserveMatrixStack.current++ ];
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._reserveMatrixStack.current === <span class="hljs-keyword">this</span>._reserveMatrixStack.length ) {
+                <span class="hljs-keyword">this</span>._reserveMatrixStack.push( Matrix.makeIdentity( [] ) );
+            }
+            <span class="hljs-keyword">return</span> m;
+        },
+        _getReservedLeaf: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> l = <span class="hljs-keyword">this</span>._reserveLeafStack[ <span class="hljs-keyword">this</span>._reserveLeafStack.current++ ];
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._reserveLeafStack.current === <span class="hljs-keyword">this</span>._reserveLeafStack.length ) {
+                <span class="hljs-keyword">this</span>._reserveLeafStack.push( {} );
+            }
+            <span class="hljs-keyword">return</span> l;
+        }
+    } ) ) );
+
+    CullVisitor.prototype[ Camera.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( camera )</span> {</span>
+
+        <span class="hljs-keyword">var</span> stateset = camera.getStateSet();
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.pushStateSet( stateset );
+        }
+
+        <span class="hljs-keyword">if</span> ( camera.light ) {
+            <span class="hljs-keyword">this</span>.addPositionedAttribute( camera.light );
+        }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>never used
+var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.length - 1 ];</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+        <span class="hljs-keyword">var</span> modelview = <span class="hljs-keyword">this</span>._getReservedMatrix();
+        <span class="hljs-keyword">var</span> projection = <span class="hljs-keyword">this</span>._getReservedMatrix();
+
+        <span class="hljs-keyword">if</span> ( camera.getReferenceFrame() === TransformEnums.RELATIVE_RF ) {
+            <span class="hljs-keyword">var</span> lastProjectionMatrix = <span class="hljs-keyword">this</span>._projectionMatrixStack[ <span class="hljs-keyword">this</span>._projectionMatrixStack.length - <span class="hljs-number">1</span> ];
+            Matrix.mult( lastProjectionMatrix, camera.getProjectionMatrix(), projection );
+            <span class="hljs-keyword">var</span> lastViewMatrix = <span class="hljs-keyword">this</span>._modelviewMatrixStack[ <span class="hljs-keyword">this</span>._modelviewMatrixStack.length - <span class="hljs-number">1</span> ];
+            Matrix.mult( lastViewMatrix, camera.getViewMatrix(), modelview );
+        } <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>absolute</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            Matrix.copy( camera.getViewMatrix(), modelview );
+            Matrix.copy( camera.getProjectionMatrix(), projection );
+        }
+        <span class="hljs-keyword">this</span>.pushProjectionMatrix( projection );
+        <span class="hljs-keyword">this</span>.pushModelviewMatrix( modelview );
+
+        <span class="hljs-keyword">if</span> ( camera.getViewport() ) {
+            <span class="hljs-keyword">this</span>.pushViewport( camera.getViewport() );
+        }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>save current state of the camera</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> previousZnear = <span class="hljs-keyword">this</span>._computedNear;
+        <span class="hljs-keyword">var</span> previousZfar = <span class="hljs-keyword">this</span>._computedFar;
+        <span class="hljs-keyword">var</span> previousCullsettings = <span class="hljs-keyword">new</span> CullSettings();
+        previousCullsettings.setCullSettings( <span class="hljs-keyword">this</span> );
+
+        <span class="hljs-keyword">this</span>._computedNear = <span class="hljs-built_in">Number</span>.POSITIVE_INFINITY;
+        <span class="hljs-keyword">this</span>._computedFar = <span class="hljs-built_in">Number</span>.NEGATIVE_INFINITY;
+        <span class="hljs-keyword">this</span>.setCullSettings( camera );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>nested camera</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> ( camera.getRenderOrder() === Camera.NESTED_RENDER ) {
+
+            <span class="hljs-keyword">this</span>.handleCullCallbacksAndTraverse( camera );
+
+        } <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>not tested</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+            <span class="hljs-keyword">var</span> previousStage = <span class="hljs-keyword">this</span>.getCurrentRenderBin().getStage();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>use render to texture stage</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> rtts = <span class="hljs-keyword">new</span> RenderStage();
+            rtts.setCamera( camera );
+            rtts.setClearDepth( camera.getClearDepth() );
+            rtts.setClearColor( camera.getClearColor() );
+
+            rtts.setClearMask( camera.getClearMask() );
+
+            <span class="hljs-keyword">var</span> vp;
+            <span class="hljs-keyword">if</span> ( camera.getViewport() === <span class="hljs-literal">undefined</span> ) {
+                vp = previousStage.getViewport();
+            } <span class="hljs-keyword">else</span> {
+                vp = camera.getViewport();
+            }
+            rtts.setViewport( vp );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>skip positional state for now
+…</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+            <span class="hljs-keyword">var</span> previousRenderBin = <span class="hljs-keyword">this</span>.getCurrentRenderBin();
+
+            <span class="hljs-keyword">this</span>.setCurrentRenderBin( rtts );
+
+            <span class="hljs-keyword">this</span>.handleCullCallbacksAndTraverse( camera );
+
+            <span class="hljs-keyword">this</span>.setCurrentRenderBin( previousRenderBin );
+
+            <span class="hljs-keyword">if</span> ( camera.getRenderOrder() === Camera.PRE_RENDER ) {
+                <span class="hljs-keyword">this</span>.getCurrentRenderBin().getStage().addPreRenderStage( rtts, camera.renderOrderNum );
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">this</span>.getCurrentRenderBin().getStage().addPostRenderStage( rtts, camera.renderOrderNum );
+            }
+        }
+
+        <span class="hljs-keyword">this</span>.popModelviewMatrix();
+        <span class="hljs-keyword">this</span>.popProjectionMatrix();
+
+        <span class="hljs-keyword">if</span> ( camera.getViewport() ) {
+            <span class="hljs-keyword">this</span>.popViewport();
+        }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>restore previous state of the camera</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">this</span>.setCullSettings( previousCullsettings );
+        <span class="hljs-keyword">this</span>._computedNear = previousZnear;
+        <span class="hljs-keyword">this</span>._computedFar = previousZfar;
+
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.popStateSet();
+        }
+
+    };
+
+
+    CullVisitor.prototype[ MatrixTransform.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+        <span class="hljs-keyword">var</span> matrix = <span class="hljs-keyword">this</span>._getReservedMatrix();
+
+        <span class="hljs-keyword">if</span> ( node.getReferenceFrame() === TransformEnums.RELATIVE_RF ) {
+            <span class="hljs-keyword">var</span> lastMatrixStack = <span class="hljs-keyword">this</span>._modelviewMatrixStack[ <span class="hljs-keyword">this</span>._modelviewMatrixStack.length - <span class="hljs-number">1</span> ];
+            Matrix.mult( lastMatrixStack, node.getMatrix(), matrix );
+        } <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>absolute</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            Matrix.copy( node.getMatrix(), matrix );
+        }
+        <span class="hljs-keyword">this</span>.pushModelviewMatrix( matrix );
+
+
+        <span class="hljs-keyword">var</span> stateset = node.getStateSet();
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.pushStateSet( stateset );
+        }
+
+        <span class="hljs-keyword">if</span> ( node.light ) {
+            <span class="hljs-keyword">this</span>.addPositionedAttribute( node.light );
+        }
+
+        <span class="hljs-keyword">this</span>.handleCullCallbacksAndTraverse( node );
+
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.popStateSet();
+        }
+
+        <span class="hljs-keyword">this</span>.popModelviewMatrix();
+
+    };
+
+    CullVisitor.prototype[ Projection.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+        <span class="hljs-keyword">var</span> lastMatrixStack = <span class="hljs-keyword">this</span>._projectionMatrixStack[ <span class="hljs-keyword">this</span>._projectionMatrixStack.length - <span class="hljs-number">1</span> ];
+        <span class="hljs-keyword">var</span> matrix = <span class="hljs-keyword">this</span>._getReservedMatrix();
+        Matrix.mult( lastMatrixStack, node.getProjectionMatrix(), matrix );
+        <span class="hljs-keyword">this</span>.pushProjectionMatrix( matrix );
+
+        <span class="hljs-keyword">var</span> stateset = node.getStateSet();
+
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.pushStateSet( stateset );
+        }
+
+        <span class="hljs-keyword">this</span>.handleCullCallbacksAndTraverse( node );
+
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.popStateSet();
+        }
+
+        <span class="hljs-keyword">this</span>.popProjectionMatrix();
+    };
+
+    CullVisitor.prototype[ Node.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+
+        <span class="hljs-keyword">var</span> stateset = node.getStateSet();
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.pushStateSet( stateset );
+        }
+        <span class="hljs-keyword">if</span> ( node.light ) {
+            <span class="hljs-keyword">this</span>.addPositionedAttribute( node.light );
+        }
+
+        <span class="hljs-keyword">this</span>.handleCullCallbacksAndTraverse( node );
+
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.popStateSet();
+        }
+    };
+    CullVisitor.prototype[ LightSource.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+
+        <span class="hljs-keyword">var</span> stateset = node.getStateSet();
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.pushStateSet( stateset );
+        }
+
+        <span class="hljs-keyword">var</span> light = node.getLight();
+        <span class="hljs-keyword">if</span> ( light ) {
+            <span class="hljs-keyword">this</span>.addPositionedAttribute( light );
+        }
+
+        <span class="hljs-keyword">this</span>.handleCullCallbacksAndTraverse( node );
+
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.popStateSet();
+        }
+    };
+
+    CullVisitor.prototype[ Geometry.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+        <span class="hljs-keyword">var</span> modelview = <span class="hljs-keyword">this</span>._modelviewMatrixStack[ <span class="hljs-keyword">this</span>._modelviewMatrixStack.length - <span class="hljs-number">1</span> ];
+        <span class="hljs-keyword">var</span> bb = node.getBoundingBox();
+        <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._computeNearFar &amp;&amp; bb.valid() ) {
+            <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>.updateCalculatedNearFar( modelview, node ) ) {
+                <span class="hljs-keyword">return</span>;
+            }
+        }
+
+        <span class="hljs-keyword">var</span> stateset = node.getStateSet();
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.pushStateSet( stateset );
+        }
+
+        <span class="hljs-keyword">this</span>.handleCullCallbacksAndTraverse( node );
+
+        <span class="hljs-keyword">var</span> leafs = <span class="hljs-keyword">this</span>._currentStateGraph.leafs;
+        <span class="hljs-keyword">if</span> ( leafs.length === <span class="hljs-number">0</span> ) {
+            <span class="hljs-keyword">this</span>._currentRenderBin.addStateGraph( <span class="hljs-keyword">this</span>._currentStateGraph );
+        }
+
+        <span class="hljs-keyword">var</span> leaf = <span class="hljs-keyword">this</span>._getReservedLeaf();
+        <span class="hljs-keyword">var</span> depth = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">if</span> ( bb.valid() ) {
+            depth = <span class="hljs-keyword">this</span>.distance( bb.center(), modelview );
+        }
+        <span class="hljs-keyword">if</span> ( <span class="hljs-built_in">isNaN</span>( depth ) ) {
+            Notify.warn( <span class="hljs-string">'warning geometry has a NaN depth, '</span> + modelview + <span class="hljs-string">' center '</span> + bb.center() );
+        } <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>leaf.id = this._reserveLeafStack.current;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            leaf.parent = <span class="hljs-keyword">this</span>._currentStateGraph;
+            leaf.projection = <span class="hljs-keyword">this</span>._projectionMatrixStack[ <span class="hljs-keyword">this</span>._projectionMatrixStack.length - <span class="hljs-number">1</span> ];
+            leaf.geometry = node;
+            leaf.modelview = modelview;
+            leaf.depth = depth;
+            leafs.push( leaf );
+        }
+
+        <span class="hljs-keyword">if</span> ( stateset ) {
+            <span class="hljs-keyword">this</span>.popStateSet();
+        }
+    };
+
+    <span class="hljs-keyword">return</span> CullVisitor;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

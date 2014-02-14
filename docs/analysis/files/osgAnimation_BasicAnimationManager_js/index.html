@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgAnimation/BasicAnimationManager.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">61.26</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">206</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">63.57</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.94</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Notify&#039;,
+    &#039;osg/Utils&#039;,
+    &#039;osg/Object&#039;
+], function ( Notify, MACROUTILS, Object ) {
+
+    /**
+     *  BasicAnimationManager
+     *  @class BasicAnimationManager
+     */
+    var BasicAnimationManager = function () {
+        Object.call( this );
+        this._animations = {};
+
+        this._actives = {};
+        this._actives._keys = [];
+
+        this._lastUpdate = undefined;
+        this._targets = [];
+    };
+
+    /** @lends BasicAnimationManager.prototype */
+    BasicAnimationManager.prototype = MACROUTILS.objectInehrit( Object.prototype, {
+        _updateAnimation: function ( animationParameter, t, priority ) {
+            var duration = animationParameter.duration;
+            var weight = animationParameter.weight;
+            var animation = animationParameter.anim;
+            var start = animationParameter.start;
+            var loop = animationParameter.loop;
+
+            if ( loop &gt; 0 ) {
+                var playedTimes = t - start;
+                if ( playedTimes &gt;= loop * duration ) {
+                    return true;
+                }
+            }
+
+            t = ( t - start ) % duration;
+            var callback = animationParameter.callback;
+            if ( callback ) {
+                callback( t );
+            }
+
+            var channels = animation.getChannels();
+            for ( var i = 0, l = channels.length; i &lt; l; i++ ) {
+                var channel = channels[ i ];
+                channel.update( t, weight, priority );
+            }
+            return false;
+        },
+        update: function ( node, nv ) {
+            var t = nv.getFrameStamp().getSimulationTime();
+            this.updateManager( t );
+            return true;
+        },
+        updateManager: function ( t ) {
+
+            var targets = this._targets;
+            for ( var i = 0, l = targets.length; i &lt; l; i++ ) {
+                targets[ i ].reset();
+            }
+            if ( this._actives._keys.length &gt; 0 ) {
+                var pri = this._actives._keys.length - 1;
+                while ( pri &gt;= 0 ) {
+                    var layer = this._actives[ pri ];
+                    var keys = this._actives[ pri ]._keys;
+                    var removes = [];
+                    for ( var ai = 0, al = keys.length; ai &lt; al; ai++ ) {
+                        var key = keys[ ai ];
+                        var anim = layer[ key ];
+                        if ( anim.start === undefined ) {
+                            anim.start = t;
+                        }
+                        var remove = this._updateAnimation( anim, t, pri );
+                        if ( remove ) {
+                            removes.push( ai );
+                        }
+                    }
+
+                    // remove finished animation
+                    for ( var j = removes.length - 1; j &gt;= 0; j-- ) {
+                        var k = keys[ j ];
+                        keys.splice( j, 1 );
+                        delete layer[ k ];
+                    }
+
+                    pri--;
+                }
+            }
+        },
+
+        stopAll: function () {},
+        isPlaying: function ( name ) {
+            if ( this._actives._keys.length &gt; 0 ) {
+                var pri = this._actives._keys.length - 1;
+                while ( pri &gt;= 0 ) {
+                    if ( this._actives[ pri ][ name ] ) {
+                        return true;
+                    }
+                    pri--;
+                }
+            }
+            return false;
+        },
+        stopAnimation: function ( name ) {
+            if ( this._actives._keys.length &gt; 0 ) {
+                var pri = this._actives._keys.length - 1;
+                var filterFunction = function ( element /*, index , array */ ) {
+                    return element !== &#039;_keys&#039;;
+                };
+                while ( pri &gt;= 0 ) {
+                    if ( this._actives[ pri ][ name ] ) {
+                        delete this._actives[ pri ][ name ];
+                        this._actives[ pri ]._keys = window.Object.keys( this._actives[ pri ] ).filter( filterFunction );
+                        return;
+                    }
+                    pri--;
+                }
+            }
+        },
+        playAnimationObject: function ( obj ) {
+            if ( obj.name === undefined ) {
+                return;
+            }
+
+            var anim = this._animations[ obj.name ];
+            if ( anim === undefined ) {
+                Notify.info( &#039;no animation &#039; + obj.name + &#039; found&#039; );
+                return;
+            }
+
+            if ( this.isPlaying( obj.name ) ) {
+                return;
+            }
+
+            if ( obj.priority === undefined ) {
+                obj.priority = 0;
+            }
+
+            if ( obj.weight === undefined ) {
+                obj.weight = 1.0;
+            }
+
+            if ( obj.timeFactor === undefined ) {
+                obj.timeFactor = 1.0;
+            }
+
+            if ( obj.loop === undefined ) {
+                obj.loop = 0;
+            }
+
+            if ( this._actives[ obj.priority ] === undefined ) {
+                this._actives[ obj.priority ] = {};
+                this._actives[ obj.priority ]._keys = [];
+                this._actives._keys.push( obj.priority ); // = window.Object.keys(this._actives);
+            }
+
+            obj.start = undefined;
+            obj.duration = anim.getDuration();
+            obj.anim = anim;
+            this._actives[ obj.priority ][ obj.name ] = obj;
+            this._actives[ obj.priority ]._keys.push( obj.name );
+        },
+
+        playAnimation: function ( name, priority, weight ) {
+            var animName = name;
+            if ( typeof name === &#039;object&#039; ) {
+                if ( name.getName === undefined ) {
+                    return this.playAnimationObject( name );
+                } else {
+                    animName = name.getName();
+                }
+            }
+            var obj = {
+                &#039;name&#039;: animName,
+                &#039;priority&#039;: priority,
+                &#039;weight&#039;: weight
+            };
+
+            return this.playAnimationObject( obj );
+        },
+
+        registerAnimation: function ( anim ) {
+            this._animations[ anim.getName() ] = anim;
+            this.buildTargetList();
+        },
+        getAnimationMap: function () {
+            return this._animations;
+        },
+        buildTargetList: function () {
+            this._targets.length = 0;
+            var keys = window.Object.keys( this._animations );
+            for ( var i = 0, l = keys.length; i &lt; l; i++ ) {
+                var a = this._animations[ keys[ i ] ];
+                var channels = a.getChannels();
+                for ( var c = 0, lc = channels.length; c &lt; lc; c++ ) {
+                    var channel = channels[ c ];
+                    this._targets.push( channel.getTarget() );
+                }
+            }
+        }
+
+    } );
+
+    return BasicAnimationManager;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgWrappers/serializers/osg.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">67.74</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">446</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">49.86</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">4.28</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;Q&#039;
+], function ( Q ) {
+
+    var osgWrapper = {};
+
+    osgWrapper.Object = function ( input, obj ) {
+        var jsonObj = input.getJSON();
+        var check = function ( /*o*/ ) {
+            return true;
+        };
+        if ( !check( jsonObj ) ) {
+            return undefined;
+        }
+
+        if ( jsonObj.Name ) {
+            obj.setName( jsonObj.Name );
+        }
+
+        if ( jsonObj.UserDataContainer ) {
+            var userdata = input.setJSON( jsonObj.UserDataContainer ).readUserDataContainer();
+            if ( userdata !== undefined ) {
+                obj.setUserData( userdata );
+            }
+        }
+
+        return obj;
+    };
+
+    osgWrapper.Node = function ( input, node ) {
+        var jsonObj = input.getJSON();
+
+        var check = function ( /*o*/ ) {
+            return true;
+        };
+        if ( !check( jsonObj ) ) {
+            return undefined;
+        }
+
+        osgWrapper.Object( input, node );
+
+        var promiseArray = [];
+
+        var createCallback = function ( jsonCallback ) {
+            var promise = input.setJSON( jsonCallback ).readObject();
+            var df = Q.defer();
+            promiseArray.push( df.promise );
+            Q.when( promise ).then( function ( cb ) {
+                if ( cb ) {
+                    node.addUpdateCallback( cb );
+                }
+                df.resolve();
+            } );
+        };
+
+        if ( jsonObj.UpdateCallbacks ) {
+            for ( var j = 0, l = jsonObj.UpdateCallbacks.length; j &lt; l; j++ ) {
+                createCallback( jsonObj.UpdateCallbacks[ j ] );
+            }
+        }
+
+
+        if ( jsonObj.StateSet ) {
+            var pp = input.setJSON( jsonObj.StateSet ).readObject();
+            var df = Q.defer();
+            promiseArray.push( df.promise );
+            Q.when( pp ).then( function ( stateset ) {
+                node.setStateSet( stateset );
+                df.resolve();
+            } );
+        }
+
+        var createChildren = function ( jsonChildren ) {
+            var promise = input.setJSON( jsonChildren ).readObject();
+            var df = Q.defer();
+            promiseArray.push( df.promise );
+            Q.when( promise ).then( function ( obj ) {
+                if ( obj ) {
+                    node.addChild( obj );
+                }
+                df.resolve( obj );
+            } );
+        };
+
+        if ( jsonObj.Children ) {
+            for ( var i = 0, k = jsonObj.Children.length; i &lt; k; i++ ) {
+                createChildren( jsonObj.Children[ i ] );
+            }
+        }
+
+        var defer = Q.defer();
+        Q.all( promiseArray ).then( function () {
+            defer.resolve( node );
+        } );
+
+        return defer.promise;
+    };
+
+    osgWrapper.StateSet = function ( input, stateSet ) {
+        var jsonObj = input.getJSON();
+        var check = function ( /*o*/ ) {
+            return true;
+        };
+
+        if ( !check( jsonObj ) ) {
+            return;
+        }
+
+        osgWrapper.Object( input, stateSet );
+
+        if ( jsonObj.RenderingHint !== undefined ) {
+            stateSet.setRenderingHint( jsonObj.RenderingHint );
+        }
+
+        var createAttribute = function ( jsonAttribute ) {
+            var promise = input.setJSON( jsonAttribute ).readObject();
+            var df = Q.defer();
+            promiseArray.push( df.promise );
+            Q.when( promise ).then( function ( attribute ) {
+                if ( attribute !== undefined ) {
+                    stateSet.setAttributeAndMode( attribute );
+                }
+                df.resolve();
+            } );
+        };
+
+        var promiseArray = [];
+
+        if ( jsonObj.AttributeList !== undefined ) {
+            for ( var i = 0, l = jsonObj.AttributeList.length; i &lt; l; i++ ) {
+                createAttribute( jsonObj.AttributeList[ i ] );
+            }
+        }
+
+        var createTextureAttribute = function ( unit, textureAttribute ) {
+            var promise = input.setJSON( textureAttribute ).readObject();
+            var df = Q.defer();
+            promiseArray.push( df.promise );
+            Q.when( promise ).then( function ( attribute ) {
+                if ( attribute )
+                    stateSet.setTextureAttributeAndMode( unit, attribute );
+                df.resolve();
+            } );
+        };
+
+        if ( jsonObj.TextureAttributeList ) {
+            var textures = jsonObj.TextureAttributeList;
+            for ( var t = 0, lt = textures.length; t &lt; lt; t++ ) {
+                var textureAttributes = textures[ t ];
+                for ( var a = 0, al = textureAttributes.length; a &lt; al; a++ ) {
+                    createTextureAttribute( t, textureAttributes[ a ] );
+                }
+            }
+        }
+
+        var defer = Q.defer();
+        Q.all( promiseArray ).then( function () {
+            defer.resolve( stateSet );
+        } );
+
+        return defer.promise;
+    };
+
+    osgWrapper.Material = function ( input, material ) {
+        var jsonObj = input.getJSON();
+
+        var check = function ( o ) {
+            if ( o.Diffuse !== undefined &amp;&amp;
+                o.Emission !== undefined &amp;&amp;
+                o.Specular !== undefined &amp;&amp;
+                o.Shininess !== undefined ) {
+                return true;
+            }
+            return false;
+        };
+
+        if ( !check( jsonObj ) ) {
+            return;
+        }
+
+        osgWrapper.Object( input, material );
+
+        material.setAmbient( jsonObj.Ambient );
+        material.setDiffuse( jsonObj.Diffuse );
+        material.setEmission( jsonObj.Emission );
+        material.setSpecular( jsonObj.Specular );
+        material.setShininess( jsonObj.Shininess );
+        return material;
+    };
+
+
+    osgWrapper.BlendFunc = function ( input, blend ) {
+        var jsonObj = input.getJSON();
+        var check = function ( o ) {
+            if ( o.SourceRGB &amp;&amp; o.SourceAlpha &amp;&amp; o.DestinationRGB &amp;&amp; o.DestinationAlpha ) {
+                return true;
+            }
+            return false;
+        };
+        if ( !check( jsonObj ) ) {
+            return;
+        }
+
+        osgWrapper.Object( input, blend );
+
+        blend.setSourceRGB( jsonObj.SourceRGB );
+        blend.setSourceAlpha( jsonObj.SourceAlpha );
+        blend.setDestinationRGB( jsonObj.DestinationRGB );
+        blend.setDestinationAlpha( jsonObj.DestinationAlpha );
+        return blend;
+    };
+
+    osgWrapper.CullFace = function ( input, attr ) {
+        var jsonObj = input.getJSON();
+        var check = function ( o ) {
+            if ( o.Mode !== undefined ) {
+                return true;
+            }
+            return false;
+        };
+        if ( !check( jsonObj ) ) {
+            return;
+        }
+
+        osgWrapper.Object( input, attr );
+        attr.setMode( jsonObj.Mode );
+        return attr;
+    };
+
+    osgWrapper.BlendColor = function ( input, attr ) {
+        var jsonObj = input.getJSON();
+        var check = function ( o ) {
+            if ( o.ConstantColor !== undefined ) {
+                return true;
+            }
+            return false;
+        };
+        if ( !check( jsonObj ) ) {
+            return;
+        }
+
+        osgWrapper.Object( input, attr );
+        attr.setConstantColor( jsonObj.ConstantColor );
+        return attr;
+    };
+
+    osgWrapper.Light = function ( input, light ) {
+        var jsonObj = input.getJSON();
+        var check = function ( o ) {
+            if ( o.LightNum !== undefined &amp;&amp;
+                o.Ambient !== undefined &amp;&amp;
+                o.Diffuse !== undefined &amp;&amp;
+                o.Direction !== undefined &amp;&amp;
+                o.Position !== undefined &amp;&amp;
+                o.Specular !== undefined &amp;&amp;
+                o.SpotCutoff !== undefined &amp;&amp;
+                o.LinearAttenuation !== undefined &amp;&amp;
+                o.ConstantAttenuation !== undefined &amp;&amp;
+                o.QuadraticAttenuation !== undefined ) {
+                return true;
+            }
+            return false;
+        };
+        if ( !check( jsonObj ) ) {
+            return undefined;
+        }
+
+        osgWrapper.Object( input, light );
+        light.setAmbient( jsonObj.Ambient );
+        light.setConstantAttenuation( jsonObj.ConstantAttenuation );
+        light.setDiffuse( jsonObj.Diffuse );
+        light.setDirection( jsonObj.Direction );
+        light.setLightNumber( jsonObj.LightNum );
+        light.setLinearAttenuation( jsonObj.LinearAttenuation );
+        light.setPosition( jsonObj.Position );
+        light.setQuadraticAttenuation( jsonObj.QuadraticAttenuation );
+        light.setSpecular( jsonObj.Specular );
+        light.setSpotCutoff( jsonObj.SpotCutoff );
+        light.setSpotBlend( 0.01 );
+        if ( jsonObj.SpotExponent !== undefined ) {
+            light.setSpotBlend( jsonObj.SpotExponent / 128.0 );
+        }
+        return light;
+    };
+
+    osgWrapper.Texture = function ( input, texture ) {
+        var jsonObj = input.getJSON();
+        var check = function ( /*o*/ ) {
+            return true;
+        };
+        if ( !check( jsonObj ) ) {
+            return undefined;
+        }
+
+        osgWrapper.Object( input, texture );
+
+        if ( jsonObj.MinFilter !== undefined ) {
+            texture.setMinFilter( jsonObj.MinFilter );
+        }
+        if ( jsonObj.MagFilter !== undefined ) {
+            texture.setMagFilter( jsonObj.MagFilter );
+        }
+
+        if ( jsonObj.WrapT !== undefined ) {
+            texture.setWrapT( jsonObj.WrapT );
+        }
+        if ( jsonObj.WrapS !== undefined ) {
+            texture.setWrapS( jsonObj.WrapS );
+        }
+
+        // no file return dummy texture
+        var file = jsonObj.File;
+        if ( file === undefined ) {
+            file = &#039;no-image-provided&#039;;
+        }
+
+        var defer = Q.defer();
+        Q.when( input.readImageURL( file ) ).then(
+            function ( img ) {
+                texture.setImage( img );
+                defer.resolve( texture );
+            } );
+        return defer.promise;
+    };
+
+    osgWrapper.Projection = function ( input, node ) {
+        var jsonObj = input.getJSON();
+        var check = function ( o ) {
+            if ( o.Matrix !== undefined ) {
+                return true;
+            }
+            return false;
+        };
+        if ( !check( jsonObj ) ) {
+            return;
+        }
+
+        var promise = osgWrapper.Node( input, node );
+
+        if ( jsonObj.Matrix !== undefined ) {
+            node.setMatrix( jsonObj.Matrix );
+        }
+        return promise;
+    };
+
+    osgWrapper.MatrixTransform = function ( input, node ) {
+        var jsonObj = input.getJSON();
+        var check = function ( o ) {
+            if ( o.Matrix ) {
+                return true;
+            }
+            return false;
+        };
+        if ( !check( jsonObj ) ) {
+            return undefined;
+        }
+
+        var promise = osgWrapper.Node( input, node );
+
+        if ( jsonObj.Matrix !== undefined ) {
+            node.setMatrix( jsonObj.Matrix );
+        }
+        return promise;
+    };
+
+    osgWrapper.LightSource = function ( input, node ) {
+        var jsonObj = input.getJSON();
+        var check = function ( o ) {
+            if ( o.Light !== undefined ) {
+                return true;
+            }
+            return false;
+        };
+        if ( !check( jsonObj ) ) {
+            return undefined;
+        }
+
+        var defer = Q.defer();
+        var promise = osgWrapper.Node( input, node );
+        Q.all( [ input.setJSON( jsonObj.Light ).readObject(), promise ] ).then( function ( args ) {
+            var light = args[ 0 ];
+            //var lightsource = args[ 1 ];
+            node.setLight( light );
+            defer.resolve( node );
+        } );
+        return defer.promise;
+    };
+
+    osgWrapper.Geometry = function ( input, node ) {
+        var jsonObj = input.getJSON();
+        var check = function ( o ) {
+            if ( o.PrimitiveSetList !== undefined &amp;&amp; o.VertexAttributeList !== undefined ) {
+                return true;
+            }
+            return false;
+        };
+        if ( !check( jsonObj ) ) {
+            return;
+        }
+
+        var arraysPromise = [];
+        arraysPromise.push( osgWrapper.Node( input, node ) );
+
+        var createPrimitive = function ( jsonPrimitive ) {
+            var defer = Q.defer();
+            arraysPromise.push( defer.promise );
+            var promise = input.setJSON( jsonPrimitive ).readPrimitiveSet();
+            Q.when( promise ).then( function ( primitiveSet ) {
+                if ( primitiveSet !== undefined ) {
+                    node.getPrimitives().push( primitiveSet );
+                }
+                defer.resolve( primitiveSet );
+            } );
+        };
+
+        for ( var i = 0, l = jsonObj.PrimitiveSetList.length; i &lt; l; i++ ) {
+            var entry = jsonObj.PrimitiveSetList[ i ];
+            createPrimitive( entry );
+        }
+
+        var createVertexAttribute = function ( name, jsonAttribute ) {
+            var defer = Q.defer();
+            arraysPromise.push( defer.promise );
+            var promise = input.setJSON( jsonAttribute ).readBufferArray();
+            Q.when( promise ).then( function ( buffer ) {
+                if ( buffer !== undefined ) {
+                    node.getVertexAttributeList()[ name ] = buffer;
+                }
+                defer.resolve( buffer );
+            } );
+        };
+        for ( var key in jsonObj.VertexAttributeList ) {
+            if ( jsonObj.VertexAttributeList.hasOwnProperty( key ) ) {
+                createVertexAttribute( key, jsonObj.VertexAttributeList[ key ] );
+            }
+        }
+
+        var defer = Q.defer();
+        Q.all( arraysPromise ).then( function () {
+            defer.resolve( node );
+        } );
+        return defer.promise;
+    };
+
+    return osgWrapper;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

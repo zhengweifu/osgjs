@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>Viewer/eventProxy/StandardMouseKeyboard.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">63.37</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">2.21</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">61.18</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">214 / 152</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">osgViewer.EventProxy = osgViewer.EventProxy || {};
+
+osgViewer.EventProxy.StandardMouseKeyboard = (function() {
+
+    var EventConsumer = function(viewer) {
+        this._enable = true;
+        this._viewer = viewer;
+        this._type = 'StandardMouseKeyboard';
+
+        this._mouseEventNode = undefined;
+        this._wheelEventNode = undefined;
+        this._keyboardEventNode = undefined;
+        this._eventList = [ 'mousedown', 'mouseup', 'mousemove', 'dblclick'];
+        this._mousePosition = [ 0, 0];
+    };
+
+    EventConsumer.prototype = {
+        init: function(args) {
+
+            this.removeEventListeners(this._mouseEventNode, this._wheelEventNode, this._keyboardEventNode);
+
+            var mouse = args.mouseEventNode;
+            var mousewheel = args.wheelEventNode || mouse;
+            var keyboard = args.keyboardEventNode || mouse;
+
+            this.addEventListeners(mouse, mousewheel, keyboard);
+            this._mouseEventNode = mouse;
+            this._wheelEventNode = mousewheel;
+            this._keyboardEventNode = keyboard;
+        },
+
+        addEventListeners: function(mouse, mousewheel, keyboard) {
+            if (mouse) {
+                for (var i = 0, l = this._eventList.length; i < l; i++) {
+                    var ev = this._eventList[i];
+                    if (this[ev]) {
+                        mouse.addEventListener(ev, this[ev].bind(this), false);
+                    }
+                }
+            }
+            if (mousewheel) {
+                mousewheel.addEventListener("DOMMouseScroll", this.mousewheel.bind(this), false);
+                mousewheel.addEventListener("mousewheel", this.mousewheel.bind(this), false);
+            }
+
+            if (keyboard) {
+                keyboard.addEventListener("keydown", this.keydown.bind(this), false);
+                keyboard.addEventListener("keyup", this.keyup.bind(this), false);
+            }
+        },
+
+        removeEventListeners: function(mouse, mousewheel, keyboard) {
+            if (mouse) {
+                for (var i = 0, l = this._eventList.length; i < l; i++) {
+                    var ev = this._eventList[i];
+                    if (this[ev]) {
+                        mouse.removeEventListener(ev, this[ev]);
+                    }
+                }
+            }
+            if (mousewheel) {
+                mousewheel.removeEventListener("DOMMouseScroll", this.mousewheel);
+                mousewheel.removeEventListener("mousewheel", this.mousewheel);
+            }
+            if (keyboard) {
+                keyboard.removeEventListener("keydown", this.keydown);
+                keyboard.removeEventListener("keyup", this.keyup);
+            }
+        },
+
+        isValid: function() {
+            if (this._enable && this._viewer.getManipulator() && this._viewer.getManipulator().getControllerList()[this._type])
+                return true;
+            return false;
+        },
+        getManipulatorController: function() {
+            return this._viewer.getManipulator().getControllerList()[this._type];
+        },
+        keyup: function(ev) {
+            if (!this.isValid())
+                return;
+            if (this.getManipulatorController().keyup)
+                return this.getManipulatorController().keyup(ev);
+        },
+        keydown: function(ev) {
+            if (!this.isValid())
+                return;
+            if (this.getManipulatorController().keydown)
+                return this.getManipulatorController().keydown(ev);
+        },
+
+        mousedown: function(ev) {
+            if (!this.isValid())
+                return;
+            if (this.getManipulatorController().mousedown)
+                return this.getManipulatorController().mousedown(ev);
+        },
+
+        mouseup: function(ev) {
+            if (!this.isValid())
+                return;
+            if (this.getManipulatorController().mouseup)
+                return this.getManipulatorController().mouseup(ev);
+        },
+
+        mousemove: function(ev) {
+            if (!this.isValid())
+                return;
+            if (this.getManipulatorController().mousemove)
+                return this.getManipulatorController().mousemove(ev);
+        },
+
+        dblclick: function(ev) {
+            if (!this.isValid())
+                return;
+            if (this.getManipulatorController().dblclick)
+                return this.getManipulatorController().dblclick(ev);
+        },
+
+        mousewheel: function (event) {
+            if (!this.isValid())
+                return;
+
+            var manipulatorAdapter = this.getManipulatorController();
+            if (!manipulatorAdapter.mousewheel)
+                return;
+
+            // from jquery
+            var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
+            //event = $.event.fix(orgEvent);
+            event.type = "mousewheel";
+
+            // Old school scrollwheel delta
+            if ( event.wheelDelta ) { delta = event.wheelDelta/120; }
+            if ( event.detail     ) { delta = -event.detail/3; }
+
+            // New school multidimensional scroll (touchpads) deltas
+            deltaY = delta;
+
+            // Gecko
+            if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
+                deltaY = 0;
+                deltaX = -1*delta;
+            }
+
+            // Webkit
+            if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
+            if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
+            // Add event and delta to the front of the arguments
+            args.unshift(event, delta, deltaX, deltaY);
+
+            return this.getManipulatorController().mousewheel.apply(manipulatorAdapter, args);
+        },
+
+        divGlobalOffset: function(obj) {
+            var x=0, y=0;
+            x = obj.offsetLeft;
+            y = obj.offsetTop;
+            var body = document.getElementsByTagName('body')[0];
+            while (obj.offsetParent && obj!=body){
+                x += obj.offsetParent.offsetLeft;
+                y += obj.offsetParent.offsetTop;
+                obj = obj.offsetParent;
+            }
+            this._mousePosition[0] = x;
+            this._mousePosition[1] = y;
+            return this._mousePosition;
+        },
+
+        getPositionRelativeToCanvas: function(e, result) {
+            var myObject = e.target;
+            var posx,posy;
+            if (e.pageX || e.pageY) {
+                posx = e.pageX;
+                posy = e.pageY;
+            } else if (e.clientX || e.clientY) {
+                posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+
+            // posx and posy contain the mouse position relative to the document
+            // Do something with this information
+            var globalOffset = this.divGlobalOffset(myObject);
+            posx = posx - globalOffset[0];
+            posy = myObject.height-(posy - globalOffset[1]);
+
+            // NaN in camera check here
+            if (isNaN(posx) || isNaN(posy) ){
+                //debugger;
+            }
+
+            // copy data to result if need to keep result
+            // else we use a tmp variable inside manipulator
+            // that we override at each call
+            if (result === undefined) {
+                result = this._mousePosition;
+            }
+            result[0] = posx;
+            result[1] = posy;
+            return result;
+        },
+
+        // use the update to set the input device to mouse controller
+        // it's needed to compute size
+        update: function() {
+            if (!this.isValid())
+                return;
+
+            this.getManipulatorController().setEventProxy(this);
+        }
+        
+    };
+    return EventConsumer;
+})();</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

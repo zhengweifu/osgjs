@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osg/Camera.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">74.15</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">157</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">19.09</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.07</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Utils&#039;,
+    &#039;osg/Transform&#039;,
+    &#039;osg/CullSettings&#039;,
+    &#039;osg/Matrix&#039;,
+    &#039;osg/TransformEnums&#039;
+], function ( MACROUTILS, Transform, CullSettings, Matrix, TransformEnums ) {
+
+    /**
+     * Camera - is a subclass of Transform which represents encapsulates the settings of a Camera.
+     * @class Camera
+     * @inherits Transform CullSettings
+     */
+    var Camera = function () {
+        Transform.call( this );
+        CullSettings.call( this );
+
+        this.viewport = undefined;
+        this.setClearColor( [ 0, 0, 0, 1.0 ] );
+        this.setClearDepth( 1.0 );
+
+        /*jshint bitwise: false */
+        this.setClearMask( Camera.COLOR_BUFFER_BIT | Camera.DEPTH_BUFFER_BIT );
+        /*jshint bitwise: true */
+
+        this.setViewMatrix( Matrix.makeIdentity( [] ) );
+        this.setProjectionMatrix( Matrix.makeIdentity( [] ) );
+        this.renderOrder = Camera.NESTED_RENDER;
+        this.renderOrderNum = 0;
+    };
+
+    Camera.PRE_RENDER = 0;
+    Camera.NESTED_RENDER = 1;
+    Camera.POST_RENDER = 2;
+
+    Camera.COLOR_BUFFER_BIT = 0x00004000;
+    Camera.DEPTH_BUFFER_BIT = 0x00000100;
+    Camera.STENCIL_BUFFER_BIT = 0x00000400;
+
+    /** @lends Camera.prototype */
+    Camera.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit(
+        CullSettings.prototype,
+        MACROUTILS.objectInehrit( Transform.prototype, {
+
+            setClearDepth: function ( depth ) {
+                this.clearDepth = depth;
+            },
+            getClearDepth: function () {
+                return this.clearDepth;
+            },
+
+            setClearMask: function ( mask ) {
+                this.clearMask = mask;
+            },
+            getClearMask: function () {
+                return this.clearMask;
+            },
+
+            setClearColor: function ( color ) {
+                this.clearColor = color;
+            },
+            getClearColor: function () {
+                return this.clearColor;
+            },
+
+            setViewport: function ( vp ) {
+                this.viewport = vp;
+                this.getOrCreateStateSet().setAttributeAndMode( vp );
+            },
+            getViewport: function () {
+                return this.viewport;
+            },
+
+
+            setViewMatrix: function ( matrix ) {
+                this.modelviewMatrix = matrix;
+            },
+
+            setProjectionMatrix: function ( matrix ) {
+                this.projectionMatrix = matrix;
+            },
+
+            /** Set to an orthographic projection. See OpenGL glOrtho for documentation further details.*/
+            setProjectionMatrixAsOrtho: function ( left, right,
+                bottom, top,
+                zNear, zFar ) {
+                Matrix.makeOrtho( left, right, bottom, top, zNear, zFar, this.getProjectionMatrix() );
+            },
+
+            getViewMatrix: function () {
+                return this.modelviewMatrix;
+            },
+            getProjectionMatrix: function () {
+                return this.projectionMatrix;
+            },
+            getRenderOrder: function () {
+                return this.renderOrder;
+            },
+            setRenderOrder: function ( order, orderNum ) {
+                this.renderOrder = order;
+                this.renderOrderNum = orderNum;
+            },
+
+            attachTexture: function ( bufferComponent, texture, level ) {
+                if ( this.frameBufferObject ) {
+                    this.frameBufferObject.dirty();
+                }
+                if ( level === undefined ) {
+                    level = 0;
+                }
+                if ( this.attachments === undefined ) {
+                    this.attachments = {};
+                }
+                this.attachments[ bufferComponent ] = {
+                    &#039;texture&#039;: texture,
+                    &#039;level&#039;: level
+                };
+            },
+
+            attachRenderBuffer: function ( bufferComponent, internalFormat ) {
+                if ( this.frameBufferObject ) {
+                    this.frameBufferObject.dirty();
+                }
+                if ( this.attachments === undefined ) {
+                    this.attachments = {};
+                }
+                this.attachments[ bufferComponent ] = {
+                    &#039;format&#039;: internalFormat
+                };
+            },
+
+            computeLocalToWorldMatrix: function ( matrix /*,nodeVisitor*/ ) {
+                if ( this.referenceFrame === TransformEnums.RELATIVE_RF ) {
+                    Matrix.preMult( matrix, this.modelviewMatrix );
+                } else { // absolute
+                    matrix = this.modelviewMatrix;
+                }
+                return true;
+            },
+
+            computeWorldToLocalMatrix: function ( matrix /*, nodeVisitor */ ) {
+                var inverse = [];
+                Matrix.inverse( this.modelviewMatrix, inverse );
+                if ( this.referenceFrame === TransformEnums.RELATIVE_RF ) {
+                    Matrix.postMult( inverse, matrix );
+                } else {
+                    matrix = inverse;
+                }
+                return true;
+            }
+
+        } ) ), &#039;osg&#039;, &#039;Camera&#039; );
+
+    MACROUTILS.setTypeID( Camera );
+
+    return Camera;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

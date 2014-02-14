@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgUtil/TriangleIntersect.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">59.33</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">128</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">59.27</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.57</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Vec3&#039;,
+    &#039;osg/TriangleIndexFunctor&#039;
+], function( Vec3, TriangleIndexFunctor ) {
+
+    var TriangleHit = function( index, normal, r1, v1, r2, v2, r3, v3 ) {
+        this.index = index;
+        this.normal = normal;
+        this.r1 = r1;
+        this.v1 = v1;
+        this.r2 = r2;
+        this.v2 = v2;
+        this.r3 = r3;
+        this.v3 = v3;
+    };
+
+    var TriangleIntersect = function() {
+        this.hits = [];
+        this.nodePath = [];
+        this.index = 0;
+    };
+
+    TriangleIntersect.prototype = {
+        setNodePath: function( np ) {
+            this.nodePath = np;
+        },
+        set: function( start, end ) {
+            this.start = start;
+            this.end = end;
+            this.dir = Vec3.sub( end, start, [] );
+            this.length = Vec3.length( this.dir );
+            this.invLength = 1.0 / this.length;
+            Vec3.mult( this.dir, this.invLength, this.dir );
+        },
+
+        apply: function( node ) {
+            if ( !node.getAttributes().Vertex ) {
+                return;
+            }
+            var vertices = node.getAttributes().Vertex.getElements();
+            var self = this;
+            var v1 = [ 0.0, 0.0, 0.0 ];
+            var v2 = [ 0.0, 0.0, 0.0 ];
+            var v3 = [ 0.0, 0.0, 0.0 ];
+            var cb = function( i1, i2, i3 ) {
+                if ( i1 === i2 || i1 === i3 || i2 === i3 )
+                    return;
+                var j = i1 * 3;
+                v1[ 0 ] = vertices[ j ];
+                v1[ 1 ] = vertices[ j + 1 ];
+                v1[ 2 ] = vertices[ j + 2 ];
+                j = i2 * 3;
+                v2[ 0 ] = vertices[ j ];
+                v2[ 1 ] = vertices[ j + 1 ];
+                v2[ 2 ] = vertices[ j + 2 ];
+                j = i3 * 3;
+                v3[ 0 ] = vertices[ j ];
+                v3[ 1 ] = vertices[ j + 1 ];
+                v3[ 2 ] = vertices[ j + 2 ];
+                self.intersect( v1, v2, v3 );
+            };
+            var tif = new TriangleIndexFunctor( node, cb );
+            tif.apply();
+        },
+
+        intersect: ( function() {
+            var normal = [ 0.0, 0.0, 0.0 ];
+            var e2 = [ 0.0, 0.0, 0.0 ];
+            var e1 = [ 0.0, 0.0, 0.0 ];
+            var tvec = [ 0.0, 0.0, 0.0 ];
+            var pvec = [ 0.0, 0.0, 0.0 ];
+            var qvec = [ 0.0, 0.0, 0.0 ];
+            var epsilon = 1E-20;
+            return function( v0, v1, v2 ) {
+                this.index++;
+                var d = this.dir;
+
+                Vec3.sub( v2, v0, e2 );
+                Vec3.sub( v1, v0, e1 );
+                Vec3.cross( d, e2, pvec );
+
+                var det = Vec3.dot( pvec, e1 );
+                if ( det &gt; -epsilon &amp;&amp; det &lt; epsilon )
+                    return;
+                var invDet = 1.0 / det;
+
+                Vec3.sub( this.start, v0, tvec );
+
+                var u = Vec3.dot( pvec, tvec ) * invDet;
+                if ( u &lt; 0.0 || u &gt; 1.0 )
+                    return;
+
+                Vec3.cross( tvec, e1, qvec );
+
+                var v = Vec3.dot( qvec, d ) * invDet;
+                if ( v &lt; 0.0 || ( u + v ) &gt; 1.0 )
+                    return;
+
+                var t = Vec3.dot( qvec, e2 ) * invDet;
+
+                if ( t &lt; epsilon || t &gt; this.length ) //no intersection
+                    return;
+
+                var r0 = 1.0 - u - v;
+                var r1 = u;
+                var r2 = v;
+                var r = t * this.invLength;
+
+                var interX = v0[ 0 ] * r0 + v1[ 0 ] * r1 + v2[ 0 ] * r2;
+                var interY = v0[ 1 ] * r0 + v1[ 1 ] * r1 + v2[ 1 ] * r2;
+                var interZ = v0[ 2 ] * r0 + v1[ 2 ] * r1 + v2[ 2 ] * r2;
+
+                Vec3.cross( e1, e2, normal );
+                Vec3.normalize( normal, normal );
+
+                this.hits.push( {
+                    &#039;ratio&#039;: r,
+                    &#039;nodepath&#039;: this.nodePath.slice( 0 ),
+                    &#039;triangleHit&#039;: new TriangleHit( this.index - 1, normal.slice( 0 ), r0, v0.slice( 0 ), r1, v1.slice( 0 ), r2, v2.slice( 0 ) ),
+                    &#039;point&#039;: [ interX, interY, interZ ]
+                } );
+                this.hit = true;
+            };
+        } )()
+    };
+
+    return TriangleIntersect;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

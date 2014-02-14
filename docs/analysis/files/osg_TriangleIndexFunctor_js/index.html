@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osg/TriangleIndexFunctor.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">63.00</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">99</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">65.86</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">0.94</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Vec3&#039;,
+    &#039;osg/PrimitiveSet&#039;
+], function( Vec3, PrimitiveSet ) {
+
+    // This class can be used to visit all the triangles of a geometry
+    // You feed it with a callback that will be called for each triangle
+    // (with the 3 indexes of vertices as arguments)
+    var TriangleIndexFunctor = function( geom, cb ) {
+        this._geom = geom;
+        this._cb = cb;
+    };
+
+    TriangleIndexFunctor.prototype = {
+        applyDrawElementsTriangles: function( count, indexes ) {
+            var cb = this._cb;
+            for ( var i = 0; i &lt; count; i += 3 ) {
+                cb( indexes[ i ], indexes[ i + 1 ], indexes[ i + 2 ] );
+            }
+        },
+
+        applyDrawElementsTriangleStrip: function( count, indexes ) {
+            var cb = this._cb;
+            for ( var i = 2, j = 0; i &lt; count; ++i, ++j ) {
+                if ( i % 2 ) cb( indexes[ j ], indexes[ j + 2 ], indexes[ j + 1 ] );
+                else cb( indexes[ j ], indexes[ j + 1 ], indexes[ j + 2 ] );
+            }
+        },
+
+        applyDrawElementsTriangleFan: function( count, indexes ) {
+            var cb = this._cb;
+            var first = indexes[ 0 ];
+            for ( var i = 2, j = 1; i &lt; count; ++i, ++j ) {
+                cb( first, indexes[ j ], indexes[ j + 1 ] );
+            }
+        },
+
+        applyDrawArraysTriangles: function( first, count ) {
+            var cb = this._cb;
+            for ( var i = 2, pos = first; i &lt; count; i += 3, pos += 3 ) {
+                cb( pos, pos + 1, pos + 2 );
+            }
+        },
+
+        applyDrawArraysTriangleStrip: function( first, count ) {
+            var cb = this._cb;
+            for ( var i = 2, pos = first; i &lt; count; ++i, ++pos ) {
+                if ( i % 2 ) cb( pos, pos + 2, pos + 1 );
+                else cb( pos, pos + 1, pos + 2 );
+            }
+        },
+
+        applyDrawArraysTriangleFan: function( first, count ) {
+            var cb = this._cb;
+            for ( var i = 2, pos = first + 1; i &lt; count; ++i, ++pos ) {
+                cb( first, pos, pos + 1 );
+            }
+        },
+
+        apply: function() {
+            var geom = this._geom;
+            var primitives = geom.primitives;
+            if ( !primitives )
+                return;
+            var nbPrimitives = primitives.length;
+            for ( var i = 0; i &lt; nbPrimitives; i++ ) {
+                var primitive = primitives[ i ];
+                if ( primitive.getIndices !== undefined ) {
+                    var indexes = primitive.indices.getElements();
+                    switch ( primitive.getMode() ) {
+                        case PrimitiveSet.TRIANGLES:
+                            this.applyDrawElementsTriangles( primitive.getCount(), indexes );
+                            break;
+                        case PrimitiveSet.TRIANGLE_STRIP:
+                            this.applyDrawElementsTriangleStrip( primitive.getCount(), indexes );
+                            break;
+                        case PrimitiveSet.TRIANGLE_FAN:
+                            this.applyDrawElementsTriangleFan( primitive.getCount(), indexes );
+                            break;
+                    }
+                } else { // draw array
+                    switch ( primitive.getMode() ) {
+                        case PrimitiveSet.TRIANGLES:
+                            this.applyDrawArraysTriangles( primitive.getFirst(), primitive.getCount() );
+                            break;
+                        case PrimitiveSet.TRIANGLE_STRIP:
+                            this.applyDrawArraysTriangleStrip( primitive.getFirst(), primitive.getCount() );
+                            break;
+                        case PrimitiveSet.TRIANGLE_FAN:
+                            this.applyDrawArraysTriangleFan( primitive.getFirst(), primitive.getCount() );
+                            break;
+                    }
+                }
+            }
+        }
+    };
+
+    return TriangleIndexFunctor;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

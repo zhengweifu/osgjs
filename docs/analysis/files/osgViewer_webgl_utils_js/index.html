@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgViewer/webgl-utils.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">71.92</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">205</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">26.31</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">0.63</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/* jshint ignore:start */
+
+define( [], function () {
+
+    /*
+     * Copyright 2010, Google Inc.
+     * All rights reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions are
+     * met:
+     *
+     *     * Redistributions of source code must retain the above copyright
+     * notice, this list of conditions and the following disclaimer.
+     *     * Redistributions in binary form must reproduce the above
+     * copyright notice, this list of conditions and the following disclaimer
+     * in the documentation and/or other materials provided with the
+     * distribution.
+     *     * Neither the name of Google Inc. nor the names of its
+     * contributors may be used to endorse or promote products derived from
+     * this software without specific prior written permission.
+     *
+     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+     * &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+     * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+     * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+     * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+     * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+     * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+     * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+     * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     */
+
+
+    /**
+     * @fileoverview This file contains functions every webgl program will need
+     * a version of one way or another.
+     *
+     * Instead of setting up a context manually it is recommended to
+     * use. This will check for success or failure. On failure it
+     * will attempt to present an approriate message to the user.
+     *
+     *       gl = WebGLUtils.setupWebGL(canvas);
+     *
+     * For animated WebGL apps use of setTimeout or setInterval are
+     * discouraged. It is recommended you structure your rendering
+     * loop like this.
+     *
+     *       function render() {
+     *         window.requestAnimationFrame(render, canvas);
+     *
+     *         // do rendering
+     *         ...
+     *       }
+     *       render();
+     *
+     * This will call your rendering function up to the refresh rate
+     * of your display but will stop rendering if your app is not
+     * visible.
+     */
+
+    var WebGLUtils = function () {
+
+        /**
+         * Creates the HTLM for a failure message
+         * @param {string} canvasContainerId id of container of th
+         *        canvas.
+         * @return {string} The html.
+         */
+        var makeFailHTML = function ( msg ) {
+            return &#039;&#039; +
+                &#039;&lt;div style=&quot;margin: auto; width:500px;z-index:10000;margin-top:20em;text-align:center;&quot;&gt;&#039; + msg + &#039;&lt;/div&gt;&#039;;
+            // return &#039;&#039; +
+            //   &#039;&lt;table style=&quot;background-color: #8CE; width: 100%; height: 100%;&quot;&gt;&lt;tr&gt;&#039; +
+            //   &#039;&lt;td align=&quot;center&quot;&gt;&#039; +
+            //   &#039;&lt;div style=&quot;display: table-cell; vertical-align: middle;&quot;&gt;&#039; +
+            //   &#039;&lt;div style=&quot;&quot;&gt;&#039; + msg + &#039;&lt;/div&gt;&#039; +
+            //   &#039;&lt;/div&gt;&#039; +
+            //   &#039;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&#039;;
+        };
+
+        /**
+         * Mesasge for getting a webgl browser
+         * @type {string}
+         */
+        var GET_A_WEBGL_BROWSER = &#039;&#039; +
+            &#039;This page requires a browser that supports WebGL.&lt;br/&gt;&#039; +
+            &#039;&lt;a href=&quot;http://get.webgl.org&quot;&gt;Click here to upgrade your browser.&lt;/a&gt;&#039;;
+
+        /**
+         * Mesasge for need better hardware
+         * @type {string}
+         */
+        var OTHER_PROBLEM = &#039;&#039; +
+            &quot;It doesn&#039;t appear your computer can support WebGL.&lt;br/&gt;&quot; +
+            &#039;&lt;a href=&quot;http://get.webgl.org&quot;&gt;Click here for more information.&lt;/a&gt;&#039;;
+
+        /**
+         * Creates a webgl context. If creation fails it will
+         * change the contents of the container of the &lt;canvas&gt;
+         * tag to an error message with the correct links for WebGL.
+         * @return {WebGLRenderingContext} The created context.
+         */
+        var setupWebGL = function (
+            /** Element */
+            canvas,
+            /** WebGLContextCreationAttirbutes */
+            opt_attribs,
+            /** function:(msg) */
+            opt_onError ) {
+            function handleCreationError( msg ) {
+                var container = document.getElementsByTagName( &quot;body&quot; )[ 0 ];
+                //var container = canvas.parentNode;
+                if ( container ) {
+                    var str = window.WebGLRenderingContext ?
+                        OTHER_PROBLEM :
+                        GET_A_WEBGL_BROWSER;
+                    if ( msg ) {
+                        str += &quot;&lt;br/&gt;&lt;br/&gt;Status: &quot; + msg;
+                    }
+                    container.innerHTML = makeFailHTML( str );
+                }
+            }
+
+            opt_onError = opt_onError || handleCreationError;
+
+            if ( canvas.addEventListener ) {
+                canvas.addEventListener( &quot;webglcontextcreationerror&quot;, function ( event ) {
+                    opt_onError( event.statusMessage );
+                }, false );
+            }
+            var context = create3DContext( canvas, opt_attribs );
+            if ( !context ) {
+                if ( !window.WebGLRenderingContext ) {
+                    opt_onError( &quot;&quot; );
+                } else {
+                    opt_onError( &quot;&quot; );
+                }
+            }
+
+            return context;
+        };
+
+        /**
+         * Creates a webgl context.
+         * @param {!Canvas} canvas The canvas tag to get context
+         *     from. If one is not passed in one will be created.
+         * @return {!WebGLContext} The created context.
+         */
+        var create3DContext = function ( canvas, opt_attribs ) {
+            var names = [ &quot;webgl&quot;, &quot;experimental-webgl&quot;, &quot;webkit-3d&quot;, &quot;moz-webgl&quot; ];
+            var context = null;
+            for ( var ii = 0; ii &lt; names.length; ++ii ) {
+                try {
+                    context = canvas.getContext( names[ ii ], opt_attribs );
+                } catch ( e ) {}
+                if ( context ) {
+                    break;
+                }
+            }
+            return context;
+        };
+
+        return {
+            create3DContext: create3DContext,
+            setupWebGL: setupWebGL
+        };
+    }();
+
+    /**
+     * Provides requestAnimationFrame in a cross browser
+     * way.
+     */
+    if ( !window.requestAnimationFrame ) {
+        window.requestAnimationFrame = ( function () {
+            return window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function ( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+                    window.setTimeout( callback, 1000 / 60 );
+            };
+        } )();
+    }
+
+    if ( !window.cancelRequestAnimFrame ) {
+        window.cancelRequestAnimFrame = ( function () {
+            return window.cancelAnimationFrame ||
+                window.webkitCancelRequestAnimationFrame ||
+                window.mozCancelRequestAnimationFrame ||
+                window.oCancelRequestAnimationFrame ||
+                window.msCancelRequestAnimationFrame ||
+                clearTimeout;
+        } )();
+    }
+
+    if ( !Date.now ) {
+        Date.now = function now() {
+            return new Date().getTime();
+        };
+    }
+
+    return WebGLUtils;
+} );
+
+/* jshint ignore:end */</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

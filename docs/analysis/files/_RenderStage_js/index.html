@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>/RenderStage.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">66.60</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.96</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">57.87</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">164 / 144</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">/**
+ * From OpenSceneGraph http://www.openscenegraph.org
+ * RenderStage base class. Used for encapsulate a complete stage in
+ * rendering - setting up of viewport, the projection and model
+ * matrices and rendering the RenderBin's enclosed with this RenderStage.
+ * RenderStage also has a dependency list of other RenderStages, each
+ * of which must be called before the rendering of this stage.  These
+ * 'pre' rendering stages are used for advanced rendering techniques
+ * like multistage pixel shading or impostors.
+ */
+osg.RenderStage = function () {
+    osg.RenderBin.call(this);
+    this.positionedAttribute = [];
+    this.clearDepth = 1.0;
+    this.clearColor = [0,0,0,1];
+    this.clearMask = osg.Camera.COLOR_BUFFER_BIT | osg.Camera.DEPTH_BUFFER_BIT;
+    this.camera = undefined;
+    this.viewport = undefined;
+    this.preRenderList = [];
+    this.postRenderList = [];
+    this._renderStage = this;
+};
+osg.RenderStage.prototype = osg.objectInehrit(osg.RenderBin.prototype, {
+    reset: function() { 
+        osg.RenderBin.prototype.reset.call(this);
+        this.preRenderList.length = 0;
+        this.postRenderList.length = 0;
+    },
+    setClearDepth: function(depth) { this.clearDepth = depth;},
+    getClearDepth: function() { return this.clearDepth;},
+    setClearColor: function(color) { this.clearColor = color;},
+    getClearColor: function() { return this.clearColor;},
+    setClearMask: function(mask) { this.clearMask = mask;},
+    getClearMask: function() { return this.clearMask;},
+    setViewport: function(vp) { this.viewport = vp; },
+    getViewport: function() { return this.viewport; },
+    setCamera: function(camera) { this.camera = camera; },
+    addPreRenderStage: function(rs, order) {
+        for (var i = 0, l = this.preRenderList.length; i < l; i++) {
+            var render = this.preRenderList[i];
+            if (order < render.order) {
+                break;
+            }
+        }
+        if (i < this.preRenderList.length) {
+            this.preRenderList = this.preRenderList.splice(i,0, { 'order' : order, 'renderStage' : rs });
+        } else {
+            this.preRenderList.push({ 'order' : order, 'renderStage' : rs });
+        }
+    },
+    addPostRenderStage: function(rs, order) {
+        for (var i = 0, l = this.postRenderList.length; i < l; i++) {
+            var render = this.postRenderList[i];
+            if (order < render.order) {
+                break;
+            }
+        }
+        if (i < this.postRenderList.length) {
+            this.postRenderList = this.postRenderList.splice(i,0, { 'order' : order, 'renderStage' : rs });
+        } else {
+            this.postRenderList.push({ 'order' : order, 'renderStage' : rs });
+        }
+    },
+
+    drawPreRenderStages: function(state, previousRenderLeaf) {
+        var previous = previousRenderLeaf;
+        for (var i = 0, l = this.preRenderList.length; i < l; ++i) {
+            var sg = this.preRenderList[i].renderStage;
+            previous = sg.draw(state, previous);
+        }
+        return previous;
+    },
+
+    draw: function(state, previousRenderLeaf) {
+        var previous = this.drawPreRenderStages(state, previousRenderLeaf);
+        previous = this.drawImplementation(state, previous);
+
+        previous = this.drawPostRenderStages(state, previous);
+        return previous;
+    },
+
+    sort: function() {
+        for (var i = 0, l = this.preRenderList.length; i < l; ++i) {
+            this.preRenderList[i].renderStage.sort();
+        }
+
+        osg.RenderBin.prototype.sort.call(this);
+
+        for (var j = 0, k = this.postRenderList.length; i < l; ++i) {
+            this.postRenderList[i].renderStage.sort();
+        }
+    },
+
+    drawPostRenderStages: function(state, previousRenderLeaf) {
+        var previous = previousRenderLeaf;
+        for (var i = 0, l = this.postRenderList.length; i < l; ++i) {
+            var sg = this.postRenderList[i].renderStage;
+            previous = sg.draw(state, previous);
+        }
+        return previous;
+    },
+
+    applyCamera: function(state) {
+        var gl = state.getGraphicContext();
+        if (this.camera === undefined) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            return;
+        }
+        var viewport = this.camera.getViewport();
+        var fbo = this.camera.frameBufferObject;
+
+        if (!fbo) {
+            fbo = new osg.FrameBufferObject();
+            this.camera.frameBufferObject = fbo;
+        }
+
+        if (fbo.isDirty()) {
+            if (this.camera.attachments !== undefined) {
+                for ( var key in this.camera.attachments) {
+                    var a = this.camera.attachments[key];
+                    var attach;
+                    if (a.texture === undefined) { //renderbuffer
+                        attach = { attachment: key, 
+                                   format: a.format, 
+                                   width: viewport.width(),
+                                   height: viewport.height()
+                                 };
+                    } else if (a.texture !== undefined) {
+                        attach = { 
+                            attachment: key, 
+                            texture: a.texture, 
+                            level: a.level 
+                        };
+                        if (a.format) {
+                            attach.format = a.format;
+                        }
+                    }
+                    fbo.setAttachment(attach);
+                }
+            }
+        }
+        fbo.apply(state);
+    },
+
+    drawImplementation: function(state, previousRenderLeaf) {
+        var error;
+        var gl = state.getGraphicContext();
+
+        this.applyCamera(state);
+
+        if (this.viewport === undefined) {
+            osg.log("RenderStage does not have a valid viewport");
+        }
+
+        state.applyAttribute(this.viewport);
+
+        if (this.clearMask & gl.COLOR_BUFFER_BIT) {
+            gl.clearColor(this.clearColor[0], this.clearColor[1], this.clearColor[2], this.clearColor[3]);
+        }
+        if (this.clearMask & gl.DEPTH_BUFFER_BIT) {
+            gl.depthMask(true);
+            gl.clearDepth(this.clearDepth);
+        }
+        gl.clear(this.clearMask);
+
+        if (this.positionedAttribute) {
+            this.applyPositionedAttribute(state, this.positionedAttribute);
+        }
+
+        var previous = osg.RenderBin.prototype.drawImplementation.call(this, state, previousRenderLeaf);
+
+        return previous;
+    }
+});</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

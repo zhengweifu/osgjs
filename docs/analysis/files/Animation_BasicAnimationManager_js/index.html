@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>Animation/BasicAnimationManager.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">61.49</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.91</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">64.85</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">187 / 137</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">/** -*- compile-command: "jslint-cli AnimationManager.js" -*-
+ *
+ *  Copyright (C) 2010-2011 Cedric Pinson
+ *
+ *                  GNU LESSER GENERAL PUBLIC LICENSE
+ *                      Version 3, 29 June 2007
+ *
+ * Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+ * Everyone is permitted to copy and distribute verbatim copies
+ * of this license document, but changing it is not allowed.
+ *
+ * This version of the GNU Lesser General Public License incorporates
+ * the terms and conditions of version 3 of the GNU General Public
+ * License
+ *
+ * Authors:
+ *  Cedric Pinson <cedric.pinson@plopbyte.com>
+ *
+ */
+
+
+/** 
+ *  BasicAnimationManager
+ *  @class BasicAnimationManager
+ */
+osgAnimation.BasicAnimationManager = function() {
+    osg.Object.call(this);
+    this._animations = {};
+
+    this._actives = {};
+    this._actives._keys = [];
+
+    this._lastUpdate = undefined;
+    this._targets = [];
+};
+
+/** @lends osgAnimation.BasicAnimationManager.prototype */
+osgAnimation.BasicAnimationManager.prototype = osg.objectInehrit(osg.Object.prototype, {
+    _updateAnimation: function(animationParameter, t, priority) {
+        var duration = animationParameter.duration;
+        var weight = animationParameter.weight;
+        var animation = animationParameter.anim;
+        var start = animationParameter.start;
+        var loop = animationParameter.loop;
+
+        if (loop > 0) {
+            var playedTimes = t-start;
+            if (playedTimes >= loop*duration) {
+                return true;
+            }
+        }
+
+        t = (t-start) % duration;
+        var callback = animationParameter.callback;
+        if (callback) {
+            callback(t);
+        }
+
+        var channels = animation.getChannels();
+        for ( var i = 0, l = channels.length; i < l; i++) {
+            var channel = channels[i];
+            channel.update(t, weight, priority);
+        }
+        return false;
+    },
+    update: function(node, nv) {
+        var t = nv.getFrameStamp().getSimulationTime();
+        this.updateManager(t);
+        return true;
+    },
+    updateManager: function(t) {
+        
+        var targets = this._targets;
+        for (var i = 0, l = targets.length; i < l; i++) {
+            targets[i].reset();
+        }
+        if (this._actives._keys.length > 0) {
+            var pri = this._actives._keys.length - 1;
+            while (pri >= 0) {
+                var layer = this._actives[pri];
+                var keys = this._actives[pri]._keys;
+                var removes = [];
+                for (var ai = 0, al = keys.length; ai < al; ai++) {
+                    var key = keys[ai];
+                    var anim = layer[key];
+                    if (anim.start === undefined) {
+                        anim.start = t;
+                    }
+                    var remove = this._updateAnimation(anim, t, pri);
+                    if (remove) {
+                        removes.push(ai);
+                    }
+                }
+
+                // remove finished animation
+                for (var j = removes.length-1; j >= 0; j--) {
+                    var k = keys[j];
+                    keys.splice(j,1);
+                    delete layer[k];
+                }
+
+                pri--;
+            }
+        }
+    },
+
+    stopAll: function() {},
+    isPlaying: function(name) {
+        if (this._actives._keys.length > 0) {
+            var pri = this._actives._keys.length - 1;
+            while (pri >=0 ) {
+                if (this._actives[pri][name]) {
+                    return true;
+                }
+                pri--;
+            }
+        }
+        return false;
+    },
+    stopAnimation: function(name) {
+        if (this._actives._keys.length > 0) {
+            var pri = this._actives._keys.length - 1;
+            var filterFunction = function(element, index, array) { return element !== "_keys";};
+            while (pri >=0 ) {
+                if (this._actives[pri][name]) {
+                    delete this._actives[pri][name];
+                    this._actives[pri]._keys = Object.keys(this._actives[pri]).filter(filterFunction);
+                    return;
+                }
+                pri--;
+            }
+        }
+    },
+    playAnimationObject: function(obj) {
+        if (obj.name === undefined) {
+            return;
+        }
+
+        var anim = this._animations[obj.name];
+        if (anim === undefined) {
+            osg.log("no animation " + obj.name + " found");
+            return;
+        }
+
+        if (this.isPlaying(obj.name)) {
+            return;
+        }
+
+        if (obj.priority === undefined) {
+            obj.priority = 0;
+        }
+
+        if (obj.weight === undefined) {
+            obj.weight = 1.0;
+        }
+
+        if (obj.timeFactor === undefined) {
+            obj.timeFactor = 1.0;
+        }
+
+        if (obj.loop === undefined) {
+            obj.loop = 0;
+        }
+        
+        if (this._actives[obj.priority] === undefined) {
+            this._actives[obj.priority] = {};
+            this._actives[obj.priority]._keys = [];
+            this._actives._keys.push(obj.priority); // = Object.keys(this._actives);
+        }
+
+        obj.start = undefined;
+        obj.duration = anim.getDuration();
+        obj.anim = anim;
+        this._actives[obj.priority][obj.name] = obj;
+        this._actives[obj.priority]._keys.push(obj.name);
+    },
+
+    playAnimation: function(name, priority, weight) {
+        var animName = name;
+        if (typeof name === "object") {
+            if (name.getName === undefined) {
+                return this.playAnimationObject(name);
+            } else {
+                animName = name.getName();
+            }
+        }
+        var obj = { 'name': animName,
+                    'priority': priority,
+                    'weight': weight };
+
+        return this.playAnimationObject(obj);
+    },
+
+    registerAnimation: function(anim) {
+        this._animations[anim.getName()] = anim;
+        this.buildTargetList();
+    },
+    getAnimationMap: function() { return this._animations; },
+    buildTargetList: function() {
+        this._targets.length = 0;
+        var keys = Object.keys(this._animations);
+        for (var i = 0, l = keys.length; i < l; i++) {
+            var a = this._animations[ keys[i] ];
+            var channels = a.getChannels();
+            for (var c = 0, lc = channels.length; c < lc; c++) {
+                var channel = channels[c];
+                this._targets.push(channel.getTarget());
+            }
+        }
+    }
+
+});</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

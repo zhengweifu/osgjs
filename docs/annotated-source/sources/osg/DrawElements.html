@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>DrawElements.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>DrawElements.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Notify'</span>,
+    <span class="hljs-string">'osg/PrimitiveSet'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, PrimitiveSet )</span> {</span>
+
+    <span class="hljs-comment">/**
+     * DrawElements manage rendering of indexed primitives
+     * @class DrawElements
+     */</span>
+    <span class="hljs-keyword">var</span> DrawElements = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mode, indices )</span> {</span>
+        <span class="hljs-keyword">this</span>.mode = PrimitiveSet.POINTS;
+        <span class="hljs-keyword">if</span> ( mode !== <span class="hljs-literal">undefined</span> ) {
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">typeof</span> ( mode ) === <span class="hljs-string">'string'</span> ) {
+                mode = PrimitiveSet[ mode ];
+            }
+            <span class="hljs-keyword">this</span>.mode = mode;
+        }
+        <span class="hljs-keyword">this</span>.count = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">this</span>.offset = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">this</span>.indices = indices;
+        <span class="hljs-keyword">if</span> ( indices !== <span class="hljs-literal">undefined</span> ) {
+            <span class="hljs-keyword">this</span>.setIndices( indices );
+        }
+    };
+
+    <span class="hljs-comment">/** @lends DrawElements.prototype */</span>
+    DrawElements.prototype = {
+        getMode: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.mode;
+        },
+        draw: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state )</span> {</span>
+            state.setIndexArray( <span class="hljs-keyword">this</span>.indices );
+            <span class="hljs-keyword">var</span> gl = state.getGraphicContext();
+            gl.drawElements( <span class="hljs-keyword">this</span>.mode, <span class="hljs-keyword">this</span>.count, gl.UNSIGNED_SHORT, <span class="hljs-keyword">this</span>.offset );
+        },
+        setIndices: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( indices )</span> {</span>
+            <span class="hljs-keyword">this</span>.indices = indices;
+            <span class="hljs-keyword">this</span>.count = indices.getElements().length;
+        },
+        getIndices: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.indices;
+        },
+        setFirst: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( val )</span> {</span>
+            <span class="hljs-keyword">this</span>.offset = val;
+        },
+        getFirst: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.offset;
+        },
+        setCount: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( val )</span> {</span>
+            <span class="hljs-keyword">this</span>.count = val;
+        },
+        getCount: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.count;
+        }
+
+    };
+
+    DrawElements.create = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mode, indices )</span> {</span>
+        Notify.log( <span class="hljs-string">'DrawElements.create is deprecated, use new DrawElements with same arguments'</span> );
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DrawElements( mode, indices );
+    };
+
+    <span class="hljs-keyword">return</span> DrawElements;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>BasicAnimationManager.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="OSG.html">
+                OSG.js
+              </a>
+            
+              
+              <a class="source" href="BlendColor.html">
+                BlendColor.js
+              </a>
+            
+              
+              <a class="source" href="BlendFunc.html">
+                BlendFunc.js
+              </a>
+            
+              
+              <a class="source" href="BoundingBox.html">
+                BoundingBox.js
+              </a>
+            
+              
+              <a class="source" href="BoundingSphere.html">
+                BoundingSphere.js
+              </a>
+            
+              
+              <a class="source" href="BufferArray.html">
+                BufferArray.js
+              </a>
+            
+              
+              <a class="source" href="Camera.html">
+                Camera.js
+              </a>
+            
+              
+              <a class="source" href="ComputeMatrixFromNodePath.html">
+                ComputeMatrixFromNodePath.js
+              </a>
+            
+              
+              <a class="source" href="CullFace.html">
+                CullFace.js
+              </a>
+            
+              
+              <a class="source" href="CullSettings.html">
+                CullSettings.js
+              </a>
+            
+              
+              <a class="source" href="CullStack.html">
+                CullStack.js
+              </a>
+            
+              
+              <a class="source" href="CullVisitor.html">
+                CullVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Depth.html">
+                Depth.js
+              </a>
+            
+              
+              <a class="source" href="DrawArrayLengths.html">
+                DrawArrayLengths.js
+              </a>
+            
+              
+              <a class="source" href="DrawArrays.html">
+                DrawArrays.js
+              </a>
+            
+              
+              <a class="source" href="DrawElements.html">
+                DrawElements.js
+              </a>
+            
+              
+              <a class="source" href="EllipsoidModel.html">
+                EllipsoidModel.js
+              </a>
+            
+              
+              <a class="source" href="FrameBufferObject.html">
+                FrameBufferObject.js
+              </a>
+            
+              
+              <a class="source" href="FrameStamp.html">
+                FrameStamp.js
+              </a>
+            
+              
+              <a class="source" href="Geometry.html">
+                Geometry.js
+              </a>
+            
+              
+              <a class="source" href="Image.html">
+                Image.js
+              </a>
+            
+              
+              <a class="source" href="KdTree.html">
+                KdTree.js
+              </a>
+            
+              
+              <a class="source" href="KdTreeBuilder.html">
+                KdTreeBuilder.js
+              </a>
+            
+              
+              <a class="source" href="Light.html">
+                Light.js
+              </a>
+            
+              
+              <a class="source" href="LightSource.html">
+                LightSource.js
+              </a>
+            
+              
+              <a class="source" href="LineWidth.html">
+                LineWidth.js
+              </a>
+            
+              
+              <a class="source" href="Material.html">
+                Material.js
+              </a>
+            
+              
+              <a class="source" href="Math.html">
+                Math.js
+              </a>
+            
+              
+              <a class="source" href="Matrix.html">
+                Matrix.js
+              </a>
+            
+              
+              <a class="source" href="MatrixTransform.html">
+                MatrixTransform.js
+              </a>
+            
+              
+              <a class="source" href="Node.html">
+                Node.js
+              </a>
+            
+              
+              <a class="source" href="NodeVisitor.html">
+                NodeVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Notify.html">
+                Notify.js
+              </a>
+            
+              
+              <a class="source" href="Object.html">
+                Object.js
+              </a>
+            
+              
+              <a class="source" href="PrimitiveSet.html">
+                PrimitiveSet.js
+              </a>
+            
+              
+              <a class="source" href="Program.html">
+                Program.js
+              </a>
+            
+              
+              <a class="source" href="Projection.html">
+                Projection.js
+              </a>
+            
+              
+              <a class="source" href="Quat.html">
+                Quat.js
+              </a>
+            
+              
+              <a class="source" href="RenderBin.html">
+                RenderBin.js
+              </a>
+            
+              
+              <a class="source" href="RenderStage.html">
+                RenderStage.js
+              </a>
+            
+              
+              <a class="source" href="Shader.html">
+                Shader.js
+              </a>
+            
+              
+              <a class="source" href="ShaderGenerator.html">
+                ShaderGenerator.js
+              </a>
+            
+              
+              <a class="source" href="Shape.html">
+                Shape.js
+              </a>
+            
+              
+              <a class="source" href="Stack.html">
+                Stack.js
+              </a>
+            
+              
+              <a class="source" href="State.html">
+                State.js
+              </a>
+            
+              
+              <a class="source" href="StateAttribute.html">
+                StateAttribute.js
+              </a>
+            
+              
+              <a class="source" href="StateGraph.html">
+                StateGraph.js
+              </a>
+            
+              
+              <a class="source" href="StateSet.html">
+                StateSet.js
+              </a>
+            
+              
+              <a class="source" href="Texture.html">
+                Texture.js
+              </a>
+            
+              
+              <a class="source" href="TextureCubeMap.html">
+                TextureCubeMap.js
+              </a>
+            
+              
+              <a class="source" href="Transform.html">
+                Transform.js
+              </a>
+            
+              
+              <a class="source" href="TransformEnums.html">
+                TransformEnums.js
+              </a>
+            
+              
+              <a class="source" href="TriangleIndexFunctor.html">
+                TriangleIndexFunctor.js
+              </a>
+            
+              
+              <a class="source" href="Uniform.html">
+                Uniform.js
+              </a>
+            
+              
+              <a class="source" href="UpdateVisitor.html">
+                UpdateVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Utils.html">
+                Utils.js
+              </a>
+            
+              
+              <a class="source" href="Vec2.html">
+                Vec2.js
+              </a>
+            
+              
+              <a class="source" href="Vec3.html">
+                Vec3.js
+              </a>
+            
+              
+              <a class="source" href="Vec4.html">
+                Vec4.js
+              </a>
+            
+              
+              <a class="source" href="Viewport.html">
+                Viewport.js
+              </a>
+            
+              
+              <a class="source" href="osg.html">
+                osg.js
+              </a>
+            
+              
+              <a class="source" href="Animation.html">
+                Animation.js
+              </a>
+            
+              
+              <a class="source" href="AnimationUpdateCallback.html">
+                AnimationUpdateCallback.js
+              </a>
+            
+              
+              <a class="source" href="BasicAnimationManager.html">
+                BasicAnimationManager.js
+              </a>
+            
+              
+              <a class="source" href="Channel.html">
+                Channel.js
+              </a>
+            
+              
+              <a class="source" href="Easing.html">
+                Easing.js
+              </a>
+            
+              
+              <a class="source" href="FloatLerpChannel.html">
+                FloatLerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="FloatTarget.html">
+                FloatTarget.js
+              </a>
+            
+              
+              <a class="source" href="Interpolator.html">
+                Interpolator.js
+              </a>
+            
+              
+              <a class="source" href="Keyframe.html">
+                Keyframe.js
+              </a>
+            
+              
+              <a class="source" href="LinkVisitor.html">
+                LinkVisitor.js
+              </a>
+            
+              
+              <a class="source" href="QuatLerpChannel.html">
+                QuatLerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="QuatSlerpChannel.html">
+                QuatSlerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="QuatTarget.html">
+                QuatTarget.js
+              </a>
+            
+              
+              <a class="source" href="Sampler.html">
+                Sampler.js
+              </a>
+            
+              
+              <a class="source" href="StackedQuaternion.html">
+                StackedQuaternion.js
+              </a>
+            
+              
+              <a class="source" href="StackedRotateAxis.html">
+                StackedRotateAxis.js
+              </a>
+            
+              
+              <a class="source" href="StackedTranslate.html">
+                StackedTranslate.js
+              </a>
+            
+              
+              <a class="source" href="Target.html">
+                Target.js
+              </a>
+            
+              
+              <a class="source" href="UpdateMatrixTransform.html">
+                UpdateMatrixTransform.js
+              </a>
+            
+              
+              <a class="source" href="Vec3LerpChannel.html">
+                Vec3LerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="Vec3Target.html">
+                Vec3Target.js
+              </a>
+            
+              
+              <a class="source" href="osgAnimation.html">
+                osgAnimation.js
+              </a>
+            
+              
+              <a class="source" href="Input.html">
+                Input.js
+              </a>
+            
+              
+              <a class="source" href="Options.html">
+                Options.js
+              </a>
+            
+              
+              <a class="source" href="ReaderParser.html">
+                ReaderParser.js
+              </a>
+            
+              
+              <a class="source" href="osgDB.html">
+                osgDB.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulator.html">
+                FirstPersonManipulator.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
+                FirstPersonManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulatorOculusController.html">
+                FirstPersonManipulatorOculusController.js
+              </a>
+            
+              
+              <a class="source" href="Manipulator.html">
+                Manipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulator.html">
+                OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorEnums.html">
+                OrbitManipulatorEnums.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorGamePadController.html">
+                OrbitManipulatorGamePadController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorHammerController.html">
+                OrbitManipulatorHammerController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorLeapMotionController.html">
+                OrbitManipulatorLeapMotionController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
+                OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="SwitchManipulator.html">
+                SwitchManipulator.js
+              </a>
+            
+              
+              <a class="source" href="osgGA.html">
+                osgGA.js
+              </a>
+            
+              
+              <a class="source" href="osgNameSpace.html">
+                osgNameSpace.js
+              </a>
+            
+              
+              <a class="source" href="Composer.html">
+                Composer.js
+              </a>
+            
+              
+              <a class="source" href="IntersectVisitor.html">
+                IntersectVisitor.js
+              </a>
+            
+              
+              <a class="source" href="ParameterVisitor.html">
+                ParameterVisitor.js
+              </a>
+            
+              
+              <a class="source" href="TriangleIntersect.html">
+                TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="osgPool.html">
+                osgPool.js
+              </a>
+            
+              
+              <a class="source" href="osgUtil.html">
+                osgUtil.js
+              </a>
+            
+              
+              <a class="source" href="View.html">
+                View.js
+              </a>
+            
+              
+              <a class="source" href="Viewer.html">
+                Viewer.js
+              </a>
+            
+              
+              <a class="source" href="EventProxy.html">
+                EventProxy.js
+              </a>
+            
+              
+              <a class="source" href="GamePad.html">
+                GamePad.js
+              </a>
+            
+              
+              <a class="source" href="Hammer.html">
+                Hammer.js
+              </a>
+            
+              
+              <a class="source" href="LeapMotion.html">
+                LeapMotion.js
+              </a>
+            
+              
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
+              <a class="source" href="StandardMouseKeyboard.html">
+                StandardMouseKeyboard.js
+              </a>
+            
+              
+              <a class="source" href="osgViewer.html">
+                osgViewer.js
+              </a>
+            
+              
+              <a class="source" href="stats.html">
+                stats.js
+              </a>
+            
+              
+              <a class="source" href="webgl-debug.html">
+                webgl-debug.js
+              </a>
+            
+              
+              <a class="source" href="webgl-utils.html">
+                webgl-utils.js
+              </a>
+            
+              
+              <a class="source" href="osg.html">
+                osg.js
+              </a>
+            
+              
+              <a class="source" href="osgAnimation.html">
+                osgAnimation.js
+              </a>
+            
+              
+              <a class="source" href="Hammer.html">
+                Hammer.js
+              </a>
+            
+              
+              <a class="source" href="Leap.html">
+                Leap.js
+              </a>
+            
+              
+              <a class="source" href="Q.html">
+                Q.js
+              </a>
+            
+              
+              <a class="source" href="vr.html">
+                vr.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>BasicAnimationManager.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Notify'</span>,
+    <span class="hljs-string">'osg/Utils'</span>,
+    <span class="hljs-string">'osg/Object'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, MACROUTILS, Object )</span> {</span>
+
+    <span class="hljs-comment">/**
+     *  BasicAnimationManager
+     *  @class BasicAnimationManager
+     */</span>
+    <span class="hljs-keyword">var</span> BasicAnimationManager = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-built_in">Object</span>.call( <span class="hljs-keyword">this</span> );
+        <span class="hljs-keyword">this</span>._animations = {};
+
+        <span class="hljs-keyword">this</span>._actives = {};
+        <span class="hljs-keyword">this</span>._actives._keys = [];
+
+        <span class="hljs-keyword">this</span>._lastUpdate = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._targets = [];
+    };
+
+    <span class="hljs-comment">/** @lends BasicAnimationManager.prototype */</span>
+    BasicAnimationManager.prototype = MACROUTILS.objectInehrit( <span class="hljs-built_in">Object</span>.prototype, {
+        _updateAnimation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( animationParameter, t, priority )</span> {</span>
+            <span class="hljs-keyword">var</span> duration = animationParameter.duration;
+            <span class="hljs-keyword">var</span> weight = animationParameter.weight;
+            <span class="hljs-keyword">var</span> animation = animationParameter.anim;
+            <span class="hljs-keyword">var</span> start = animationParameter.start;
+            <span class="hljs-keyword">var</span> loop = animationParameter.loop;
+
+            <span class="hljs-keyword">if</span> ( loop &gt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">var</span> playedTimes = t - start;
+                <span class="hljs-keyword">if</span> ( playedTimes &gt;= loop * duration ) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+                }
+            }
+
+            t = ( t - start ) % duration;
+            <span class="hljs-keyword">var</span> callback = animationParameter.callback;
+            <span class="hljs-keyword">if</span> ( callback ) {
+                callback( t );
+            }
+
+            <span class="hljs-keyword">var</span> channels = animation.getChannels();
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = channels.length; i &lt; l; i++ ) {
+                <span class="hljs-keyword">var</span> channel = channels[ i ];
+                channel.update( t, weight, priority );
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+        },
+        update: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node, nv )</span> {</span>
+            <span class="hljs-keyword">var</span> t = nv.getFrameStamp().getSimulationTime();
+            <span class="hljs-keyword">this</span>.updateManager( t );
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+        },
+        updateManager: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( t )</span> {</span>
+
+            <span class="hljs-keyword">var</span> targets = <span class="hljs-keyword">this</span>._targets;
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = targets.length; i &lt; l; i++ ) {
+                targets[ i ].reset();
+            }
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._actives._keys.length &gt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">var</span> pri = <span class="hljs-keyword">this</span>._actives._keys.length - <span class="hljs-number">1</span>;
+                <span class="hljs-keyword">while</span> ( pri &gt;= <span class="hljs-number">0</span> ) {
+                    <span class="hljs-keyword">var</span> layer = <span class="hljs-keyword">this</span>._actives[ pri ];
+                    <span class="hljs-keyword">var</span> keys = <span class="hljs-keyword">this</span>._actives[ pri ]._keys;
+                    <span class="hljs-keyword">var</span> removes = [];
+                    <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> ai = <span class="hljs-number">0</span>, al = keys.length; ai &lt; al; ai++ ) {
+                        <span class="hljs-keyword">var</span> key = keys[ ai ];
+                        <span class="hljs-keyword">var</span> anim = layer[ key ];
+                        <span class="hljs-keyword">if</span> ( anim.start === <span class="hljs-literal">undefined</span> ) {
+                            anim.start = t;
+                        }
+                        <span class="hljs-keyword">var</span> remove = <span class="hljs-keyword">this</span>._updateAnimation( anim, t, pri );
+                        <span class="hljs-keyword">if</span> ( remove ) {
+                            removes.push( ai );
+                        }
+                    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>remove finished animation</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> j = removes.length - <span class="hljs-number">1</span>; j &gt;= <span class="hljs-number">0</span>; j-- ) {
+                        <span class="hljs-keyword">var</span> k = keys[ j ];
+                        keys.splice( j, <span class="hljs-number">1</span> );
+                        <span class="hljs-keyword">delete</span> layer[ k ];
+                    }
+
+                    pri--;
+                }
+            }
+        },
+
+        stopAll: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>},
+        isPlaying: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( name )</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._actives._keys.length &gt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">var</span> pri = <span class="hljs-keyword">this</span>._actives._keys.length - <span class="hljs-number">1</span>;
+                <span class="hljs-keyword">while</span> ( pri &gt;= <span class="hljs-number">0</span> ) {
+                    <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._actives[ pri ][ name ] ) {
+                        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+                    }
+                    pri--;
+                }
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+        },
+        stopAnimation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( name )</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._actives._keys.length &gt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">var</span> pri = <span class="hljs-keyword">this</span>._actives._keys.length - <span class="hljs-number">1</span>;
+                <span class="hljs-keyword">var</span> filterFunction = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( element <span class="hljs-comment">/*, index , array */</span> )</span> {</span>
+                    <span class="hljs-keyword">return</span> element !== <span class="hljs-string">'_keys'</span>;
+                };
+                <span class="hljs-keyword">while</span> ( pri &gt;= <span class="hljs-number">0</span> ) {
+                    <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._actives[ pri ][ name ] ) {
+                        <span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>._actives[ pri ][ name ];
+                        <span class="hljs-keyword">this</span>._actives[ pri ]._keys = window.Object.keys( <span class="hljs-keyword">this</span>._actives[ pri ] ).filter( filterFunction );
+                        <span class="hljs-keyword">return</span>;
+                    }
+                    pri--;
+                }
+            }
+        },
+        playAnimationObject: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( obj )</span> {</span>
+            <span class="hljs-keyword">if</span> ( obj.name === <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">return</span>;
+            }
+
+            <span class="hljs-keyword">var</span> anim = <span class="hljs-keyword">this</span>._animations[ obj.name ];
+            <span class="hljs-keyword">if</span> ( anim === <span class="hljs-literal">undefined</span> ) {
+                Notify.info( <span class="hljs-string">'no animation '</span> + obj.name + <span class="hljs-string">' found'</span> );
+                <span class="hljs-keyword">return</span>;
+            }
+
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.isPlaying( obj.name ) ) {
+                <span class="hljs-keyword">return</span>;
+            }
+
+            <span class="hljs-keyword">if</span> ( obj.priority === <span class="hljs-literal">undefined</span> ) {
+                obj.priority = <span class="hljs-number">0</span>;
+            }
+
+            <span class="hljs-keyword">if</span> ( obj.weight === <span class="hljs-literal">undefined</span> ) {
+                obj.weight = <span class="hljs-number">1.0</span>;
+            }
+
+            <span class="hljs-keyword">if</span> ( obj.timeFactor === <span class="hljs-literal">undefined</span> ) {
+                obj.timeFactor = <span class="hljs-number">1.0</span>;
+            }
+
+            <span class="hljs-keyword">if</span> ( obj.loop === <span class="hljs-literal">undefined</span> ) {
+                obj.loop = <span class="hljs-number">0</span>;
+            }
+
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._actives[ obj.priority ] === <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>._actives[ obj.priority ] = {};
+                <span class="hljs-keyword">this</span>._actives[ obj.priority ]._keys = [];
+                <span class="hljs-keyword">this</span>._actives._keys.push( obj.priority ); <span class="hljs-comment">// = window.Object.keys(this._actives);</span>
+            }
+
+            obj.start = <span class="hljs-literal">undefined</span>;
+            obj.duration = anim.getDuration();
+            obj.anim = anim;
+            <span class="hljs-keyword">this</span>._actives[ obj.priority ][ obj.name ] = obj;
+            <span class="hljs-keyword">this</span>._actives[ obj.priority ]._keys.push( obj.name );
+        },
+
+        playAnimation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( name, priority, weight )</span> {</span>
+            <span class="hljs-keyword">var</span> animName = name;
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">typeof</span> name === <span class="hljs-string">'object'</span> ) {
+                <span class="hljs-keyword">if</span> ( name.getName === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.playAnimationObject( name );
+                } <span class="hljs-keyword">else</span> {
+                    animName = name.getName();
+                }
+            }
+            <span class="hljs-keyword">var</span> obj = {
+                <span class="hljs-string">'name'</span>: animName,
+                <span class="hljs-string">'priority'</span>: priority,
+                <span class="hljs-string">'weight'</span>: weight
+            };
+
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.playAnimationObject( obj );
+        },
+
+        registerAnimation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( anim )</span> {</span>
+            <span class="hljs-keyword">this</span>._animations[ anim.getName() ] = anim;
+            <span class="hljs-keyword">this</span>.buildTargetList();
+        },
+        getAnimationMap: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._animations;
+        },
+        buildTargetList: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">this</span>._targets.length = <span class="hljs-number">0</span>;
+            <span class="hljs-keyword">var</span> keys = window.Object.keys( <span class="hljs-keyword">this</span>._animations );
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = keys.length; i &lt; l; i++ ) {
+                <span class="hljs-keyword">var</span> a = <span class="hljs-keyword">this</span>._animations[ keys[ i ] ];
+                <span class="hljs-keyword">var</span> channels = a.getChannels();
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> c = <span class="hljs-number">0</span>, lc = channels.length; c &lt; lc; c++ ) {
+                    <span class="hljs-keyword">var</span> channel = channels[ c ];
+                    <span class="hljs-keyword">this</span>._targets.push( channel.getTarget() );
+                }
+            }
+        }
+
+    } );
+
+    <span class="hljs-keyword">return</span> BasicAnimationManager;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

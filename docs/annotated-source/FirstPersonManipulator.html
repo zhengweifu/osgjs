@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>FirstPersonManipulator.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="OSG.html">
+                OSG.js
+              </a>
+            
+              
+              <a class="source" href="BlendColor.html">
+                BlendColor.js
+              </a>
+            
+              
+              <a class="source" href="BlendFunc.html">
+                BlendFunc.js
+              </a>
+            
+              
+              <a class="source" href="BoundingBox.html">
+                BoundingBox.js
+              </a>
+            
+              
+              <a class="source" href="BoundingSphere.html">
+                BoundingSphere.js
+              </a>
+            
+              
+              <a class="source" href="BufferArray.html">
+                BufferArray.js
+              </a>
+            
+              
+              <a class="source" href="Camera.html">
+                Camera.js
+              </a>
+            
+              
+              <a class="source" href="ComputeMatrixFromNodePath.html">
+                ComputeMatrixFromNodePath.js
+              </a>
+            
+              
+              <a class="source" href="CullFace.html">
+                CullFace.js
+              </a>
+            
+              
+              <a class="source" href="CullSettings.html">
+                CullSettings.js
+              </a>
+            
+              
+              <a class="source" href="CullStack.html">
+                CullStack.js
+              </a>
+            
+              
+              <a class="source" href="CullVisitor.html">
+                CullVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Depth.html">
+                Depth.js
+              </a>
+            
+              
+              <a class="source" href="DrawArrayLengths.html">
+                DrawArrayLengths.js
+              </a>
+            
+              
+              <a class="source" href="DrawArrays.html">
+                DrawArrays.js
+              </a>
+            
+              
+              <a class="source" href="DrawElements.html">
+                DrawElements.js
+              </a>
+            
+              
+              <a class="source" href="EllipsoidModel.html">
+                EllipsoidModel.js
+              </a>
+            
+              
+              <a class="source" href="FrameBufferObject.html">
+                FrameBufferObject.js
+              </a>
+            
+              
+              <a class="source" href="FrameStamp.html">
+                FrameStamp.js
+              </a>
+            
+              
+              <a class="source" href="Geometry.html">
+                Geometry.js
+              </a>
+            
+              
+              <a class="source" href="Image.html">
+                Image.js
+              </a>
+            
+              
+              <a class="source" href="KdTree.html">
+                KdTree.js
+              </a>
+            
+              
+              <a class="source" href="KdTreeBuilder.html">
+                KdTreeBuilder.js
+              </a>
+            
+              
+              <a class="source" href="Light.html">
+                Light.js
+              </a>
+            
+              
+              <a class="source" href="LightSource.html">
+                LightSource.js
+              </a>
+            
+              
+              <a class="source" href="LineWidth.html">
+                LineWidth.js
+              </a>
+            
+              
+              <a class="source" href="Material.html">
+                Material.js
+              </a>
+            
+              
+              <a class="source" href="Math.html">
+                Math.js
+              </a>
+            
+              
+              <a class="source" href="Matrix.html">
+                Matrix.js
+              </a>
+            
+              
+              <a class="source" href="MatrixTransform.html">
+                MatrixTransform.js
+              </a>
+            
+              
+              <a class="source" href="Node.html">
+                Node.js
+              </a>
+            
+              
+              <a class="source" href="NodeVisitor.html">
+                NodeVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Notify.html">
+                Notify.js
+              </a>
+            
+              
+              <a class="source" href="Object.html">
+                Object.js
+              </a>
+            
+              
+              <a class="source" href="PrimitiveSet.html">
+                PrimitiveSet.js
+              </a>
+            
+              
+              <a class="source" href="Program.html">
+                Program.js
+              </a>
+            
+              
+              <a class="source" href="Projection.html">
+                Projection.js
+              </a>
+            
+              
+              <a class="source" href="Quat.html">
+                Quat.js
+              </a>
+            
+              
+              <a class="source" href="RenderBin.html">
+                RenderBin.js
+              </a>
+            
+              
+              <a class="source" href="RenderStage.html">
+                RenderStage.js
+              </a>
+            
+              
+              <a class="source" href="Shader.html">
+                Shader.js
+              </a>
+            
+              
+              <a class="source" href="ShaderGenerator.html">
+                ShaderGenerator.js
+              </a>
+            
+              
+              <a class="source" href="Shape.html">
+                Shape.js
+              </a>
+            
+              
+              <a class="source" href="Stack.html">
+                Stack.js
+              </a>
+            
+              
+              <a class="source" href="State.html">
+                State.js
+              </a>
+            
+              
+              <a class="source" href="StateAttribute.html">
+                StateAttribute.js
+              </a>
+            
+              
+              <a class="source" href="StateGraph.html">
+                StateGraph.js
+              </a>
+            
+              
+              <a class="source" href="StateSet.html">
+                StateSet.js
+              </a>
+            
+              
+              <a class="source" href="Texture.html">
+                Texture.js
+              </a>
+            
+              
+              <a class="source" href="TextureCubeMap.html">
+                TextureCubeMap.js
+              </a>
+            
+              
+              <a class="source" href="Transform.html">
+                Transform.js
+              </a>
+            
+              
+              <a class="source" href="TransformEnums.html">
+                TransformEnums.js
+              </a>
+            
+              
+              <a class="source" href="TriangleIndexFunctor.html">
+                TriangleIndexFunctor.js
+              </a>
+            
+              
+              <a class="source" href="Uniform.html">
+                Uniform.js
+              </a>
+            
+              
+              <a class="source" href="UpdateVisitor.html">
+                UpdateVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Utils.html">
+                Utils.js
+              </a>
+            
+              
+              <a class="source" href="Vec2.html">
+                Vec2.js
+              </a>
+            
+              
+              <a class="source" href="Vec3.html">
+                Vec3.js
+              </a>
+            
+              
+              <a class="source" href="Vec4.html">
+                Vec4.js
+              </a>
+            
+              
+              <a class="source" href="Viewport.html">
+                Viewport.js
+              </a>
+            
+              
+              <a class="source" href="osg.html">
+                osg.js
+              </a>
+            
+              
+              <a class="source" href="Animation.html">
+                Animation.js
+              </a>
+            
+              
+              <a class="source" href="AnimationUpdateCallback.html">
+                AnimationUpdateCallback.js
+              </a>
+            
+              
+              <a class="source" href="BasicAnimationManager.html">
+                BasicAnimationManager.js
+              </a>
+            
+              
+              <a class="source" href="Channel.html">
+                Channel.js
+              </a>
+            
+              
+              <a class="source" href="Easing.html">
+                Easing.js
+              </a>
+            
+              
+              <a class="source" href="FloatLerpChannel.html">
+                FloatLerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="FloatTarget.html">
+                FloatTarget.js
+              </a>
+            
+              
+              <a class="source" href="Interpolator.html">
+                Interpolator.js
+              </a>
+            
+              
+              <a class="source" href="Keyframe.html">
+                Keyframe.js
+              </a>
+            
+              
+              <a class="source" href="LinkVisitor.html">
+                LinkVisitor.js
+              </a>
+            
+              
+              <a class="source" href="QuatLerpChannel.html">
+                QuatLerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="QuatSlerpChannel.html">
+                QuatSlerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="QuatTarget.html">
+                QuatTarget.js
+              </a>
+            
+              
+              <a class="source" href="Sampler.html">
+                Sampler.js
+              </a>
+            
+              
+              <a class="source" href="StackedQuaternion.html">
+                StackedQuaternion.js
+              </a>
+            
+              
+              <a class="source" href="StackedRotateAxis.html">
+                StackedRotateAxis.js
+              </a>
+            
+              
+              <a class="source" href="StackedTranslate.html">
+                StackedTranslate.js
+              </a>
+            
+              
+              <a class="source" href="Target.html">
+                Target.js
+              </a>
+            
+              
+              <a class="source" href="UpdateMatrixTransform.html">
+                UpdateMatrixTransform.js
+              </a>
+            
+              
+              <a class="source" href="Vec3LerpChannel.html">
+                Vec3LerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="Vec3Target.html">
+                Vec3Target.js
+              </a>
+            
+              
+              <a class="source" href="osgAnimation.html">
+                osgAnimation.js
+              </a>
+            
+              
+              <a class="source" href="Input.html">
+                Input.js
+              </a>
+            
+              
+              <a class="source" href="Options.html">
+                Options.js
+              </a>
+            
+              
+              <a class="source" href="ReaderParser.html">
+                ReaderParser.js
+              </a>
+            
+              
+              <a class="source" href="osgDB.html">
+                osgDB.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulator.html">
+                FirstPersonManipulator.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
+                FirstPersonManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulatorOculusController.html">
+                FirstPersonManipulatorOculusController.js
+              </a>
+            
+              
+              <a class="source" href="Manipulator.html">
+                Manipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulator.html">
+                OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorEnums.html">
+                OrbitManipulatorEnums.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorGamePadController.html">
+                OrbitManipulatorGamePadController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorHammerController.html">
+                OrbitManipulatorHammerController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorLeapMotionController.html">
+                OrbitManipulatorLeapMotionController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
+                OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="SwitchManipulator.html">
+                SwitchManipulator.js
+              </a>
+            
+              
+              <a class="source" href="osgGA.html">
+                osgGA.js
+              </a>
+            
+              
+              <a class="source" href="osgNameSpace.html">
+                osgNameSpace.js
+              </a>
+            
+              
+              <a class="source" href="Composer.html">
+                Composer.js
+              </a>
+            
+              
+              <a class="source" href="IntersectVisitor.html">
+                IntersectVisitor.js
+              </a>
+            
+              
+              <a class="source" href="ParameterVisitor.html">
+                ParameterVisitor.js
+              </a>
+            
+              
+              <a class="source" href="TriangleIntersect.html">
+                TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="osgPool.html">
+                osgPool.js
+              </a>
+            
+              
+              <a class="source" href="osgUtil.html">
+                osgUtil.js
+              </a>
+            
+              
+              <a class="source" href="View.html">
+                View.js
+              </a>
+            
+              
+              <a class="source" href="Viewer.html">
+                Viewer.js
+              </a>
+            
+              
+              <a class="source" href="EventProxy.html">
+                EventProxy.js
+              </a>
+            
+              
+              <a class="source" href="GamePad.html">
+                GamePad.js
+              </a>
+            
+              
+              <a class="source" href="Hammer.html">
+                Hammer.js
+              </a>
+            
+              
+              <a class="source" href="LeapMotion.html">
+                LeapMotion.js
+              </a>
+            
+              
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
+              <a class="source" href="StandardMouseKeyboard.html">
+                StandardMouseKeyboard.js
+              </a>
+            
+              
+              <a class="source" href="osgViewer.html">
+                osgViewer.js
+              </a>
+            
+              
+              <a class="source" href="stats.html">
+                stats.js
+              </a>
+            
+              
+              <a class="source" href="webgl-debug.html">
+                webgl-debug.js
+              </a>
+            
+              
+              <a class="source" href="webgl-utils.html">
+                webgl-utils.js
+              </a>
+            
+              
+              <a class="source" href="osg.html">
+                osg.js
+              </a>
+            
+              
+              <a class="source" href="osgAnimation.html">
+                osgAnimation.js
+              </a>
+            
+              
+              <a class="source" href="Hammer.html">
+                Hammer.js
+              </a>
+            
+              
+              <a class="source" href="Leap.html">
+                Leap.js
+              </a>
+            
+              
+              <a class="source" href="Q.html">
+                Q.js
+              </a>
+            
+              
+              <a class="source" href="vr.html">
+                vr.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>FirstPersonManipulator.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Utils'</span>,
+    <span class="hljs-string">'osgGA/Manipulator'</span>,
+    <span class="hljs-string">'osgGA/OrbitManipulator'</span>,
+    <span class="hljs-string">'osg/Matrix'</span>,
+    <span class="hljs-string">'osg/Vec2'</span>,
+    <span class="hljs-string">'osg/Vec3'</span>,
+    <span class="hljs-string">'osgGA/FirstPersonManipulatorMouseKeyboardController'</span>,
+    <span class="hljs-string">'osgGA/FirstPersonManipulatorOculusController'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Manipulator, OrbitManipulator, Matrix, Vec2, Vec3, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController )</span> {</span>
+
+    <span class="hljs-comment">/**
+     * Authors:
+     *  Matt Fontaine &lt;tehqin@gmail.com&gt;
+     *  Cedric Pinson &lt;trigrou@gmail.com&gt;
+     */</span>
+
+    <span class="hljs-comment">/**
+     *  FirstPersonManipulator
+     *  @class
+     */</span>
+    <span class="hljs-keyword">var</span> FirstPersonManipulator = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        Manipulator.call( <span class="hljs-keyword">this</span> );
+        <span class="hljs-keyword">this</span>.init();
+    };
+
+    FirstPersonManipulator.AvailableControllerList = [ <span class="hljs-string">'StandardMouseKeyboard'</span>, <span class="hljs-string">'Oculus'</span>];
+    FirstPersonManipulator.ControllerList = [ <span class="hljs-string">'StandardMouseKeyboard'</span>, <span class="hljs-string">'Oculus'</span> ];
+
+    <span class="hljs-comment">/** @lends FirstPersonManipulator.prototype */</span>
+    FirstPersonManipulator.prototype = MACROUTILS.objectInehrit( Manipulator.prototype, {
+        setNode: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+            <span class="hljs-keyword">this</span>._node = node;
+            <span class="hljs-keyword">this</span>.computeHomePosition();
+        },
+        computeHomePosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._node !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">var</span> bs = <span class="hljs-keyword">this</span>._node.getBound();
+                <span class="hljs-keyword">this</span>._radius = bs.radius();
+                <span class="hljs-keyword">this</span>._eye = [ <span class="hljs-number">0</span>, -bs.radius() * <span class="hljs-number">1.5</span>, <span class="hljs-number">0</span> ];
+            }
+        },
+        init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">this</span>._direction = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">this</span>._eye = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">25.0</span>, <span class="hljs-number">10.0</span> ];
+            <span class="hljs-keyword">this</span>._up = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> ];
+            <span class="hljs-keyword">this</span>._radius = <span class="hljs-number">1.0</span>;
+            <span class="hljs-keyword">this</span>._forward = <span class="hljs-keyword">new</span> OrbitManipulator.Interpolator( <span class="hljs-number">1</span> );
+            <span class="hljs-keyword">this</span>._side = <span class="hljs-keyword">new</span> OrbitManipulator.Interpolator( <span class="hljs-number">1</span> );
+            <span class="hljs-keyword">this</span>._lookPosition = <span class="hljs-keyword">new</span> OrbitManipulator.Interpolator( <span class="hljs-number">2</span> );
+            <span class="hljs-keyword">this</span>._stepFactor = <span class="hljs-number">1.0</span>; <span class="hljs-comment">// meaning radius*stepFactor to move</span>
+            <span class="hljs-keyword">this</span>._target = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">3</span> );
+            Vec3.init( <span class="hljs-keyword">this</span>._target );
+            <span class="hljs-keyword">this</span>._angleVertical = <span class="hljs-number">0.0</span>;
+            <span class="hljs-keyword">this</span>._angleHorizontal = <span class="hljs-number">0.0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>tmp value use for computation</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._tmpComputeRotation1 = Matrix.makeIdentity( [] );
+            <span class="hljs-keyword">this</span>._tmpComputeRotation2 = Matrix.makeIdentity( [] );
+            <span class="hljs-keyword">this</span>._tmpComputeRotation3 = Matrix.makeIdentity( [] );
+            <span class="hljs-keyword">this</span>._tmpGetTargetDir = Vec3.init( [] );
+
+            <span class="hljs-keyword">this</span>._rotBase = Matrix.makeIdentity( [] );
+
+            <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+
+            <span class="hljs-keyword">this</span>._controllerList = {};
+            FirstPersonManipulator.ControllerList.forEach( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( value )</span> {</span>
+                <span class="hljs-keyword">if</span> ( FirstPersonManipulator[ value ] !== <span class="hljs-literal">undefined</span> ) {
+                    self._controllerList[ value ] = <span class="hljs-keyword">new</span> FirstPersonManipulator[ value ]( self );
+                }
+            } );
+
+        },
+
+        getEyePosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( eye )</span> {</span>
+            eye[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._eye[ <span class="hljs-number">0</span> ];
+            eye[ <span class="hljs-number">1</span> ] = <span class="hljs-keyword">this</span>._eye[ <span class="hljs-number">1</span> ];
+            eye[ <span class="hljs-number">2</span> ] = <span class="hljs-keyword">this</span>._eye[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">return</span> eye;
+        },
+
+        setEyePosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( eye )</span> {</span>
+            <span class="hljs-keyword">this</span>._eye[ <span class="hljs-number">0</span> ] = eye[ <span class="hljs-number">0</span> ];
+            <span class="hljs-keyword">this</span>._eye[ <span class="hljs-number">1</span> ] = eye[ <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">this</span>._eye[ <span class="hljs-number">2</span> ] = eye[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+        },
+
+        getTarget: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( pos, distance )</span> {</span>
+            <span class="hljs-keyword">if</span> ( distance === <span class="hljs-literal">undefined</span> ) {
+                distance = <span class="hljs-number">25</span>;
+            }
+            <span class="hljs-keyword">var</span> dir = Vec3.mult( <span class="hljs-keyword">this</span>._direction, distance, <span class="hljs-keyword">this</span>._tmpGetTargetDir );
+            Vec3.add( <span class="hljs-keyword">this</span>._eye, dir, pos );
+        },
+
+        setTarget: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( pos )</span> {</span>
+            <span class="hljs-keyword">this</span>._target[ <span class="hljs-number">0</span> ] = pos[ <span class="hljs-number">0</span> ];
+            <span class="hljs-keyword">this</span>._target[ <span class="hljs-number">1</span> ] = pos[ <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">this</span>._target[ <span class="hljs-number">2</span> ] = pos[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">var</span> dir = <span class="hljs-keyword">this</span>._tmpGetTargetDir;
+            Vec3.sub( pos, <span class="hljs-keyword">this</span>._eye, dir );
+            dir[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0</span>;
+            Vec3.normalize( dir, dir );
+            <span class="hljs-keyword">this</span>._angleHorizontal = <span class="hljs-built_in">Math</span>.acos( dir[ <span class="hljs-number">1</span> ] );
+            <span class="hljs-keyword">if</span> ( dir[ <span class="hljs-number">0</span> ] &lt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">this</span>._angleHorizontal = -<span class="hljs-keyword">this</span>._angleHorizontal;
+            }
+            Vec3.sub( pos, <span class="hljs-keyword">this</span>._eye, dir );
+            Vec3.normalize( dir, dir );
+
+            <span class="hljs-keyword">this</span>._angleVertical = -<span class="hljs-built_in">Math</span>.asin( dir[ <span class="hljs-number">2</span> ] );
+            Vec3.copy( dir, <span class="hljs-keyword">this</span>._direction );
+        },
+
+        getLookPositionInterpolator: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._lookPosition;
+        },
+        getSideInterpolator: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._side;
+        },
+        getFowardInterpolator: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._forward;
+        },
+
+        computeRotation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( dx, dy )</span> {</span>
+            <span class="hljs-keyword">this</span>._angleVertical += dy * <span class="hljs-number">0.01</span>;
+            <span class="hljs-keyword">this</span>._angleHorizontal -= dx * <span class="hljs-number">0.01</span>;
+
+            <span class="hljs-keyword">var</span> first = <span class="hljs-keyword">this</span>._tmpComputeRotation1;
+            <span class="hljs-keyword">var</span> second = <span class="hljs-keyword">this</span>._tmpComputeRotation2;
+            <span class="hljs-keyword">var</span> rotMat = <span class="hljs-keyword">this</span>._tmpComputeRotation3;
+            Matrix.makeRotate( <span class="hljs-keyword">this</span>._angleVertical, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, first );
+            Matrix.makeRotate( <span class="hljs-keyword">this</span>._angleHorizontal, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, second );
+            Matrix.mult( second, first, rotMat );
+
+            <span class="hljs-keyword">var</span> rotBase = <span class="hljs-keyword">this</span>._rotBase;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>TOTO refactor the way the rotation matrix is managed</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            Matrix.preMult( rotMat, rotBase );
+
+            <span class="hljs-keyword">this</span>._direction = Matrix.transformVec3(rotMat, [ <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span> ], <span class="hljs-keyword">this</span>._direction );
+            Vec3.normalize( <span class="hljs-keyword">this</span>._direction, <span class="hljs-keyword">this</span>._direction );
+
+            <span class="hljs-keyword">this</span>._up = Matrix.transformVec3( rotMat, [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> ], <span class="hljs-keyword">this</span>._up );
+        },
+
+        reset: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">this</span>.init();
+        },
+
+        setStepFactor: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( t )</span> {</span>
+            <span class="hljs-keyword">this</span>._stepFactor = t;
+        },
+
+        update: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( nv )</span> {</span>
+            <span class="hljs-keyword">var</span> t = nv.getFrameStamp().getSimulationTime();
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._lastUpdate === <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>._lastUpdate = t;
+            }
+            <span class="hljs-keyword">var</span> dt = t - <span class="hljs-keyword">this</span>._lastUpdate;
+            <span class="hljs-keyword">this</span>._lastUpdate = t;
+
+            <span class="hljs-keyword">this</span>._forward.update();
+            <span class="hljs-keyword">this</span>._side.update();
+            <span class="hljs-keyword">var</span> delta = <span class="hljs-keyword">this</span>._lookPosition.update();
+
+            <span class="hljs-keyword">this</span>.computeRotation( -delta[ <span class="hljs-number">0</span> ] * <span class="hljs-number">0.5</span>, -delta[ <span class="hljs-number">1</span> ] * <span class="hljs-number">0.5</span> );
+
+            <span class="hljs-keyword">var</span> vec = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">2</span> );
+            vec[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._forward.getCurrent()[ <span class="hljs-number">0</span> ];
+            vec[ <span class="hljs-number">1</span> ] = <span class="hljs-keyword">this</span>._side.getCurrent()[ <span class="hljs-number">0</span> ];
+            <span class="hljs-keyword">if</span> ( Vec2.length( vec ) &gt; <span class="hljs-number">1.0</span> ) {
+                Vec2.normalize( vec, vec );
+            }
+            <span class="hljs-keyword">var</span> factor = <span class="hljs-keyword">this</span>._radius;
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._radius &lt; <span class="hljs-number">1e-3</span> ) {
+                factor = <span class="hljs-number">1.0</span>;
+            }
+            <span class="hljs-keyword">this</span>.moveForward( vec[ <span class="hljs-number">0</span> ] * factor * <span class="hljs-keyword">this</span>._stepFactor * dt );
+            <span class="hljs-keyword">this</span>.strafe( vec[ <span class="hljs-number">1</span> ] * factor * <span class="hljs-keyword">this</span>._stepFactor * dt );
+
+            <span class="hljs-keyword">var</span> target = Vec3.add( <span class="hljs-keyword">this</span>._eye, <span class="hljs-keyword">this</span>._direction, [] );
+            <span class="hljs-keyword">this</span>._target = target;
+
+            Matrix.makeLookAt( <span class="hljs-keyword">this</span>._eye, target, <span class="hljs-keyword">this</span>._up, <span class="hljs-keyword">this</span>._inverseMatrix );
+        },
+
+        setRotationBaseFromQuat:<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( quat )</span>{</span>
+            Matrix.makeRotateFromQuat( quat, <span class="hljs-keyword">this</span>._rotBase );
+        },
+
+        getInverseMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._inverseMatrix;
+        },
+
+        moveForward: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( distance )</span> {</span>
+            <span class="hljs-keyword">var</span> d = Vec3.mult( Vec3.normalize( <span class="hljs-keyword">this</span>._direction, [] ), distance, [] );
+            <span class="hljs-keyword">this</span>._eye = Vec3.add( <span class="hljs-keyword">this</span>._eye, d, [] );
+        },
+
+        strafe: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( distance )</span> {</span>
+            <span class="hljs-keyword">var</span> cx = Vec3.cross( <span class="hljs-keyword">this</span>._direction, <span class="hljs-keyword">this</span>._up, [] );
+            <span class="hljs-keyword">var</span> d = Vec3.mult( Vec3.normalize( cx, cx ), distance, [] );
+            <span class="hljs-keyword">this</span>._eye = Vec3.add( <span class="hljs-keyword">this</span>._eye, d, [] );
+        }
+
+    } );
+
+    ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
+        module.StandardMouseKeyboard = FirstPersonManipulatorMouseKeyboardController;
+    } )( FirstPersonManipulator );
+
+    ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
+        module.Oculus = FirstPersonManipulatorOculusController;
+    } )( FirstPersonManipulator );
+
+    <span class="hljs-keyword">return</span> FirstPersonManipulator;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

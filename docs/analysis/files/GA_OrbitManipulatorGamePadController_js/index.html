@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>GA/OrbitManipulatorGamePadController.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">65.28</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.11</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">48.57</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">114 / 70</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">osgGA.getOrbitGamePadControllerClass = function(module) {
+
+    var Controller = function(manipulator) {
+        this._manipulator = manipulator;
+        this.init();
+    };
+
+    Controller.prototype = {
+        init: function() {
+            this._delay = 0.15;
+            this._threshold = 0.08;
+            this._mode = 0;
+            this._padFactor = 10.0;
+            this._zoomFactor = 0.5;
+            this._rotateFactor = 5.0;
+        },
+
+
+        addPan: function(pan, x, y) {
+            pan.setDelay(this._delay);
+            pan.addTarget(x * this._padFactor, y * this._padFactor);
+        },
+
+        addZoom: function(zoom, z) {
+            zoom.setDelay(this._delay);
+            zoom.addTarget(z * this._zoomFactor);
+        },
+
+        addRotate: function(rotate, x, y) {
+            rotate.setDelay(this._delay);
+            rotateTarget = rotate.getTarget();
+            rotate.addTarget(x * this._rotateFactor, y * this._rotateFactor);
+        },
+
+        gamepadaxes: function(axes) {
+
+            // Block badly balanced controllers
+            var AXIS_THRESHOLD = 0.005;
+
+            var rotateTarget,panTarget;
+            var rotate = this._manipulator.getRotateInterpolator();
+            var zoom = this._manipulator.getZoomInterpolator();
+            var pan = this._manipulator.getPanInterpolator();
+            // Regular gamepads
+            if (axes.length==4) {
+                
+                if (Math.abs(axes[0])>AXIS_THRESHOLD || Math.abs(axes[1])>AXIS_THRESHOLD) {
+                    this.addRotate(rotate, -axes[0], axes[1]);
+                }
+                if (Math.abs(axes[3])>AXIS_THRESHOLD) {
+                    this.addZoom(zoom, - axes[3]);
+                }
+
+                //SpaceNavigator & 6-axis controllers
+            } else if (axes.length>=5) {
+                //console.log(axes);
+                if (Math.abs(axes[0])>AXIS_THRESHOLD || Math.abs(axes[1])>AXIS_THRESHOLD) {
+                    this.addPan(pan, -axes[0], axes[1]);
+                }
+
+                if (Math.abs(axes[2])>AXIS_THRESHOLD) {
+                    this.addZoom(zoom, - axes[2]);
+                }
+
+                if (Math.abs(axes[3])>AXIS_THRESHOLD || Math.abs(axes[4])>AXIS_THRESHOLD) {
+                    this.addRotate(rotate, axes[4], axes[3]);
+                }
+            }
+
+        },
+
+        gamepadbuttondown: function(event, pressed) {
+            // Buttons 12 to 15 are the d-pad.
+            if (event.button>=12 && event.button<=15) {
+                var pan = this._manipulator.getPanInterpolator();
+                var panTarget = pan.getTarget();
+                var delta = {
+                    12: [0 , -1],
+                    13: [0 ,  1],
+                    14: [-1,  0],
+                    15: [1 ,  0]
+                }[event.button];
+                pan.setDelay(this._delay);
+                pan.setTarget(panTarget[0]-delta[0]*10, panTarget[1]+delta[1]*10);
+            }
+        },
+
+        update: function(gamepadProxyEvent) {
+            if (!gamepadProxyEvent) {
+                return;
+            }
+            
+            var gm = gamepadProxyEvent.getGamePad();
+            var axis = gm.axes;
+            var buttons = gm.buttons;
+
+            this.gamepadaxes(axis);
+            
+            // Dummy event wrapper
+            var emptyFunc = function() {};
+            for (var i=0;i<buttons.length;i++) {
+                if (buttons[i]) {
+                    this.gamepadbuttondown({
+                        preventDefault:emptyFunc,
+                        gamepad: gm,
+                        button:i
+                    },!!buttons[i]);
+                }
+            }
+        }
+    };
+
+    return Controller;
+};</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

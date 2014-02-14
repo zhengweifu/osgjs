@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>IntersectVisitor.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="OSG.html">
+                OSG.js
+              </a>
+            
+              
+              <a class="source" href="BlendColor.html">
+                BlendColor.js
+              </a>
+            
+              
+              <a class="source" href="BlendFunc.html">
+                BlendFunc.js
+              </a>
+            
+              
+              <a class="source" href="BoundingBox.html">
+                BoundingBox.js
+              </a>
+            
+              
+              <a class="source" href="BoundingSphere.html">
+                BoundingSphere.js
+              </a>
+            
+              
+              <a class="source" href="BufferArray.html">
+                BufferArray.js
+              </a>
+            
+              
+              <a class="source" href="Camera.html">
+                Camera.js
+              </a>
+            
+              
+              <a class="source" href="ComputeMatrixFromNodePath.html">
+                ComputeMatrixFromNodePath.js
+              </a>
+            
+              
+              <a class="source" href="CullFace.html">
+                CullFace.js
+              </a>
+            
+              
+              <a class="source" href="CullSettings.html">
+                CullSettings.js
+              </a>
+            
+              
+              <a class="source" href="CullStack.html">
+                CullStack.js
+              </a>
+            
+              
+              <a class="source" href="CullVisitor.html">
+                CullVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Depth.html">
+                Depth.js
+              </a>
+            
+              
+              <a class="source" href="DrawArrayLengths.html">
+                DrawArrayLengths.js
+              </a>
+            
+              
+              <a class="source" href="DrawArrays.html">
+                DrawArrays.js
+              </a>
+            
+              
+              <a class="source" href="DrawElements.html">
+                DrawElements.js
+              </a>
+            
+              
+              <a class="source" href="EllipsoidModel.html">
+                EllipsoidModel.js
+              </a>
+            
+              
+              <a class="source" href="FrameBufferObject.html">
+                FrameBufferObject.js
+              </a>
+            
+              
+              <a class="source" href="FrameStamp.html">
+                FrameStamp.js
+              </a>
+            
+              
+              <a class="source" href="Geometry.html">
+                Geometry.js
+              </a>
+            
+              
+              <a class="source" href="Image.html">
+                Image.js
+              </a>
+            
+              
+              <a class="source" href="KdTree.html">
+                KdTree.js
+              </a>
+            
+              
+              <a class="source" href="KdTreeBuilder.html">
+                KdTreeBuilder.js
+              </a>
+            
+              
+              <a class="source" href="Light.html">
+                Light.js
+              </a>
+            
+              
+              <a class="source" href="LightSource.html">
+                LightSource.js
+              </a>
+            
+              
+              <a class="source" href="LineWidth.html">
+                LineWidth.js
+              </a>
+            
+              
+              <a class="source" href="Material.html">
+                Material.js
+              </a>
+            
+              
+              <a class="source" href="Math.html">
+                Math.js
+              </a>
+            
+              
+              <a class="source" href="Matrix.html">
+                Matrix.js
+              </a>
+            
+              
+              <a class="source" href="MatrixTransform.html">
+                MatrixTransform.js
+              </a>
+            
+              
+              <a class="source" href="Node.html">
+                Node.js
+              </a>
+            
+              
+              <a class="source" href="NodeVisitor.html">
+                NodeVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Notify.html">
+                Notify.js
+              </a>
+            
+              
+              <a class="source" href="Object.html">
+                Object.js
+              </a>
+            
+              
+              <a class="source" href="PrimitiveSet.html">
+                PrimitiveSet.js
+              </a>
+            
+              
+              <a class="source" href="Program.html">
+                Program.js
+              </a>
+            
+              
+              <a class="source" href="Projection.html">
+                Projection.js
+              </a>
+            
+              
+              <a class="source" href="Quat.html">
+                Quat.js
+              </a>
+            
+              
+              <a class="source" href="RenderBin.html">
+                RenderBin.js
+              </a>
+            
+              
+              <a class="source" href="RenderStage.html">
+                RenderStage.js
+              </a>
+            
+              
+              <a class="source" href="Shader.html">
+                Shader.js
+              </a>
+            
+              
+              <a class="source" href="ShaderGenerator.html">
+                ShaderGenerator.js
+              </a>
+            
+              
+              <a class="source" href="Shape.html">
+                Shape.js
+              </a>
+            
+              
+              <a class="source" href="Stack.html">
+                Stack.js
+              </a>
+            
+              
+              <a class="source" href="State.html">
+                State.js
+              </a>
+            
+              
+              <a class="source" href="StateAttribute.html">
+                StateAttribute.js
+              </a>
+            
+              
+              <a class="source" href="StateGraph.html">
+                StateGraph.js
+              </a>
+            
+              
+              <a class="source" href="StateSet.html">
+                StateSet.js
+              </a>
+            
+              
+              <a class="source" href="Texture.html">
+                Texture.js
+              </a>
+            
+              
+              <a class="source" href="TextureCubeMap.html">
+                TextureCubeMap.js
+              </a>
+            
+              
+              <a class="source" href="Transform.html">
+                Transform.js
+              </a>
+            
+              
+              <a class="source" href="TransformEnums.html">
+                TransformEnums.js
+              </a>
+            
+              
+              <a class="source" href="TriangleIndexFunctor.html">
+                TriangleIndexFunctor.js
+              </a>
+            
+              
+              <a class="source" href="Uniform.html">
+                Uniform.js
+              </a>
+            
+              
+              <a class="source" href="UpdateVisitor.html">
+                UpdateVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Utils.html">
+                Utils.js
+              </a>
+            
+              
+              <a class="source" href="Vec2.html">
+                Vec2.js
+              </a>
+            
+              
+              <a class="source" href="Vec3.html">
+                Vec3.js
+              </a>
+            
+              
+              <a class="source" href="Vec4.html">
+                Vec4.js
+              </a>
+            
+              
+              <a class="source" href="Viewport.html">
+                Viewport.js
+              </a>
+            
+              
+              <a class="source" href="osg.html">
+                osg.js
+              </a>
+            
+              
+              <a class="source" href="Animation.html">
+                Animation.js
+              </a>
+            
+              
+              <a class="source" href="AnimationUpdateCallback.html">
+                AnimationUpdateCallback.js
+              </a>
+            
+              
+              <a class="source" href="BasicAnimationManager.html">
+                BasicAnimationManager.js
+              </a>
+            
+              
+              <a class="source" href="Channel.html">
+                Channel.js
+              </a>
+            
+              
+              <a class="source" href="Easing.html">
+                Easing.js
+              </a>
+            
+              
+              <a class="source" href="FloatLerpChannel.html">
+                FloatLerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="FloatTarget.html">
+                FloatTarget.js
+              </a>
+            
+              
+              <a class="source" href="Interpolator.html">
+                Interpolator.js
+              </a>
+            
+              
+              <a class="source" href="Keyframe.html">
+                Keyframe.js
+              </a>
+            
+              
+              <a class="source" href="LinkVisitor.html">
+                LinkVisitor.js
+              </a>
+            
+              
+              <a class="source" href="QuatLerpChannel.html">
+                QuatLerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="QuatSlerpChannel.html">
+                QuatSlerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="QuatTarget.html">
+                QuatTarget.js
+              </a>
+            
+              
+              <a class="source" href="Sampler.html">
+                Sampler.js
+              </a>
+            
+              
+              <a class="source" href="StackedQuaternion.html">
+                StackedQuaternion.js
+              </a>
+            
+              
+              <a class="source" href="StackedRotateAxis.html">
+                StackedRotateAxis.js
+              </a>
+            
+              
+              <a class="source" href="StackedTranslate.html">
+                StackedTranslate.js
+              </a>
+            
+              
+              <a class="source" href="Target.html">
+                Target.js
+              </a>
+            
+              
+              <a class="source" href="UpdateMatrixTransform.html">
+                UpdateMatrixTransform.js
+              </a>
+            
+              
+              <a class="source" href="Vec3LerpChannel.html">
+                Vec3LerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="Vec3Target.html">
+                Vec3Target.js
+              </a>
+            
+              
+              <a class="source" href="osgAnimation.html">
+                osgAnimation.js
+              </a>
+            
+              
+              <a class="source" href="Input.html">
+                Input.js
+              </a>
+            
+              
+              <a class="source" href="Options.html">
+                Options.js
+              </a>
+            
+              
+              <a class="source" href="ReaderParser.html">
+                ReaderParser.js
+              </a>
+            
+              
+              <a class="source" href="osgDB.html">
+                osgDB.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulator.html">
+                FirstPersonManipulator.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
+                FirstPersonManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulatorOculusController.html">
+                FirstPersonManipulatorOculusController.js
+              </a>
+            
+              
+              <a class="source" href="Manipulator.html">
+                Manipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulator.html">
+                OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorEnums.html">
+                OrbitManipulatorEnums.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorGamePadController.html">
+                OrbitManipulatorGamePadController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorHammerController.html">
+                OrbitManipulatorHammerController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorLeapMotionController.html">
+                OrbitManipulatorLeapMotionController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
+                OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="SwitchManipulator.html">
+                SwitchManipulator.js
+              </a>
+            
+              
+              <a class="source" href="osgGA.html">
+                osgGA.js
+              </a>
+            
+              
+              <a class="source" href="osgNameSpace.html">
+                osgNameSpace.js
+              </a>
+            
+              
+              <a class="source" href="Composer.html">
+                Composer.js
+              </a>
+            
+              
+              <a class="source" href="IntersectVisitor.html">
+                IntersectVisitor.js
+              </a>
+            
+              
+              <a class="source" href="ParameterVisitor.html">
+                ParameterVisitor.js
+              </a>
+            
+              
+              <a class="source" href="TriangleIntersect.html">
+                TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="osgPool.html">
+                osgPool.js
+              </a>
+            
+              
+              <a class="source" href="osgUtil.html">
+                osgUtil.js
+              </a>
+            
+              
+              <a class="source" href="View.html">
+                View.js
+              </a>
+            
+              
+              <a class="source" href="Viewer.html">
+                Viewer.js
+              </a>
+            
+              
+              <a class="source" href="EventProxy.html">
+                EventProxy.js
+              </a>
+            
+              
+              <a class="source" href="GamePad.html">
+                GamePad.js
+              </a>
+            
+              
+              <a class="source" href="Hammer.html">
+                Hammer.js
+              </a>
+            
+              
+              <a class="source" href="LeapMotion.html">
+                LeapMotion.js
+              </a>
+            
+              
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
+              <a class="source" href="StandardMouseKeyboard.html">
+                StandardMouseKeyboard.js
+              </a>
+            
+              
+              <a class="source" href="osgViewer.html">
+                osgViewer.js
+              </a>
+            
+              
+              <a class="source" href="stats.html">
+                stats.js
+              </a>
+            
+              
+              <a class="source" href="webgl-debug.html">
+                webgl-debug.js
+              </a>
+            
+              
+              <a class="source" href="webgl-utils.html">
+                webgl-utils.js
+              </a>
+            
+              
+              <a class="source" href="osg.html">
+                osg.js
+              </a>
+            
+              
+              <a class="source" href="osgAnimation.html">
+                osgAnimation.js
+              </a>
+            
+              
+              <a class="source" href="Hammer.html">
+                Hammer.js
+              </a>
+            
+              
+              <a class="source" href="Leap.html">
+                Leap.js
+              </a>
+            
+              
+              <a class="source" href="Q.html">
+                Q.js
+              </a>
+            
+              
+              <a class="source" href="vr.html">
+                vr.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>IntersectVisitor.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Utils'</span>,
+    <span class="hljs-string">'osg/NodeVisitor'</span>,
+    <span class="hljs-string">'osg/Matrix'</span>,
+    <span class="hljs-string">'osg/Vec3'</span>,
+    <span class="hljs-string">'osgUtil/TriangleIntersect'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( MACROUTILS, NodeVisitor, Matrix, Vec3, TriangleIntersect )</span> {</span>
+
+    <span class="hljs-keyword">var</span> IntersectVisitor = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+        NodeVisitor.call( <span class="hljs-keyword">this</span> );
+        <span class="hljs-keyword">this</span>.matrix = [];
+        <span class="hljs-keyword">this</span>.hits = [];
+        <span class="hljs-keyword">this</span>.nodePath = [];
+    };
+    IntersectVisitor.prototype = MACROUTILS.objectInehrit( NodeVisitor.prototype, {
+        addLineSegment: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( start, end )</span> {</span>
+            <span class="hljs-keyword">this</span>.start = start;
+            <span class="hljs-keyword">this</span>.end = end;
+        },
+        intersectSegmentWithSphere: ( <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> sm = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> se = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( start, end, bsphere )</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>test for _start inside the bounding sphere</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                Vec3.sub( start, bsphere.center(), sm );
+                <span class="hljs-keyword">var</span> c = Vec3.length2( sm ) - bsphere.radius2();
+                <span class="hljs-keyword">if</span> ( c &lt; <span class="hljs-number">0.0</span> ) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+                }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>solve quadratic equation</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                Vec3.sub( end, start, se );
+                <span class="hljs-keyword">var</span> a = Vec3.length2( se );
+                <span class="hljs-keyword">var</span> b = Vec3.dot( sm, se ) * <span class="hljs-number">2.0</span>;
+                <span class="hljs-keyword">var</span> d = b * b - <span class="hljs-number">4.0</span> * a * c;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>no intersections if d&lt;0</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> ( d &lt; <span class="hljs-number">0.0</span> ) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+                }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>compute two solutions of quadratic equation</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                d = <span class="hljs-built_in">Math</span>.sqrt( d );
+                <span class="hljs-keyword">var</span> div = <span class="hljs-number">1.0</span> / ( <span class="hljs-number">2.0</span> * a );
+                <span class="hljs-keyword">var</span> r1 = ( -b - d ) * div;
+                <span class="hljs-keyword">var</span> r2 = ( -b + d ) * div;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>return false if both intersections are before the ray start</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> ( r1 &lt;= <span class="hljs-number">0.0</span> &amp;&amp; r2 &lt;= <span class="hljs-number">0.0</span> ) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+                }
+
+                <span class="hljs-keyword">if</span> ( r1 &gt;= <span class="hljs-number">1.0</span> &amp;&amp; r2 &gt;= <span class="hljs-number">1.0</span> ) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+                }
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+            };
+        } )(),
+        pushModelMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( matrix )</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.matrix.length &gt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">var</span> m = Matrix.copy( <span class="hljs-keyword">this</span>.matrix[ <span class="hljs-keyword">this</span>.matrix.length - <span class="hljs-number">1</span> ] );
+                Matrix.preMult( m, matrix );
+                <span class="hljs-keyword">this</span>.matrix.push( m );
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">this</span>.matrix.push( matrix );
+            }
+        },
+        getModelMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.matrix.length === <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">return</span> Matrix.makeIdentity( [] );
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.matrix[ <span class="hljs-keyword">this</span>.matrix.length - <span class="hljs-number">1</span> ];
+        },
+        popModelMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.matrix.pop();
+        },
+        getWindowMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.windowMatrix;
+        },
+        getProjectionMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.projectionMatrix;
+        },
+        getViewMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.viewMatrix;
+        },
+        intersectSegmentWithShape: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( start, end, shape )</span> {</span>
+            <span class="hljs-keyword">return</span> shape.intersect( start, end, <span class="hljs-keyword">this</span>.hits, <span class="hljs-keyword">this</span>.nodePath );
+        },
+        intersectSegmentWithGeometry: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( start, end, geometry )</span> {</span>
+            <span class="hljs-keyword">var</span> ti = <span class="hljs-keyword">new</span> TriangleIntersect();
+            ti.setNodePath( <span class="hljs-keyword">this</span>.nodePath );
+            ti.set( start, end );
+            ti.apply( geometry );
+            <span class="hljs-keyword">var</span> l = ti.hits.length;
+            <span class="hljs-keyword">if</span> ( l &gt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; l; i++ ) {
+                    <span class="hljs-keyword">this</span>.hits.push( ti.hits[ i ] );
+                }
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+        },
+        pushCamera: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( camera )</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>we should support hierarchy of camera
+but right now we want just simple picking on main
+camera</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>.projectionMatrix = camera.getProjectionMatrix();
+            <span class="hljs-keyword">this</span>.viewMatrix = camera.getViewMatrix();
+
+            <span class="hljs-keyword">var</span> vp = camera.getViewport();
+            <span class="hljs-keyword">if</span> ( vp !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>.windowMatrix = vp.computeWindowMatrix();
+            }
+        },
+        applyCamera: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( camera )</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>we should support hierarchy of camera
+but right now we want just simple picking on main
+camera</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>.pushCamera( camera );
+            <span class="hljs-keyword">this</span>.traverse( camera );
+        },
+
+        applyNode: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( node, ns, ne )</span> {</span>
+            <span class="hljs-keyword">if</span> ( node.getMatrix ) {
+                <span class="hljs-keyword">this</span>.pushModelMatrix( node.getMatrix() );
+            }
+
+            <span class="hljs-keyword">if</span> ( node.primitives ) {
+                <span class="hljs-keyword">var</span> kdtree = node.getShape();
+                <span class="hljs-keyword">if</span> ( kdtree ) {
+                    <span class="hljs-keyword">this</span>.intersectSegmentWithShape( ns, ne, kdtree );
+                } <span class="hljs-keyword">else</span>
+                    <span class="hljs-keyword">this</span>.intersectSegmentWithGeometry( ns, ne, node );
+            }
+
+            <span class="hljs-keyword">if</span> ( node.traverse ) {
+                <span class="hljs-keyword">this</span>.traverse( node );
+            }
+
+            <span class="hljs-keyword">if</span> ( node.getMatrix ) {
+                <span class="hljs-keyword">this</span>.popModelMatrix();
+            }
+        },
+
+        transformRay: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( tStart, tEnd )</span> {</span>
+            <span class="hljs-keyword">var</span> matrix = [];
+            Matrix.copy( <span class="hljs-keyword">this</span>.getWindowMatrix(), matrix );
+            Matrix.preMult( matrix, <span class="hljs-keyword">this</span>.getProjectionMatrix() );
+            Matrix.preMult( matrix, <span class="hljs-keyword">this</span>.getViewMatrix() );
+            Matrix.preMult( matrix, <span class="hljs-keyword">this</span>.getModelMatrix() );
+
+            <span class="hljs-keyword">var</span> inv = [];
+            <span class="hljs-keyword">var</span> valid = Matrix.inverse( matrix, inv );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>if matrix is invalid do nothing on this node</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">if</span> ( !valid ) {
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+            }
+
+            Matrix.transformVec3( inv, <span class="hljs-keyword">this</span>.start, tStart );
+            Matrix.transformVec3( inv, <span class="hljs-keyword">this</span>.end, tEnd );
+
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+        },
+
+        apply: ( <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> ns = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> ne = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( node )</span> {</span>
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.transformRay( ns, ne ) === <span class="hljs-literal">false</span> ) {
+                    <span class="hljs-keyword">return</span>;
+                }
+
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.enterNode( node, ns, ne ) === <span class="hljs-literal">false</span> ) {
+                    <span class="hljs-keyword">return</span>;
+                }
+
+                <span class="hljs-keyword">if</span> ( node.getViewMatrix ) { <span class="hljs-comment">// Camera/View</span>
+                    <span class="hljs-keyword">this</span>.applyCamera( node );
+                } <span class="hljs-keyword">else</span> {
+                    <span class="hljs-keyword">this</span>.applyNode( node, ns, ne );
+                }
+            };
+        } )(),
+
+        enterNode: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( node, ns, ne )</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.intersectSegmentWithSphere( ns, ne, node.getBound() );
+        }
+    } );
+
+    <span class="hljs-keyword">return</span> IntersectVisitor;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

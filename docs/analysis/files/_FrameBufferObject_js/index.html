@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>/FrameBufferObject.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">62.79</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">0.94</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">36.16</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">88 / 70</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">/** 
+ * FrameBufferObject manage fbo / rtt 
+ * @class FrameBufferObject
+ */
+osg.FrameBufferObject = function () {
+    osg.StateAttribute.call(this);
+    this.fbo = undefined;
+    this.attachments = [];
+    this.dirty();
+};
+
+osg.FrameBufferObject.COLOR_ATTACHMENT0 = 0x8CE0;
+osg.FrameBufferObject.DEPTH_ATTACHMENT = 0x8D00;
+osg.FrameBufferObject.DEPTH_COMPONENT16 = 0x81A5;
+
+/** @lends osg.FrameBufferObject.prototype */
+osg.FrameBufferObject.prototype = osg.objectInehrit(osg.StateAttribute.prototype, {
+    attributeType: "FrameBufferObject",
+    cloneType: function() {return new osg.FrameBufferObject(); },
+    getType: function() { return this.attributeType;},
+    getTypeMember: function() { return this.attributeType;},
+    setAttachment: function(attachment) { this.attachments.push(attachment); },
+    _reportFrameBufferError : function(code) {
+        switch (code) {
+        case 0x8CD6:
+            osg.debug("FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+            break;
+        case 0x8CD7:
+            osg.debug("FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+            break;
+        case 0x8CD9:
+            osg.debug("FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+            break;
+        case 0x8CDD:
+            osg.debug("FRAMEBUFFER_UNSUPPORTED");
+            break;
+        default:
+            osg.debug("FRAMEBUFFER unknown error " + code.toString(16));
+        }
+    },
+    apply: function(state) {
+        var gl = state.getGraphicContext();
+        var status;
+        if (this.attachments.length > 0) {
+            if (this.isDirty()) {
+
+                if (!this.fbo) {
+                    this.fbo = gl.createFramebuffer();
+                }
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+                var hasRenderBuffer = false;
+                for (var i = 0, l = this.attachments.length; i < l; ++i) {
+                    
+                    if (this.attachments[i].texture === undefined) { // render buffer
+                        var rb = gl.createRenderbuffer();
+                        gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
+                        gl.renderbufferStorage(gl.RENDERBUFFER, this.attachments[i].format, this.attachments[i].width, this.attachments[i].height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, this.attachments[i].attachment, gl.RENDERBUFFER, rb);
+                        hasRenderBuffer = true;
+                    } else {
+                        var texture = this.attachments[i].texture;
+                        // apply on unit 0 to init it
+                        state.applyTextureAttribute(0, texture);
+                        
+                        //gl.framebufferTexture2D(gl.FRAMEBUFFER, this.attachments[i].attachment, texture.getTextureTarget(), texture.getTextureObject(), this.attachments[i].level);
+                        gl.framebufferTexture2D(gl.FRAMEBUFFER, this.attachments[i].attachment, texture.getTextureTarget(), texture.getTextureObject(), this.attachments[i].level);
+                    }
+                }
+                status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                if (status !== 0x8CD5) {
+                    this._reportFrameBufferError(status);
+                }
+                
+                if (hasRenderBuffer) { // set it to null only if used renderbuffer
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                }
+                this.setDirty(false);
+            } else {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+                if (osg.reportWebGLError === true) {
+                    status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                    if (status !== 0x8CD5) {
+                        this._reportFrameBufferError(status);
+                    }
+                }
+            }
+        } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+    }
+});</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

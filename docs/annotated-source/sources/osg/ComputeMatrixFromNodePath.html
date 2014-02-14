@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>ComputeMatrixFromNodePath.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>ComputeMatrixFromNodePath.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Matrix'</span>,
+    <span class="hljs-string">'osg/TransformEnums'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Matrix, TransformEnums )</span> {</span>
+
+    <span class="hljs-keyword">var</span> computeLocalToWorld = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( nodePath, ignoreCameras )</span> {</span>
+        <span class="hljs-keyword">var</span> ignoreCamera = ignoreCameras;
+        <span class="hljs-keyword">if</span> ( ignoreCamera === <span class="hljs-literal">undefined</span> ) {
+            ignoreCamera = <span class="hljs-literal">true</span>;
+        }
+        <span class="hljs-keyword">var</span> matrix = Matrix.makeIdentity( [] );
+
+        <span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">if</span> ( ignoreCamera ) {
+            <span class="hljs-keyword">for</span> ( j = nodePath.length - <span class="hljs-number">1</span>; j &gt; <span class="hljs-number">0</span>; j-- ) {
+                <span class="hljs-keyword">var</span> camera = nodePath[ j ];
+                <span class="hljs-keyword">if</span> ( camera.className() === <span class="hljs-string">'Camera'</span> &amp;&amp;
+                    ( camera.getReferenceFrame !== TransformEnums.RELATIVE_RF || camera.getParents().length === <span class="hljs-number">0</span> ) ) {
+                    <span class="hljs-keyword">break</span>;
+                }
+            }
+        }
+
+        <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = j, l = nodePath.length; i &lt; l; i++ ) {
+            <span class="hljs-keyword">var</span> node = nodePath[ i ];
+            <span class="hljs-keyword">if</span> ( node.computeLocalToWorldMatrix ) {
+                node.computeLocalToWorldMatrix( matrix );
+            }
+        }
+        <span class="hljs-keyword">return</span> matrix;
+    };
+
+    <span class="hljs-keyword">return</span> {
+        computeLocalToWorld: computeLocalToWorld
+    };
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Camera.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>Camera.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Utils'</span>,
+    <span class="hljs-string">'osg/Transform'</span>,
+    <span class="hljs-string">'osg/CullSettings'</span>,
+    <span class="hljs-string">'osg/Matrix'</span>,
+    <span class="hljs-string">'osg/TransformEnums'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Transform, CullSettings, Matrix, TransformEnums )</span> {</span>
+
+    <span class="hljs-comment">/**
+     * Camera - is a subclass of Transform which represents encapsulates the settings of a Camera.
+     * @class Camera
+     * @inherits Transform CullSettings
+     */</span>
+    <span class="hljs-keyword">var</span> Camera = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        Transform.call( <span class="hljs-keyword">this</span> );
+        CullSettings.call( <span class="hljs-keyword">this</span> );
+
+        <span class="hljs-keyword">this</span>.viewport = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>.setClearColor( [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1.0</span> ] );
+        <span class="hljs-keyword">this</span>.setClearDepth( <span class="hljs-number">1.0</span> );
+
+        <span class="hljs-comment">/*jshint bitwise: false */</span>
+        <span class="hljs-keyword">this</span>.setClearMask( Camera.COLOR_BUFFER_BIT | Camera.DEPTH_BUFFER_BIT );
+        <span class="hljs-comment">/*jshint bitwise: true */</span>
+
+        <span class="hljs-keyword">this</span>.setViewMatrix( Matrix.makeIdentity( [] ) );
+        <span class="hljs-keyword">this</span>.setProjectionMatrix( Matrix.makeIdentity( [] ) );
+        <span class="hljs-keyword">this</span>.renderOrder = Camera.NESTED_RENDER;
+        <span class="hljs-keyword">this</span>.renderOrderNum = <span class="hljs-number">0</span>;
+    };
+
+    Camera.PRE_RENDER = <span class="hljs-number">0</span>;
+    Camera.NESTED_RENDER = <span class="hljs-number">1</span>;
+    Camera.POST_RENDER = <span class="hljs-number">2</span>;
+
+    Camera.COLOR_BUFFER_BIT = <span class="hljs-number">0x00004000</span>;
+    Camera.DEPTH_BUFFER_BIT = <span class="hljs-number">0x00000100</span>;
+    Camera.STENCIL_BUFFER_BIT = <span class="hljs-number">0x00000400</span>;
+
+    <span class="hljs-comment">/** @lends Camera.prototype */</span>
+    Camera.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit(
+        CullSettings.prototype,
+        MACROUTILS.objectInehrit( Transform.prototype, {
+
+            setClearDepth: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( depth )</span> {</span>
+                <span class="hljs-keyword">this</span>.clearDepth = depth;
+            },
+            getClearDepth: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.clearDepth;
+            },
+
+            setClearMask: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mask )</span> {</span>
+                <span class="hljs-keyword">this</span>.clearMask = mask;
+            },
+            getClearMask: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.clearMask;
+            },
+
+            setClearColor: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( color )</span> {</span>
+                <span class="hljs-keyword">this</span>.clearColor = color;
+            },
+            getClearColor: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.clearColor;
+            },
+
+            setViewport: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( vp )</span> {</span>
+                <span class="hljs-keyword">this</span>.viewport = vp;
+                <span class="hljs-keyword">this</span>.getOrCreateStateSet().setAttributeAndMode( vp );
+            },
+            getViewport: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.viewport;
+            },
+
+
+            setViewMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix )</span> {</span>
+                <span class="hljs-keyword">this</span>.modelviewMatrix = matrix;
+            },
+
+            setProjectionMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix )</span> {</span>
+                <span class="hljs-keyword">this</span>.projectionMatrix = matrix;
+            },
+
+            <span class="hljs-comment">/** Set to an orthographic projection. See OpenGL glOrtho for documentation further details.*/</span>
+            setProjectionMatrixAsOrtho: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( left, right,
+                bottom, top,
+                zNear, zFar )</span> {</span>
+                Matrix.makeOrtho( left, right, bottom, top, zNear, zFar, <span class="hljs-keyword">this</span>.getProjectionMatrix() );
+            },
+
+            getViewMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.modelviewMatrix;
+            },
+            getProjectionMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.projectionMatrix;
+            },
+            getRenderOrder: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.renderOrder;
+            },
+            setRenderOrder: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( order, orderNum )</span> {</span>
+                <span class="hljs-keyword">this</span>.renderOrder = order;
+                <span class="hljs-keyword">this</span>.renderOrderNum = orderNum;
+            },
+
+            attachTexture: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bufferComponent, texture, level )</span> {</span>
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.frameBufferObject ) {
+                    <span class="hljs-keyword">this</span>.frameBufferObject.dirty();
+                }
+                <span class="hljs-keyword">if</span> ( level === <span class="hljs-literal">undefined</span> ) {
+                    level = <span class="hljs-number">0</span>;
+                }
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.attachments === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">this</span>.attachments = {};
+                }
+                <span class="hljs-keyword">this</span>.attachments[ bufferComponent ] = {
+                    <span class="hljs-string">'texture'</span>: texture,
+                    <span class="hljs-string">'level'</span>: level
+                };
+            },
+
+            attachRenderBuffer: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bufferComponent, internalFormat )</span> {</span>
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.frameBufferObject ) {
+                    <span class="hljs-keyword">this</span>.frameBufferObject.dirty();
+                }
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.attachments === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">this</span>.attachments = {};
+                }
+                <span class="hljs-keyword">this</span>.attachments[ bufferComponent ] = {
+                    <span class="hljs-string">'format'</span>: internalFormat
+                };
+            },
+
+            computeLocalToWorldMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix <span class="hljs-comment">/*,nodeVisitor*/</span> )</span> {</span>
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.referenceFrame === TransformEnums.RELATIVE_RF ) {
+                    Matrix.preMult( matrix, <span class="hljs-keyword">this</span>.modelviewMatrix );
+                } <span class="hljs-keyword">else</span> { <span class="hljs-comment">// absolute</span>
+                    matrix = <span class="hljs-keyword">this</span>.modelviewMatrix;
+                }
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+            },
+
+            computeWorldToLocalMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix <span class="hljs-comment">/*, nodeVisitor */</span> )</span> {</span>
+                <span class="hljs-keyword">var</span> inverse = [];
+                Matrix.inverse( <span class="hljs-keyword">this</span>.modelviewMatrix, inverse );
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.referenceFrame === TransformEnums.RELATIVE_RF ) {
+                    Matrix.postMult( inverse, matrix );
+                } <span class="hljs-keyword">else</span> {
+                    matrix = inverse;
+                }
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+            }
+
+        } ) ), <span class="hljs-string">'osg'</span>, <span class="hljs-string">'Camera'</span> );
+
+    MACROUTILS.setTypeID( Camera );
+
+    <span class="hljs-keyword">return</span> Camera;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

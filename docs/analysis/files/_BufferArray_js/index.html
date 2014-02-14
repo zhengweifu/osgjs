@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>/BufferArray.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">74.60</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">0.70</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">38.00</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">81 / 56</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">/** -*- compile-command: "jslint-cli BufferArray.js" -*- */
+
+/** 
+ * BufferArray manage vertex / normal / ... array used by webgl.
+ * @class BufferArray
+ */
+osg.BufferArray = function (type, elements, itemSize) {
+    if (osg.BufferArray.instanceID === undefined) {
+        osg.BufferArray.instanceID = 0;
+    }
+    this.instanceID = osg.BufferArray.instanceID;
+    osg.BufferArray.instanceID += 1;
+    this.dirty();
+
+    this._itemSize = itemSize;
+    if (typeof(type) === "string") {
+        type = osg.BufferArray[type];
+    }
+    this._type = type;
+
+    if (elements !== undefined) {
+        if (this._type === osg.BufferArray.ELEMENT_ARRAY_BUFFER) {
+            this._elements = new osg.Uint16Array(elements);
+        } else {
+            this._elements = new osg.Float32Array(elements);
+        }
+    }
+};
+
+osg.BufferArray.ELEMENT_ARRAY_BUFFER = 0x8893;
+osg.BufferArray.ARRAY_BUFFER = 0x8892;
+
+
+/** @lends osg.BufferArray.prototype */
+osg.BufferArray.prototype = {
+    setItemSize: function(size) { this._itemSize = size; },
+    isValid: function() {
+        if (this._buffer !== undefined || 
+            this._elements !== undefined) {
+            return true;
+        }
+        return false;
+    },
+
+    releaseGLObjects: function(gl) {
+        if (this._buffer !== undefined && this._buffer !== null) {
+            gl.deleteBuffer(this._buffer);
+        }
+        this._buffer = undefined;
+    },
+
+    bind: function(gl) {
+
+        var type = this._type;
+        var buffer = this._buffer;
+
+        if (buffer) {
+            gl.bindBuffer(type, buffer);
+            return;
+        }
+
+        if (!buffer && this._elements.length > 0 ) {
+            this._buffer = gl.createBuffer();
+            this._numItems = this._elements.length / this._itemSize;
+            gl.bindBuffer(type, this._buffer);
+        }
+    },
+    getItemSize: function() { return this._itemSize; },
+    dirty: function() { this._dirty = true; },
+    isDirty: function() { return this._dirty; },
+    compile: function(gl) {
+        if (this._dirty) {
+            gl.bufferData(this._type, this._elements, gl.STATIC_DRAW);
+            this._dirty = false;
+        }
+    },
+    getElements: function() { return this._elements;},
+    setElements: function(elements) { 
+        this._elements = elements;
+        this._dirty = true;
+    }
+};
+
+osg.BufferArray.create = function(type, elements, itemSize) {
+    osg.log("osg.BufferArray.create is deprecated, use new osg.BufferArray with same arguments instead");
+    return new osg.BufferArray(type, elements, itemSize);
+};</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

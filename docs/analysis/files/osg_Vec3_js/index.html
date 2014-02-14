@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osg/Vec3.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">70.01</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">114</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">80.63</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.16</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [], function () {
+
+    /** @class Vec3 Operations */
+    var Vec3 = {
+        init: function ( a ) {
+            a[ 0 ] = 0.0;
+            a[ 1 ] = 0.0;
+            a[ 2 ] = 0.0;
+            return a;
+        },
+
+        copy: function ( a, r ) {
+            r[ 0 ] = a[ 0 ];
+            r[ 1 ] = a[ 1 ];
+            r[ 2 ] = a[ 2 ];
+            return r;
+        },
+
+        cross: function ( a, b, r ) {
+            var x = a[ 1 ] * b[ 2 ] - a[ 2 ] * b[ 1 ];
+            var y = a[ 2 ] * b[ 0 ] - a[ 0 ] * b[ 2 ];
+            var z = a[ 0 ] * b[ 1 ] - a[ 1 ] * b[ 0 ];
+            r[ 0 ] = x;
+            r[ 1 ] = y;
+            r[ 2 ] = z;
+            return r;
+        },
+
+        valid: function ( a ) {
+            if ( isNaN( a[ 0 ] ) ) {
+                return false;
+            }
+            if ( isNaN( a[ 1 ] ) ) {
+                return false;
+            }
+            if ( isNaN( a[ 2 ] ) ) {
+                return false;
+            }
+            return true;
+        },
+
+        mult: function ( a, b, r ) {
+            r[ 0 ] = a[ 0 ] * b;
+            r[ 1 ] = a[ 1 ] * b;
+            r[ 2 ] = a[ 2 ] * b;
+            return r;
+        },
+
+        length2: function ( a ) {
+            return a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ];
+        },
+
+        length: function ( a ) {
+            return Math.sqrt( a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ] );
+        },
+
+        distance: function ( a, b ) {
+            var x = a[ 0 ] - b[ 0 ];
+            var y = a[ 1 ] - b[ 1 ];
+            var z = a[ 2 ] - b[ 2 ];
+            return Math.sqrt( x * x + y * y + z * z );
+        },
+
+        normalize: function ( a, r ) {
+            var norm = this.length2( a );
+            if ( norm &gt; 0.0 ) {
+                var inv = 1.0 / Math.sqrt( norm );
+                r[ 0 ] = a[ 0 ] * inv;
+                r[ 1 ] = a[ 1 ] * inv;
+                r[ 2 ] = a[ 2 ] * inv;
+            } else {
+                r[ 0 ] = a[ 0 ];
+                r[ 1 ] = a[ 1 ];
+                r[ 2 ] = a[ 2 ];
+            }
+            return r;
+        },
+
+        dot: function ( a, b ) {
+            return a[ 0 ] * b[ 0 ] + a[ 1 ] * b[ 1 ] + a[ 2 ] * b[ 2 ];
+        },
+
+        sub: function ( a, b, r ) {
+            r[ 0 ] = a[ 0 ] - b[ 0 ];
+            r[ 1 ] = a[ 1 ] - b[ 1 ];
+            r[ 2 ] = a[ 2 ] - b[ 2 ];
+            return r;
+        },
+
+        add: function ( a, b, r ) {
+            r[ 0 ] = a[ 0 ] + b[ 0 ];
+            r[ 1 ] = a[ 1 ] + b[ 1 ];
+            r[ 2 ] = a[ 2 ] + b[ 2 ];
+            return r;
+        },
+
+        neg: function ( a, r ) {
+            r[ 0 ] = -a[ 0 ];
+            r[ 1 ] = -a[ 1 ];
+            r[ 2 ] = -a[ 2 ];
+            return r;
+        },
+
+        lerp: function ( t, a, b, r ) {
+            r[ 0 ] = a[ 0 ] + ( b[ 0 ] - a[ 0 ] ) * t;
+            r[ 1 ] = a[ 1 ] + ( b[ 1 ] - a[ 1 ] ) * t;
+            r[ 2 ] = a[ 2 ] + ( b[ 2 ] - a[ 2 ] ) * t;
+            return r;
+        }
+
+    };
+
+    return Vec3;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

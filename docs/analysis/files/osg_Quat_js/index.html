@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osg/Quat.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">64.24</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">256</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">97.22</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">3.01</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [], function () {
+
+    /** @class Quaternion Operations */
+    var Quat = {
+        copy: function ( s, d ) {
+            d[ 0 ] = s[ 0 ];
+            d[ 1 ] = s[ 1 ];
+            d[ 2 ] = s[ 2 ];
+            d[ 3 ] = s[ 3 ];
+            return d;
+        },
+        makeIdentity: function ( element ) {
+            return Quat.init( element );
+        },
+        zeroRotation: function ( element ) {
+            return Quat.init( element );
+        },
+
+        init: function ( element ) {
+            element[ 0 ] = 0;
+            element[ 1 ] = 0;
+            element[ 2 ] = 0;
+            element[ 3 ] = 1;
+            return element;
+        },
+
+        sub: function ( a, b, result ) {
+            result[ 0 ] = a[ 0 ] - b[ 0 ];
+            result[ 1 ] = a[ 1 ] - b[ 1 ];
+            result[ 2 ] = a[ 2 ] - b[ 2 ];
+            result[ 3 ] = a[ 3 ] - b[ 3 ];
+            return result;
+        },
+
+        add: function ( a, b, result ) {
+            result[ 0 ] = a[ 0 ] + b[ 0 ];
+            result[ 1 ] = a[ 1 ] + b[ 1 ];
+            result[ 2 ] = a[ 2 ] + b[ 2 ];
+            result[ 3 ] = a[ 3 ] + b[ 3 ];
+            return result;
+        },
+
+        dot: function ( a, b ) {
+            return a[ 0 ] * b[ 0 ] + a[ 1 ] * b[ 1 ] + a[ 2 ] * b[ 2 ] + a[ 3 ] * b[ 3 ];
+        },
+
+        length2: function ( a ) {
+            return a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ] + a[ 3 ] * a[ 3 ];
+        },
+
+        neg: function ( a, result ) {
+            result[ 0 ] = -a[ 0 ];
+            result[ 1 ] = -a[ 1 ];
+            result[ 2 ] = -a[ 2 ];
+            result[ 3 ] = -a[ 3 ];
+            return result;
+        },
+
+        makeRotate: function ( angle, x, y, z, result ) {
+            var epsilon = 0.0000001;
+            var length = Math.sqrt( x * x + y * y + z * z );
+            if ( length &lt; epsilon ) {
+                return this.init();
+            }
+
+            var inversenorm = 1.0 / length;
+            var coshalfangle = Math.cos( 0.5 * angle );
+            var sinhalfangle = Math.sin( 0.5 * angle );
+
+            if ( result === undefined ) {
+                result = [];
+            }
+            result[ 0 ] = x * sinhalfangle * inversenorm;
+            result[ 1 ] = y * sinhalfangle * inversenorm;
+            result[ 2 ] = z * sinhalfangle * inversenorm;
+            result[ 3 ] = coshalfangle;
+            return result;
+        },
+
+        lerp: function ( t, a, b, r ) {
+            r[ 0 ] = a[ 0 ] + ( b[ 0 ] - a[ 0 ] ) * t;
+            r[ 1 ] = a[ 1 ] + ( b[ 1 ] - a[ 1 ] ) * t;
+            r[ 2 ] = a[ 2 ] + ( b[ 2 ] - a[ 2 ] ) * t;
+            r[ 3 ] = a[ 3 ] + ( b[ 3 ] - a[ 3 ] ) * t;
+            return r;
+        },
+
+        slerp: function ( t, from, to, result ) {
+            var epsilon = 0.00001;
+
+            var quatTo = to;
+            var cosomega = this.dot( from, quatTo );
+            if ( cosomega &lt; 0.0 ) {
+                cosomega = -cosomega;
+                this.neg( to, quatTo );
+            }
+
+            var omega;
+            var sinomega;
+            var scaleFrom;
+            var scaleTo;
+            if ( ( 1.0 - cosomega ) &gt; epsilon ) {
+                omega = Math.acos( cosomega ); // 0 &lt;= omega &lt;= Pi (see man acos)
+                sinomega = Math.sin( omega ); // this sinomega should always be +ve so
+                // could try sinomega=sqrt(1-cosomega*cosomega) to avoid a sin()?
+                scaleFrom = Math.sin( ( 1.0 - t ) * omega ) / sinomega;
+                scaleTo = Math.sin( t * omega ) / sinomega;
+            } else {
+                /* --------------------------------------------------
+             The ends of the vectors are very close
+             we can use simple linear interpolation - no need
+             to worry about the &#039;spherical&#039; interpolation
+             -------------------------------------------------- */
+                scaleFrom = 1.0 - t;
+                scaleTo = t;
+            }
+
+            result[ 0 ] = from[ 0 ] * scaleFrom + quatTo[ 0 ] * scaleTo;
+            result[ 1 ] = from[ 1 ] * scaleFrom + quatTo[ 1 ] * scaleTo;
+            result[ 2 ] = from[ 2 ] * scaleFrom + quatTo[ 2 ] * scaleTo;
+            result[ 3 ] = from[ 3 ] * scaleFrom + quatTo[ 3 ] * scaleTo;
+            return result;
+        },
+
+        // transformVec3: function (q, vec, result) {
+        //     // nVidia SDK implementation
+        //     var uv = new Array(3);
+        //     var uuv = new Array(3);
+        //     Vec3.cross(q, vec, uv);
+        //     Vec3.cross(q, uv, result);
+        //     Vec3.mult(uv, 2.0 * q[3], uv);
+        //     Vec3.mult(result, 2.0, result);
+        //     Vec3.add(result, uv, result);
+        //     Vec3.add(result, vec, result);
+        //     return result;
+        // },
+
+        normalize: function ( q, qr ) {
+            var div = 1.0 / this.length2( q );
+            qr[ 0 ] = q[ 0 ] * div;
+            qr[ 1 ] = q[ 1 ] * div;
+            qr[ 2 ] = q[ 2 ] * div;
+            qr[ 3 ] = q[ 3 ] * div;
+            return qr;
+        },
+
+        // we suppose to have unit quaternion
+        conj: function ( a, result ) {
+            result[ 0 ] = -a[ 0 ];
+            result[ 1 ] = -a[ 1 ];
+            result[ 2 ] = -a[ 2 ];
+            result[ 3 ] = a[ 3 ];
+            return result;
+        },
+
+        inverse: function ( a, result ) {
+            var div = 1.0 / this.length2( a );
+            this.conj( a, result );
+            result[ 0 ] *= div;
+            result[ 1 ] *= div;
+            result[ 2 ] *= div;
+            result[ 3 ] *= div;
+            return result;
+        },
+
+        // we suppose to have unit quaternion
+        // multiply 2 quaternions
+        mult: function ( a, b, result ) {
+            result[ 0 ] = a[ 0 ] * b[ 3 ] + a[ 1 ] * b[ 2 ] - a[ 2 ] * b[ 1 ] + a[ 3 ] * b[ 0 ];
+            result[ 1 ] = -a[ 0 ] * b[ 2 ] + a[ 1 ] * b[ 3 ] + a[ 2 ] * b[ 0 ] + a[ 3 ] * b[ 1 ];
+            result[ 2 ] = a[ 0 ] * b[ 1 ] - a[ 1 ] * b[ 0 ] + a[ 2 ] * b[ 3 ] + a[ 3 ] * b[ 2 ];
+            result[ 3 ] = -a[ 0 ] * b[ 0 ] - a[ 1 ] * b[ 1 ] - a[ 2 ] * b[ 2 ] + a[ 3 ] * b[ 3 ];
+            return result;
+        },
+        div: function ( a, b, result ) {
+            var d = 1.0 / b;
+            result[ 0 ] = a[ 0 ] * d;
+            result[ 1 ] = a[ 1 ] * d;
+            result[ 2 ] = a[ 2 ] * d;
+            result[ 3 ] = a[ 3 ] * d;
+            return result;
+        },
+        exp: function ( a, res ) {
+            var r = Math.sqrt( a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ] );
+            var et = Math.exp( a[ 3 ] );
+            var s = 0;
+            if ( r &gt; 0.00001 ) {
+                s = et * Math.sin( r ) / r;
+            }
+            if ( res === undefined ) {
+                res = [];
+            }
+            res[ 0 ] = s * a[ 0 ];
+            res[ 1 ] = s * a[ 1 ];
+            res[ 2 ] = s * a[ 2 ];
+            res[ 3 ] = et * Math.cos( r );
+            return res;
+        },
+
+        ln: function ( a, res ) {
+            var n = a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ];
+            var r = Math.sqrt( n );
+            var t = 0;
+            if ( r &gt; 0.00001 ) {
+                t = Math.atan2( r, a[ 3 ] ) / r;
+            }
+            if ( res === undefined ) {
+                res = [];
+            }
+            n += a[ 3 ] * a[ 3 ];
+            res[ 0 ] = t * a[ 0 ];
+            res[ 1 ] = t * a[ 1 ];
+            res[ 2 ] = t * a[ 2 ];
+            res[ 3 ] = 0.5 * Math.log( n );
+            return res;
+        },
+
+
+        //http://theory.org/software/qfa/writeup/node12.html
+        //http://www.ece.uwaterloo.ca/~dwharder/C++/CQOST/src/
+        //http://willperone.net/Code/quaternion.php
+
+        // a is computeTangent(q1-1,q1,q2)
+        // b is computeTangent(q2-1,q2,q2+1)
+        squad: function ( t, q1, a, b, q2, r ) {
+            var r1 = this.slerp( t, q1, q2 );
+            var r2 = this.slerp( t, a, b );
+            return this.slerp( 2.0 * t * ( 1.0 - t ), r1, r2, r );
+        },
+
+        // qcur is current
+        // q0 is qcur-1
+        // q2 is qcur+1
+        // compute tangent in of q1
+        computeTangent: function ( q0, qcur, q2, r ) {
+
+            // first step
+            var invq = this.inv( qcur );
+            var qa, qb;
+
+            this.mult( q2, invq, qa );
+            this.ln( qa, qa );
+
+            this.mult( q0, invq, qb );
+            this.ln( qb, qb );
+
+            this.add( qa, qb, qa );
+            this.div( qa, -4.0, qa );
+            this.exp( qa, qb );
+            return this.mult( qb, qcur, r );
+        }
+
+    };
+
+    return Quat;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

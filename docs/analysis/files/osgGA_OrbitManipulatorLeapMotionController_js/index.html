@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgGA/OrbitManipulatorLeapMotionController.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">46.21</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">181</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">60.60</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.67</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Notify&#039;,
+    &#039;osg/Vec3&#039;
+], function ( Notify, Vec3 ) {
+
+    var OrbitManipulatorLeapMotionController = function ( manipulator ) {
+        this._manipulator = manipulator;
+        this.init();
+    };
+
+    var ModeConfig = {
+        &#039;rotate&#039;: {
+            dtx: -1.2 * 1.2,
+            dty: -0.9 * 1.2,
+            dtz: -0.1,
+            delay: 0.05,
+            method: &#039;getRotateInterpolator&#039;
+        },
+        &#039;pan&#039;: {
+            dtx: -1.2 * 1.2,
+            dty: -0.9 * 1.2,
+            delay: 0.05,
+            method: &#039;getPanInterpolator&#039;
+        },
+        &#039;zoom&#039;: {
+            dtx: 0.0,
+            dty: -0.5,
+            delay: 0.05,
+            method: &#039;getZoomInterpolator&#039;
+        },
+        &#039;zoom-twohands&#039;: {
+            dtx: -0.05,
+            dty: 0.0,
+            delay: 0.05,
+            method: &#039;getZoomInterpolator&#039;
+        }
+    };
+
+    OrbitManipulatorLeapMotionController.prototype = {
+        init: function () {
+            this._virtualCursor = [ 0.0, 0.0 ];
+            this._targetPosition = [ 0.0, 0.0 ];
+            this._previousFrame = undefined;
+            this._displacement = [ 0.0, 0.0 ];
+            this._top = [ 0, 1, 0 ];
+            this._motion = [ 0.0, 0.0 ];
+            this._delay = 0.05;
+            this._threshold = 0.08;
+            this._directionDotThreshold = 0.5;
+            this._mode = &#039;rotate&#039;;
+        },
+
+        update: function ( frame ) {
+            if ( !this._previousFrame ) {
+                this._previousFrame = frame;
+            }
+
+            // no fingers ? return
+            if ( frame.fingers.length === 0 ) {
+                return;
+            }
+
+            var deltaFrame = this._previousFrame.translation( frame );
+
+            this._previousFrame = frame;
+
+            if ( frame.hands.length === 0 ) {
+                return;
+            }
+
+            // filter noise
+            if ( Math.abs( deltaFrame[ 0 ] ) &lt; this._threshold &amp;&amp;
+                Math.abs( deltaFrame[ 1 ] ) &lt; this._threshold ) {
+                return;
+            }
+
+            var mode = this._mode;
+            var dist = 0;
+
+            // scale is when there two hands with but with two hand with more than 1 fingers
+            if ( frame.gestures.length &gt; 0 ) {
+                for ( var i = 0; i &lt; frame.gestures.length; i++ ) {
+                    var gesture = frame.gestures[ i ];
+                    if ( gesture.type === &#039;circle&#039; ) {
+                        this._manipulator.computeHomePosition();
+                        return;
+                    }
+                }
+            }
+
+            if ( frame.hands.length === 1 ) {
+                if ( frame.hands[ 0 ].fingers.length &gt;= 3 ) {
+                    mode = &#039;zoom&#039;;
+                    dist = frame.hands[ 0 ].palmPosition[ 1 ] / 10.0;
+                    dist = Math.max( dist - 4, 0.01 );
+
+                } else if ( frame.hands[ 0 ].fingers.length &gt; 1 ) {
+                    mode = &#039;pan&#039;;
+                } else {
+                    // by default onw hand moving means rotation
+                    mode = &#039;rotate&#039;;
+                }
+            } else if ( frame.hands.length === 2 ) {
+                var d0 = Math.abs( Vec3.dot( frame.hands[ 0 ].palmNormal, this._top ) ),
+                    d1 = Math.abs( Vec3.dot( frame.hands[ 1 ].palmNormal, this._top ) );
+
+                // two hands : zoom
+                if ( d0 &lt; this._directionDotThreshold &amp;&amp; d1 &lt; this._directionDotThreshold ) {
+                    mode = &#039;zoom-twohands&#039;;
+                } else {
+                    // if hands flat do nothing
+                    mode = undefined;
+                    this._handsDistanceOld = undefined;
+                }
+            }
+            var zoom = this._manipulator.getZoomInterpolator();
+
+            if ( mode === undefined ) {
+                return;
+            }
+            // change mode reset counter and skip this frame
+            if ( mode !== this._mode ) {
+                Notify.info( &#039;Switch to mode &#039; + mode );
+
+                this._motion[ 0 ] = 0;
+                this._motion[ 1 ] = 0;
+                this._mode = mode;
+
+                if ( mode === &#039;zoom&#039; || mode === &#039;zoom-twohands&#039; ) {
+                    if ( zoom.isReset() ) {
+                        zoom._start = 1.0;
+                        zoom.set( 0.0 );
+                    }
+                }
+                return;
+            }
+
+            var dtx, dty, dtz;
+            dtx = ModeConfig[ mode ].dtx;
+            dty = ModeConfig[ mode ].dty;
+            dtz = ModeConfig[ mode ].dtz;
+
+            this._motion[ 0 ] += deltaFrame[ 0 ] * dtx;
+            this._motion[ 1 ] += deltaFrame[ 1 ] * dty;
+
+            var delay = ModeConfig[ mode ].delay;
+
+            // we use the mode enum to get the good method
+            var method = ModeConfig[ mode ].method;
+            this._manipulator[ method ]().setDelay( delay );
+
+            if ( mode === &#039;zoom&#039; ) {
+                Notify.log( dist );
+                zoom.setTarget( dist );
+            } else if ( mode === &#039;zoom-twohands&#039; ) { // two hands zoom
+                // distance between two hands
+                var handsDistance = Vec3.distance( frame.hands[ 0 ].palmPosition, frame.hands[ 1 ].palmPosition );
+
+                if ( this._handsDistanceOld !== undefined ) {
+                    // compare distance with lastframe and zoom if they get nearer, unzoom if they separate
+                    var vel = dtx * ( handsDistance - this._handsDistanceOld );
+
+                    dist = zoom._target;
+                    dist[ 0 ] += vel;
+                }
+                this._handsDistanceOld = handsDistance;
+            } else {
+                if ( mode === &#039;rotate&#039; ) {
+                    dist = zoom._target[ 0 ];
+                    dist += deltaFrame[ 2 ] * dtz;
+                    dist = Math.max( dist, 0.01 );
+                    zoom.setTarget( dist );
+                }
+                this._manipulator[ method ]().addTarget( this._motion[ 0 ], this._motion[ 1 ] );
+            }
+
+            this._motion[ 1 ] = this._motion[ 0 ] = 0;
+        }
+    };
+    return OrbitManipulatorLeapMotionController;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

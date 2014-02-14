@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>BoundingBox.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="OSG.html">
+                OSG.js
+              </a>
+            
+              
+              <a class="source" href="BlendColor.html">
+                BlendColor.js
+              </a>
+            
+              
+              <a class="source" href="BlendFunc.html">
+                BlendFunc.js
+              </a>
+            
+              
+              <a class="source" href="BoundingBox.html">
+                BoundingBox.js
+              </a>
+            
+              
+              <a class="source" href="BoundingSphere.html">
+                BoundingSphere.js
+              </a>
+            
+              
+              <a class="source" href="BufferArray.html">
+                BufferArray.js
+              </a>
+            
+              
+              <a class="source" href="Camera.html">
+                Camera.js
+              </a>
+            
+              
+              <a class="source" href="ComputeMatrixFromNodePath.html">
+                ComputeMatrixFromNodePath.js
+              </a>
+            
+              
+              <a class="source" href="CullFace.html">
+                CullFace.js
+              </a>
+            
+              
+              <a class="source" href="CullSettings.html">
+                CullSettings.js
+              </a>
+            
+              
+              <a class="source" href="CullStack.html">
+                CullStack.js
+              </a>
+            
+              
+              <a class="source" href="CullVisitor.html">
+                CullVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Depth.html">
+                Depth.js
+              </a>
+            
+              
+              <a class="source" href="DrawArrayLengths.html">
+                DrawArrayLengths.js
+              </a>
+            
+              
+              <a class="source" href="DrawArrays.html">
+                DrawArrays.js
+              </a>
+            
+              
+              <a class="source" href="DrawElements.html">
+                DrawElements.js
+              </a>
+            
+              
+              <a class="source" href="EllipsoidModel.html">
+                EllipsoidModel.js
+              </a>
+            
+              
+              <a class="source" href="FrameBufferObject.html">
+                FrameBufferObject.js
+              </a>
+            
+              
+              <a class="source" href="FrameStamp.html">
+                FrameStamp.js
+              </a>
+            
+              
+              <a class="source" href="Geometry.html">
+                Geometry.js
+              </a>
+            
+              
+              <a class="source" href="Image.html">
+                Image.js
+              </a>
+            
+              
+              <a class="source" href="KdTree.html">
+                KdTree.js
+              </a>
+            
+              
+              <a class="source" href="KdTreeBuilder.html">
+                KdTreeBuilder.js
+              </a>
+            
+              
+              <a class="source" href="Light.html">
+                Light.js
+              </a>
+            
+              
+              <a class="source" href="LightSource.html">
+                LightSource.js
+              </a>
+            
+              
+              <a class="source" href="LineWidth.html">
+                LineWidth.js
+              </a>
+            
+              
+              <a class="source" href="Material.html">
+                Material.js
+              </a>
+            
+              
+              <a class="source" href="Math.html">
+                Math.js
+              </a>
+            
+              
+              <a class="source" href="Matrix.html">
+                Matrix.js
+              </a>
+            
+              
+              <a class="source" href="MatrixTransform.html">
+                MatrixTransform.js
+              </a>
+            
+              
+              <a class="source" href="Node.html">
+                Node.js
+              </a>
+            
+              
+              <a class="source" href="NodeVisitor.html">
+                NodeVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Notify.html">
+                Notify.js
+              </a>
+            
+              
+              <a class="source" href="Object.html">
+                Object.js
+              </a>
+            
+              
+              <a class="source" href="PrimitiveSet.html">
+                PrimitiveSet.js
+              </a>
+            
+              
+              <a class="source" href="Program.html">
+                Program.js
+              </a>
+            
+              
+              <a class="source" href="Projection.html">
+                Projection.js
+              </a>
+            
+              
+              <a class="source" href="Quat.html">
+                Quat.js
+              </a>
+            
+              
+              <a class="source" href="RenderBin.html">
+                RenderBin.js
+              </a>
+            
+              
+              <a class="source" href="RenderStage.html">
+                RenderStage.js
+              </a>
+            
+              
+              <a class="source" href="Shader.html">
+                Shader.js
+              </a>
+            
+              
+              <a class="source" href="ShaderGenerator.html">
+                ShaderGenerator.js
+              </a>
+            
+              
+              <a class="source" href="Shape.html">
+                Shape.js
+              </a>
+            
+              
+              <a class="source" href="Stack.html">
+                Stack.js
+              </a>
+            
+              
+              <a class="source" href="State.html">
+                State.js
+              </a>
+            
+              
+              <a class="source" href="StateAttribute.html">
+                StateAttribute.js
+              </a>
+            
+              
+              <a class="source" href="StateGraph.html">
+                StateGraph.js
+              </a>
+            
+              
+              <a class="source" href="StateSet.html">
+                StateSet.js
+              </a>
+            
+              
+              <a class="source" href="Texture.html">
+                Texture.js
+              </a>
+            
+              
+              <a class="source" href="TextureCubeMap.html">
+                TextureCubeMap.js
+              </a>
+            
+              
+              <a class="source" href="Transform.html">
+                Transform.js
+              </a>
+            
+              
+              <a class="source" href="TransformEnums.html">
+                TransformEnums.js
+              </a>
+            
+              
+              <a class="source" href="TriangleIndexFunctor.html">
+                TriangleIndexFunctor.js
+              </a>
+            
+              
+              <a class="source" href="Uniform.html">
+                Uniform.js
+              </a>
+            
+              
+              <a class="source" href="UpdateVisitor.html">
+                UpdateVisitor.js
+              </a>
+            
+              
+              <a class="source" href="Utils.html">
+                Utils.js
+              </a>
+            
+              
+              <a class="source" href="Vec2.html">
+                Vec2.js
+              </a>
+            
+              
+              <a class="source" href="Vec3.html">
+                Vec3.js
+              </a>
+            
+              
+              <a class="source" href="Vec4.html">
+                Vec4.js
+              </a>
+            
+              
+              <a class="source" href="Viewport.html">
+                Viewport.js
+              </a>
+            
+              
+              <a class="source" href="osg.html">
+                osg.js
+              </a>
+            
+              
+              <a class="source" href="Animation.html">
+                Animation.js
+              </a>
+            
+              
+              <a class="source" href="AnimationUpdateCallback.html">
+                AnimationUpdateCallback.js
+              </a>
+            
+              
+              <a class="source" href="BasicAnimationManager.html">
+                BasicAnimationManager.js
+              </a>
+            
+              
+              <a class="source" href="Channel.html">
+                Channel.js
+              </a>
+            
+              
+              <a class="source" href="Easing.html">
+                Easing.js
+              </a>
+            
+              
+              <a class="source" href="FloatLerpChannel.html">
+                FloatLerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="FloatTarget.html">
+                FloatTarget.js
+              </a>
+            
+              
+              <a class="source" href="Interpolator.html">
+                Interpolator.js
+              </a>
+            
+              
+              <a class="source" href="Keyframe.html">
+                Keyframe.js
+              </a>
+            
+              
+              <a class="source" href="LinkVisitor.html">
+                LinkVisitor.js
+              </a>
+            
+              
+              <a class="source" href="QuatLerpChannel.html">
+                QuatLerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="QuatSlerpChannel.html">
+                QuatSlerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="QuatTarget.html">
+                QuatTarget.js
+              </a>
+            
+              
+              <a class="source" href="Sampler.html">
+                Sampler.js
+              </a>
+            
+              
+              <a class="source" href="StackedQuaternion.html">
+                StackedQuaternion.js
+              </a>
+            
+              
+              <a class="source" href="StackedRotateAxis.html">
+                StackedRotateAxis.js
+              </a>
+            
+              
+              <a class="source" href="StackedTranslate.html">
+                StackedTranslate.js
+              </a>
+            
+              
+              <a class="source" href="Target.html">
+                Target.js
+              </a>
+            
+              
+              <a class="source" href="UpdateMatrixTransform.html">
+                UpdateMatrixTransform.js
+              </a>
+            
+              
+              <a class="source" href="Vec3LerpChannel.html">
+                Vec3LerpChannel.js
+              </a>
+            
+              
+              <a class="source" href="Vec3Target.html">
+                Vec3Target.js
+              </a>
+            
+              
+              <a class="source" href="osgAnimation.html">
+                osgAnimation.js
+              </a>
+            
+              
+              <a class="source" href="Input.html">
+                Input.js
+              </a>
+            
+              
+              <a class="source" href="Options.html">
+                Options.js
+              </a>
+            
+              
+              <a class="source" href="ReaderParser.html">
+                ReaderParser.js
+              </a>
+            
+              
+              <a class="source" href="osgDB.html">
+                osgDB.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulator.html">
+                FirstPersonManipulator.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
+                FirstPersonManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="FirstPersonManipulatorOculusController.html">
+                FirstPersonManipulatorOculusController.js
+              </a>
+            
+              
+              <a class="source" href="Manipulator.html">
+                Manipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulator.html">
+                OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorEnums.html">
+                OrbitManipulatorEnums.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorGamePadController.html">
+                OrbitManipulatorGamePadController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorHammerController.html">
+                OrbitManipulatorHammerController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorLeapMotionController.html">
+                OrbitManipulatorLeapMotionController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
+                OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="SwitchManipulator.html">
+                SwitchManipulator.js
+              </a>
+            
+              
+              <a class="source" href="osgGA.html">
+                osgGA.js
+              </a>
+            
+              
+              <a class="source" href="osgNameSpace.html">
+                osgNameSpace.js
+              </a>
+            
+              
+              <a class="source" href="Composer.html">
+                Composer.js
+              </a>
+            
+              
+              <a class="source" href="IntersectVisitor.html">
+                IntersectVisitor.js
+              </a>
+            
+              
+              <a class="source" href="ParameterVisitor.html">
+                ParameterVisitor.js
+              </a>
+            
+              
+              <a class="source" href="TriangleIntersect.html">
+                TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="osgPool.html">
+                osgPool.js
+              </a>
+            
+              
+              <a class="source" href="osgUtil.html">
+                osgUtil.js
+              </a>
+            
+              
+              <a class="source" href="View.html">
+                View.js
+              </a>
+            
+              
+              <a class="source" href="Viewer.html">
+                Viewer.js
+              </a>
+            
+              
+              <a class="source" href="EventProxy.html">
+                EventProxy.js
+              </a>
+            
+              
+              <a class="source" href="GamePad.html">
+                GamePad.js
+              </a>
+            
+              
+              <a class="source" href="Hammer.html">
+                Hammer.js
+              </a>
+            
+              
+              <a class="source" href="LeapMotion.html">
+                LeapMotion.js
+              </a>
+            
+              
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
+              <a class="source" href="StandardMouseKeyboard.html">
+                StandardMouseKeyboard.js
+              </a>
+            
+              
+              <a class="source" href="osgViewer.html">
+                osgViewer.js
+              </a>
+            
+              
+              <a class="source" href="stats.html">
+                stats.js
+              </a>
+            
+              
+              <a class="source" href="webgl-debug.html">
+                webgl-debug.js
+              </a>
+            
+              
+              <a class="source" href="webgl-utils.html">
+                webgl-utils.js
+              </a>
+            
+              
+              <a class="source" href="osg.html">
+                osg.js
+              </a>
+            
+              
+              <a class="source" href="osgAnimation.html">
+                osgAnimation.js
+              </a>
+            
+              
+              <a class="source" href="Hammer.html">
+                Hammer.js
+              </a>
+            
+              
+              <a class="source" href="Leap.html">
+                Leap.js
+              </a>
+            
+              
+              <a class="source" href="Q.html">
+                Q.js
+              </a>
+            
+              
+              <a class="source" href="vr.html">
+                vr.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>BoundingBox.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Utils'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS )</span> {</span>
+
+    <span class="hljs-keyword">var</span> BoundingBox = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">this</span>.init();
+    };
+    BoundingBox.prototype = MACROUTILS.objectLibraryClass( {
+        _cacheRadius2: [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ],
+
+        init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">this</span>._min = [ <span class="hljs-literal">Infinity</span>, <span class="hljs-literal">Infinity</span>, <span class="hljs-literal">Infinity</span> ];
+            <span class="hljs-keyword">this</span>._max = [ -<span class="hljs-literal">Infinity</span>, -<span class="hljs-literal">Infinity</span>, -<span class="hljs-literal">Infinity</span> ];
+        },
+
+        copy: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bbox )</span> {</span>
+            <span class="hljs-keyword">var</span> min = <span class="hljs-keyword">this</span>._min;
+            <span class="hljs-keyword">var</span> bmin = bbox._min;
+            min[ <span class="hljs-number">0</span> ] = bmin[ <span class="hljs-number">0</span> ];
+            min[ <span class="hljs-number">1</span> ] = bmin[ <span class="hljs-number">1</span> ];
+            min[ <span class="hljs-number">2</span> ] = bmin[ <span class="hljs-number">2</span> ];
+
+            <span class="hljs-keyword">var</span> max = <span class="hljs-keyword">this</span>._max;
+            <span class="hljs-keyword">var</span> bmax = bbox._max;
+            max[ <span class="hljs-number">0</span> ] = bmax[ <span class="hljs-number">0</span> ];
+            max[ <span class="hljs-number">1</span> ] = bmax[ <span class="hljs-number">1</span> ];
+            max[ <span class="hljs-number">2</span> ] = bmax[ <span class="hljs-number">2</span> ];
+        },
+
+        valid: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> ( <span class="hljs-keyword">this</span>._max[ <span class="hljs-number">0</span> ] &gt;= <span class="hljs-keyword">this</span>._min[ <span class="hljs-number">0</span> ] &amp;&amp; <span class="hljs-keyword">this</span>._max[ <span class="hljs-number">1</span> ] &gt;= <span class="hljs-keyword">this</span>._min[ <span class="hljs-number">1</span> ] &amp;&amp; <span class="hljs-keyword">this</span>._max[ <span class="hljs-number">2</span> ] &gt;= <span class="hljs-keyword">this</span>._min[ <span class="hljs-number">2</span> ] );
+        },
+
+        expandBySphere: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( sh )</span> {</span>
+            <span class="hljs-keyword">if</span> ( !sh.valid() ) {
+                <span class="hljs-keyword">return</span>;
+            }
+            <span class="hljs-keyword">var</span> max = <span class="hljs-keyword">this</span>._max;
+            <span class="hljs-keyword">var</span> min = <span class="hljs-keyword">this</span>._min;
+            min[ <span class="hljs-number">0</span> ] = <span class="hljs-built_in">Math</span>.min( min[ <span class="hljs-number">0</span> ], sh._center[ <span class="hljs-number">0</span> ] - sh._radius );
+            min[ <span class="hljs-number">1</span> ] = <span class="hljs-built_in">Math</span>.min( min[ <span class="hljs-number">1</span> ], sh._center[ <span class="hljs-number">1</span> ] - sh._radius );
+            min[ <span class="hljs-number">2</span> ] = <span class="hljs-built_in">Math</span>.min( min[ <span class="hljs-number">2</span> ], sh._center[ <span class="hljs-number">2</span> ] - sh._radius );
+
+            max[ <span class="hljs-number">0</span> ] = <span class="hljs-built_in">Math</span>.max( max[ <span class="hljs-number">0</span> ], sh._center[ <span class="hljs-number">0</span> ] + sh._radius );
+            max[ <span class="hljs-number">1</span> ] = <span class="hljs-built_in">Math</span>.max( max[ <span class="hljs-number">1</span> ], sh._center[ <span class="hljs-number">1</span> ] + sh._radius );
+            max[ <span class="hljs-number">2</span> ] = <span class="hljs-built_in">Math</span>.max( max[ <span class="hljs-number">2</span> ], sh._center[ <span class="hljs-number">2</span> ] + sh._radius );
+        },
+
+        expandByVec3: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( v )</span> {</span>
+            <span class="hljs-keyword">var</span> min = <span class="hljs-keyword">this</span>._min;
+            <span class="hljs-keyword">var</span> max = <span class="hljs-keyword">this</span>._max;
+            min[ <span class="hljs-number">0</span> ] = <span class="hljs-built_in">Math</span>.min( min[ <span class="hljs-number">0</span> ], v[ <span class="hljs-number">0</span> ] );
+            min[ <span class="hljs-number">1</span> ] = <span class="hljs-built_in">Math</span>.min( min[ <span class="hljs-number">1</span> ], v[ <span class="hljs-number">1</span> ] );
+            min[ <span class="hljs-number">2</span> ] = <span class="hljs-built_in">Math</span>.min( min[ <span class="hljs-number">2</span> ], v[ <span class="hljs-number">2</span> ] );
+
+            max[ <span class="hljs-number">0</span> ] = <span class="hljs-built_in">Math</span>.max( max[ <span class="hljs-number">0</span> ], v[ <span class="hljs-number">0</span> ] );
+            max[ <span class="hljs-number">1</span> ] = <span class="hljs-built_in">Math</span>.max( max[ <span class="hljs-number">1</span> ], v[ <span class="hljs-number">1</span> ] );
+            max[ <span class="hljs-number">2</span> ] = <span class="hljs-built_in">Math</span>.max( max[ <span class="hljs-number">2</span> ], v[ <span class="hljs-number">2</span> ] );
+        },
+
+        expandByBoundingBox: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bb )</span> {</span>
+            <span class="hljs-keyword">if</span> ( !bb.valid() )
+                <span class="hljs-keyword">return</span>;
+
+            <span class="hljs-keyword">var</span> min = <span class="hljs-keyword">this</span>._min;
+            <span class="hljs-keyword">var</span> max = <span class="hljs-keyword">this</span>._max;
+            <span class="hljs-keyword">var</span> bbmin = bb._min;
+            <span class="hljs-keyword">var</span> bbmax = bb._max;
+
+            <span class="hljs-keyword">if</span> ( bbmin[ <span class="hljs-number">0</span> ] &lt; min[ <span class="hljs-number">0</span> ] ) min[ <span class="hljs-number">0</span> ] = bbmin[ <span class="hljs-number">0</span> ];
+            <span class="hljs-keyword">if</span> ( bbmax[ <span class="hljs-number">0</span> ] &gt; max[ <span class="hljs-number">0</span> ] ) max[ <span class="hljs-number">0</span> ] = bbmax[ <span class="hljs-number">0</span> ];
+
+            <span class="hljs-keyword">if</span> ( bbmin[ <span class="hljs-number">1</span> ] &lt; min[ <span class="hljs-number">1</span> ] ) min[ <span class="hljs-number">1</span> ] = bbmin[ <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">if</span> ( bbmax[ <span class="hljs-number">1</span> ] &gt; max[ <span class="hljs-number">1</span> ] ) max[ <span class="hljs-number">1</span> ] = bbmax[ <span class="hljs-number">1</span> ];
+
+            <span class="hljs-keyword">if</span> ( bbmin[ <span class="hljs-number">2</span> ] &lt; min[ <span class="hljs-number">2</span> ] ) min[ <span class="hljs-number">2</span> ] = bbmin[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">if</span> ( bbmax[ <span class="hljs-number">2</span> ] &gt; max[ <span class="hljs-number">2</span> ] ) max[ <span class="hljs-number">2</span> ] = bbmax[ <span class="hljs-number">2</span> ];
+        },
+
+        center: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> min = <span class="hljs-keyword">this</span>._min;
+            <span class="hljs-keyword">var</span> max = <span class="hljs-keyword">this</span>._max;
+            <span class="hljs-keyword">return</span> [ ( min[ <span class="hljs-number">0</span> ] + max[ <span class="hljs-number">0</span> ] ) * <span class="hljs-number">0.5</span>, ( min[ <span class="hljs-number">1</span> ] + max[ <span class="hljs-number">1</span> ] ) * <span class="hljs-number">0.5</span>, ( min[ <span class="hljs-number">2</span> ] + max[ <span class="hljs-number">2</span> ] ) * <span class="hljs-number">0.5</span> ];
+        },
+
+        radius: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-built_in">Math</span>.sqrt( <span class="hljs-keyword">this</span>.radius2() );
+        },
+
+        radius2: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> min = <span class="hljs-keyword">this</span>._min;
+            <span class="hljs-keyword">var</span> max = <span class="hljs-keyword">this</span>._max;
+            <span class="hljs-keyword">var</span> cache = <span class="hljs-keyword">this</span>._cacheRadius2;
+            cache[ <span class="hljs-number">0</span> ] = max[ <span class="hljs-number">0</span> ] - min[ <span class="hljs-number">0</span> ];
+            cache[ <span class="hljs-number">1</span> ] = max[ <span class="hljs-number">1</span> ] - min[ <span class="hljs-number">1</span> ];
+            cache[ <span class="hljs-number">2</span> ] = max[ <span class="hljs-number">2</span> ] - min[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-number">0.25</span> * ( cache[ <span class="hljs-number">0</span> ] * cache[ <span class="hljs-number">0</span> ] + cache[ <span class="hljs-number">1</span> ] * cache[ <span class="hljs-number">1</span> ] + cache[ <span class="hljs-number">2</span> ] * cache[ <span class="hljs-number">2</span> ] );
+        },
+        corner: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( pos )</span> {</span>
+            <span class="hljs-comment">/*jshint bitwise: false */</span>
+            <span class="hljs-keyword">var</span> ret = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">if</span> ( pos &amp; <span class="hljs-number">1</span> ) {
+                ret[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._max[ <span class="hljs-number">0</span> ];
+            } <span class="hljs-keyword">else</span> {
+                ret[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._min[ <span class="hljs-number">0</span> ];
+            }
+            <span class="hljs-keyword">if</span> ( pos &amp; <span class="hljs-number">2</span> ) {
+                ret[ <span class="hljs-number">1</span> ] = <span class="hljs-keyword">this</span>._max[ <span class="hljs-number">1</span> ];
+            } <span class="hljs-keyword">else</span> {
+                ret[ <span class="hljs-number">1</span> ] = <span class="hljs-keyword">this</span>._min[ <span class="hljs-number">1</span> ];
+            }
+            <span class="hljs-keyword">if</span> ( pos &amp; <span class="hljs-number">4</span> ) {
+                ret[ <span class="hljs-number">2</span> ] = <span class="hljs-keyword">this</span>._max[ <span class="hljs-number">2</span> ];
+            } <span class="hljs-keyword">else</span> {
+                ret[ <span class="hljs-number">2</span> ] = <span class="hljs-keyword">this</span>._min[ <span class="hljs-number">2</span> ];
+            }
+            <span class="hljs-keyword">return</span> ret;
+            <span class="hljs-comment">/*jshint bitwise: true */</span>
+        }
+    }, <span class="hljs-string">'osg'</span>, <span class="hljs-string">'BoundingBox'</span> );
+
+    <span class="hljs-keyword">return</span> BoundingBox;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

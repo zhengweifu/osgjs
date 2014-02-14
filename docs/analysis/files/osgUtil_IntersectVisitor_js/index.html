@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgUtil/IntersectVisitor.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">68.41</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">190</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">54.00</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.68</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Utils&#039;,
+    &#039;osg/NodeVisitor&#039;,
+    &#039;osg/Matrix&#039;,
+    &#039;osg/Vec3&#039;,
+    &#039;osgUtil/TriangleIntersect&#039;
+], function( MACROUTILS, NodeVisitor, Matrix, Vec3, TriangleIntersect ) {
+
+    var IntersectVisitor = function() {
+        NodeVisitor.call( this );
+        this.matrix = [];
+        this.hits = [];
+        this.nodePath = [];
+    };
+    IntersectVisitor.prototype = MACROUTILS.objectInehrit( NodeVisitor.prototype, {
+        addLineSegment: function( start, end ) {
+            this.start = start;
+            this.end = end;
+        },
+        intersectSegmentWithSphere: ( function() {
+            var sm = [ 0.0, 0.0, 0.0 ];
+            var se = [ 0.0, 0.0, 0.0 ];
+            return function( start, end, bsphere ) {
+                // test for _start inside the bounding sphere
+                Vec3.sub( start, bsphere.center(), sm );
+                var c = Vec3.length2( sm ) - bsphere.radius2();
+                if ( c &lt; 0.0 ) {
+                    return true;
+                }
+
+                // solve quadratic equation
+                Vec3.sub( end, start, se );
+                var a = Vec3.length2( se );
+                var b = Vec3.dot( sm, se ) * 2.0;
+                var d = b * b - 4.0 * a * c;
+                // no intersections if d&lt;0
+                if ( d &lt; 0.0 ) {
+                    return false;
+                }
+
+                // compute two solutions of quadratic equation
+                d = Math.sqrt( d );
+                var div = 1.0 / ( 2.0 * a );
+                var r1 = ( -b - d ) * div;
+                var r2 = ( -b + d ) * div;
+
+                // return false if both intersections are before the ray start
+                if ( r1 &lt;= 0.0 &amp;&amp; r2 &lt;= 0.0 ) {
+                    return false;
+                }
+
+                if ( r1 &gt;= 1.0 &amp;&amp; r2 &gt;= 1.0 ) {
+                    return false;
+                }
+                return true;
+            };
+        } )(),
+        pushModelMatrix: function( matrix ) {
+            if ( this.matrix.length &gt; 0 ) {
+                var m = Matrix.copy( this.matrix[ this.matrix.length - 1 ] );
+                Matrix.preMult( m, matrix );
+                this.matrix.push( m );
+            } else {
+                this.matrix.push( matrix );
+            }
+        },
+        getModelMatrix: function() {
+            if ( this.matrix.length === 0 ) {
+                return Matrix.makeIdentity( [] );
+            }
+            return this.matrix[ this.matrix.length - 1 ];
+        },
+        popModelMatrix: function() {
+            return this.matrix.pop();
+        },
+        getWindowMatrix: function() {
+            return this.windowMatrix;
+        },
+        getProjectionMatrix: function() {
+            return this.projectionMatrix;
+        },
+        getViewMatrix: function() {
+            return this.viewMatrix;
+        },
+        intersectSegmentWithShape: function( start, end, shape ) {
+            return shape.intersect( start, end, this.hits, this.nodePath );
+        },
+        intersectSegmentWithGeometry: function( start, end, geometry ) {
+            var ti = new TriangleIntersect();
+            ti.setNodePath( this.nodePath );
+            ti.set( start, end );
+            ti.apply( geometry );
+            var l = ti.hits.length;
+            if ( l &gt; 0 ) {
+                for ( var i = 0; i &lt; l; i++ ) {
+                    this.hits.push( ti.hits[ i ] );
+                }
+                return true;
+            }
+            return false;
+        },
+        pushCamera: function( camera ) {
+            // we should support hierarchy of camera
+            // but right now we want just simple picking on main
+            // camera
+            this.projectionMatrix = camera.getProjectionMatrix();
+            this.viewMatrix = camera.getViewMatrix();
+
+            var vp = camera.getViewport();
+            if ( vp !== undefined ) {
+                this.windowMatrix = vp.computeWindowMatrix();
+            }
+        },
+        applyCamera: function( camera ) {
+            // we should support hierarchy of camera
+            // but right now we want just simple picking on main
+            // camera
+            this.pushCamera( camera );
+            this.traverse( camera );
+        },
+
+        applyNode: function( node, ns, ne ) {
+            if ( node.getMatrix ) {
+                this.pushModelMatrix( node.getMatrix() );
+            }
+
+            if ( node.primitives ) {
+                var kdtree = node.getShape();
+                if ( kdtree ) {
+                    this.intersectSegmentWithShape( ns, ne, kdtree );
+                } else
+                    this.intersectSegmentWithGeometry( ns, ne, node );
+            }
+
+            if ( node.traverse ) {
+                this.traverse( node );
+            }
+
+            if ( node.getMatrix ) {
+                this.popModelMatrix();
+            }
+        },
+
+        transformRay: function( tStart, tEnd ) {
+            var matrix = [];
+            Matrix.copy( this.getWindowMatrix(), matrix );
+            Matrix.preMult( matrix, this.getProjectionMatrix() );
+            Matrix.preMult( matrix, this.getViewMatrix() );
+            Matrix.preMult( matrix, this.getModelMatrix() );
+
+            var inv = [];
+            var valid = Matrix.inverse( matrix, inv );
+            // if matrix is invalid do nothing on this node
+            if ( !valid ) {
+                return false;
+            }
+
+            Matrix.transformVec3( inv, this.start, tStart );
+            Matrix.transformVec3( inv, this.end, tEnd );
+
+            return true;
+        },
+
+        apply: ( function() {
+            var ns = [ 0.0, 0.0, 0.0 ];
+            var ne = [ 0.0, 0.0, 0.0 ];
+            return function( node ) {
+                if ( this.transformRay( ns, ne ) === false ) {
+                    return;
+                }
+
+                if ( this.enterNode( node, ns, ne ) === false ) {
+                    return;
+                }
+
+                if ( node.getViewMatrix ) { // Camera/View
+                    this.applyCamera( node );
+                } else {
+                    this.applyNode( node, ns, ne );
+                }
+            };
+        } )(),
+
+        enterNode: function( node, ns, ne ) {
+            return this.intersectSegmentWithSphere( ns, ne, node.getBound() );
+        }
+    } );
+
+    return IntersectVisitor;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

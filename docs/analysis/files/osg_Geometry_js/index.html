@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osg/Geometry.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">66.80</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">163</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">40.38</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">1.39</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Utils&#039;,
+    &#039;osg/Vec3&#039;,
+    &#039;osg/Node&#039;,
+    &#039;osg/BoundingBox&#039;
+], function ( MACROUTILS, Vec3, Node, BoundingBox ) {
+
+    /**
+     * Geometry manage array and primitives to draw a geometry.
+     * @class Geometry
+     */
+    var Geometry = function () {
+        Node.call( this );
+        this.primitives = [];
+        this.attributes = {};
+        this.boundingBox = new BoundingBox();
+        this.boundingBoxComputed = false;
+        this.cacheAttributeList = {};
+        this._shape = null;
+    };
+
+    /** @lends Geometry.prototype */
+    Geometry.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( Node.prototype, {
+        releaseGLObjects: function ( gl ) {
+            var i;
+            for ( i in this.attributes ) {
+                this.attributes[ i ].releaseGLObjects( gl );
+            }
+            for ( var j = 0, l = this.primitives.length; j &lt; l; j++ ) {
+                var prim = this.primitives[ j ];
+                if ( prim.getIndices !== undefined ) {
+                    if ( prim.getIndices() !== undefined &amp;&amp; prim.getIndices() !== null ) {
+                        prim.indices.releaseGLObjects( gl );
+                    }
+                }
+            }
+        },
+        dirtyBound: function () {
+            if ( this.boundingBoxComputed === true ) {
+                this.boundingBoxComputed = false;
+            }
+            Node.prototype.dirtyBound.call( this );
+        },
+
+        dirty: function () {
+            this.cacheAttributeList = {};
+        },
+        getPrimitives: function () {
+            return this.primitives;
+        },
+        getAttributes: function () {
+            return this.attributes;
+        },
+        getShape: function () {
+            return this._shape;
+        },
+        setShape: function ( shape ) {
+            this._shape = shape;
+        },
+        getVertexAttributeList: function () {
+            return this.attributes;
+        },
+        getPrimitiveSetList: function () {
+            return this.primitives;
+        },
+
+        drawImplementation: function ( state ) {
+            var program = state.getLastProgramApplied();
+            var prgID = program.getInstanceID();
+            if ( this.cacheAttributeList[ prgID ] === undefined ) {
+                var attribute;
+                var attributesCache = program.attributesCache;
+                var attributeList = [];
+
+                var generated = &#039;//generated by Geometry::implementation\n&#039;;
+                generated += &#039;state.lazyDisablingOfVertexAttributes();\n&#039;;
+                generated += &#039;var attr;\n&#039;;
+
+                for ( var i = 0, l = attributesCache.attributeKeys.length; i &lt; l; i++ ) {
+                    var key = attributesCache.attributeKeys[ i ];
+                    attribute = attributesCache[ key ];
+                    var attr = this.attributes[ key ];
+                    if ( attr === undefined ) {
+                        continue;
+                    }
+                    attributeList.push( attribute );
+                    // dont display the geometry if missing data
+                    generated += &#039;attr = this.attributes[\&#039;&#039; + key + &#039;\&#039;];\n&#039;;
+                    generated += &#039;if (!attr.isValid()) { return; }\n&#039;;
+                    generated += &#039;state.setVertexAttribArray(&#039; + attribute + &#039;, attr, false);\n&#039;;
+                }
+                generated += &#039;state.applyDisablingOfVertexAttributes();\n&#039;;
+                var primitives = this.primitives;
+                generated += &#039;var primitives = this.primitives;\n&#039;;
+                for ( var j = 0, m = primitives.length; j &lt; m; ++j ) {
+                    generated += &#039;primitives[&#039; + j + &#039;].draw(state);\n&#039;;
+                }
+
+                /*jshint evil: true */
+                this.cacheAttributeList[ prgID ] = new Function( &#039;state&#039;, generated );
+                /*jshint evil: false */
+            }
+            this.cacheAttributeList[ prgID ].call( this, state );
+        },
+
+        // for testing disabling drawing
+        drawImplementationDummy: function ( state ) {
+            /*jshint unused: true */
+            // for testing only that&#039;s why the code is not removed
+            var program = state.getLastProgramApplied();
+            var attribute;
+            var attributeList = [];
+            var attributesCache = program.attributesCache;
+
+
+            var primitives = this.primitives;
+            //state.disableVertexAttribsExcept(attributeList);
+
+            for ( var j = 0, m = primitives.length; j &lt; m; ++j ) {
+                //primitives[j].draw(state);
+            }
+            /*jshint unused: false */
+        },
+
+        getBoundingBox: function () {
+            if ( !this.boundingBoxComputed ) {
+                this.computeBoundingBox( this.boundingBox );
+                this.boundingBoxComputed = true;
+            }
+            return this.boundingBox;
+        },
+
+        computeBoundingBox: function ( boundingBox ) {
+
+            var vertexArray = this.getAttributes().Vertex;
+            var v = [ 0.0, 0.0, 0.0 ];
+            if ( vertexArray !== undefined &amp;&amp;
+                vertexArray.getElements() !== undefined &amp;&amp;
+                vertexArray.getItemSize() &gt; 2 ) {
+                var vertexes = vertexArray.getElements();
+                Vec3.init( v );
+                for ( var idx = 0, l = vertexes.length; idx &lt; l; idx += 3 ) {
+                    v[ 0 ] = vertexes[ idx ];
+                    v[ 1 ] = vertexes[ idx + 1 ];
+                    v[ 2 ] = vertexes[ idx + 2 ];
+                    boundingBox.expandByVec3( v );
+                }
+            }
+            return boundingBox;
+        },
+
+        computeBound: function ( boundingSphere ) {
+            boundingSphere.init();
+            var bb = this.getBoundingBox();
+            boundingSphere.expandByBox( bb );
+            return boundingSphere;
+        }
+    } ), &#039;osg&#039;, &#039;Geometry&#039; );
+
+    MACROUTILS.setTypeID( Geometry );
+
+    return Geometry;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

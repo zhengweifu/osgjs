@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Depth.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>Depth.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Utils'</span>,
+    <span class="hljs-string">'osg/StateAttribute'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, StateAttribute )</span> {</span>
+
+    <span class="hljs-keyword">var</span> Depth = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( func, near, far, writeMask )</span> {</span>
+        StateAttribute.call( <span class="hljs-keyword">this</span> );
+
+        <span class="hljs-keyword">this</span>._func = Depth.LESS;
+        <span class="hljs-keyword">this</span>._near = <span class="hljs-number">0.0</span>;
+        <span class="hljs-keyword">this</span>._far = <span class="hljs-number">1.0</span>;
+        <span class="hljs-keyword">this</span>._writeMask = <span class="hljs-literal">true</span>;
+
+        <span class="hljs-keyword">if</span> ( func !== <span class="hljs-literal">undefined</span> ) {
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">typeof</span> ( func ) === <span class="hljs-string">'string'</span> ) {
+                <span class="hljs-keyword">this</span>._func = Depth[ func ];
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">this</span>._func = func;
+            }
+        }
+        <span class="hljs-keyword">if</span> ( near !== <span class="hljs-literal">undefined</span> ) {
+            <span class="hljs-keyword">this</span>._near = near;
+        }
+        <span class="hljs-keyword">if</span> ( far !== <span class="hljs-literal">undefined</span> ) {
+            <span class="hljs-keyword">this</span>._far = far;
+        }
+        <span class="hljs-keyword">if</span> ( writeMask !== <span class="hljs-literal">undefined</span> ) {
+            <span class="hljs-keyword">this</span>._writeMask = writeMask;
+        }
+    };
+
+    Depth.DISABLE = <span class="hljs-number">0x0000</span>;
+    Depth.NEVER = <span class="hljs-number">0x0200</span>;
+    Depth.LESS = <span class="hljs-number">0x0201</span>;
+    Depth.EQUAL = <span class="hljs-number">0x0202</span>;
+    Depth.LEQUAL = <span class="hljs-number">0x0203</span>;
+    Depth.GREATE = <span class="hljs-number">0x0204</span>;
+    Depth.NOTEQU = <span class="hljs-number">0x0205</span>;
+    Depth.GEQUAL = <span class="hljs-number">0x0206</span>;
+    Depth.ALWAYS = <span class="hljs-number">0x0207</span>;
+
+    Depth.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( StateAttribute.prototype, {
+        attributeType: <span class="hljs-string">'Depth'</span>,
+        cloneType: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Depth();
+        },
+        getType: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.attributeType;
+        },
+        getTypeMember: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.attributeType;
+        },
+        setRange: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( near, far )</span> {</span>
+            <span class="hljs-keyword">this</span>._near = near;
+            <span class="hljs-keyword">this</span>._far = far;
+        },
+        setWriteMask: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mask )</span> {</span>
+            <span class="hljs-keyword">this</span>._writeMask = mask;
+        },
+        apply: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state )</span> {</span>
+            <span class="hljs-keyword">var</span> gl = state.getGraphicContext();
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._func === <span class="hljs-number">0</span> ) {
+                gl.disable( gl.DEPTH_TEST );
+            } <span class="hljs-keyword">else</span> {
+                gl.enable( gl.DEPTH_TEST );
+                gl.depthFunc( <span class="hljs-keyword">this</span>._func );
+                gl.depthMask( <span class="hljs-keyword">this</span>._writeMask );
+                gl.depthRange( <span class="hljs-keyword">this</span>._near, <span class="hljs-keyword">this</span>._far );
+            }
+        }
+    } ), <span class="hljs-string">'osg'</span>, <span class="hljs-string">'Depth'</span> );
+
+    <span class="hljs-keyword">return</span> Depth;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

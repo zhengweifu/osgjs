@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>DB/osgDB.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">58.16</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">2.60</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">40.50</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">236 / 165</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">/** -*- compile-command: "jslint-cli osgDB.js" -*-
+ *
+ *  Copyright (C) 2010 Cedric Pinson
+ *
+ *                  GNU LESSER GENERAL PUBLIC LICENSE
+ *                      Version 3, 29 June 2007
+ *
+ * Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+ * Everyone is permitted to copy and distribute verbatim copies
+ * of this license document, but changing it is not allowed.
+ *
+ * This version of the GNU Lesser General Public License incorporates
+ * the terms and conditions of version 3 of the GNU General Public
+ * License
+ *
+ * Authors:
+ *  Cedric Pinson <cedric.pinson@plopbyte.com>
+ *
+ */
+
+var osgDB = {};
+
+osgDB.ObjectWrapper = {};
+osgDB.ObjectWrapper.serializers = {};
+
+osgDB.readImage = function (url, options) {
+    return osgDB.registry().readImageURL(url, options);
+};
+osgDB.readImageURL = osgDB.readImage; // alias
+
+osgDB.readNodeURL = function (url, options) {
+    return osgDB.registry().readNodeURL(url, options);
+};
+
+osgDB.registry = function() {
+    if (osgDB.registry._input === undefined) {
+        osgDB.registry._input = new osgDB.Input();
+    }
+    return osgDB.registry._input;
+};
+
+// stop on input with options
+// how we transfer options from registry to serializer
+
+
+osgDB.parseSceneGraph = function (node, options) {
+    if (node.Version !== undefined && node.Version > 0) {
+
+        var getPropertyValue = function(o) {
+            var props = Object.keys(o);
+            for (var i = 0, l = props.length; i < l; i++) {
+                if (props[i] !== "Generator" && props[i] !== "Version") {
+                    return props[i];
+                }
+            }
+            return undefined;
+        };
+
+        var key = getPropertyValue(node);
+        if (key) {
+            var obj = {};
+            obj[key] = node[key];
+            var input = new osgDB.Input(obj);
+            input.setImageLoadingOptions(osgDB.registry().getImageLoadingOptions());
+            if (options !== undefined) {
+                input.setProgressXHRCallback(options.progressXHRCallback);
+                input.setPrefixURL(options.prefixURL);
+            }
+            return input.readObject();
+            //return osgDB.ObjectWrapper.readObject(obj);
+        } else {
+            osg.log("can't parse scenegraph " + node);
+        }
+    } else {
+        return osgDB.parseSceneGraph_deprecated(node);
+    }
+};
+osgDB.parseSceneGraph_deprecated = function (node)
+{
+    var getFieldBackwardCompatible = function(field, json) {
+        var value = json[field];
+        if (value === undefined) {
+            value = json[field.toLowerCase()];
+        }
+        return value;
+    };
+    var setName = function(osgjs, json) {
+        var name = getFieldBackwardCompatible("Name", json);
+        if (name && osgjs.setName !== undefined) {
+            osgjs.setName(name);
+        }
+    };
+
+    var setMaterial = function(osgjs, json) {
+        setName(osgjs, json);
+        osgjs.setAmbient(getFieldBackwardCompatible("Ambient", json));
+        osgjs.setDiffuse(getFieldBackwardCompatible("Diffuse", json));
+        osgjs.setEmission(getFieldBackwardCompatible("Emission", json));
+        osgjs.setSpecular(getFieldBackwardCompatible("Specular", json));
+        osgjs.setShininess(getFieldBackwardCompatible("Shininess", json));
+    };
+
+    var setBlendFunc = function(osgjs, json) {
+        setName(osgjs, json);
+        osgjs.setSourceRGB(json.SourceRGB);
+        osgjs.setSourceAlpha(json.SourceAlpha);
+        osgjs.setDestinationRGB(json.DestinationRGB);
+        osgjs.setDestinationAlpha(json.DestinationAlpha);
+    };
+
+    var setTexture = function( osgjs, json) {
+        var magFilter = json.MagFilter || json.mag_filter || undefined;
+        if (magFilter) {
+            osgjs.setMagFilter(magFilter);
+        }
+        var minFilter = json.MinFilter || json.min_filter || undefined;
+        if (minFilter) {
+            osgjs.setMinFilter(minFilter);
+        }
+        var wrapT = json.WrapT || json.wrap_t || undefined;
+        if (wrapT) {
+            osgjs.setWrapT(wrapT);
+        }
+        var wrapS = json.WrapS || json.wrap_s || undefined;
+        if (wrapS) {
+            osgjs.setWrapS(wrapS);
+        }
+        var file = getFieldBackwardCompatible("File", json);
+        osgDB.Promise.when(osgDB.readImage(file)).then(
+            function(img) {
+                osgjs.setImage(img);
+            });
+    };
+
+    var setStateSet = function(osgjs, json) {
+        setName(osgjs, json);
+        var textures = getFieldBackwardCompatible("Textures", json) || getFieldBackwardCompatible("TextureAttributeList", json) || undefined;
+        if (textures) {
+            for (var t = 0, tl = textures.length; t < tl; t++) {
+                var file = getFieldBackwardCompatible("File", textures[t]);
+                if (!file) {
+                    osg.log("no texture on unit " + t + " skip it");
+                    continue;
+                }
+                var tex = new osg.Texture();
+                setTexture(tex, textures[t]);
+                
+                osgjs.setTextureAttributeAndMode(t, tex);
+                osgjs.addUniform(osg.Uniform.createInt1(t,"Texture" + t));
+            }
+        }
+        
+        var blendfunc = getFieldBackwardCompatible("BlendFunc",json);
+        if (blendfunc) {
+            var newblendfunc = new osg.BlendFunc();
+            setBlendFunc(newblendfunc, blendfunc);
+            osgjs.setAttributeAndMode(newblendfunc);
+        }
+
+        var material = getFieldBackwardCompatible("Material",json);
+        if (material) {
+            var newmaterial = new osg.Material();
+            setMaterial(newmaterial, material);
+            osgjs.setAttributeAndMode(newmaterial);
+        }
+    };
+
+
+    var newnode;
+    var children = node.children;
+    var primitives = node.primitives || node.Primitives || undefined;
+    var attributes = node.attributes || node.Attributes || undefined;
+    if (primitives || attributes) {
+        newnode = new osg.Geometry();
+
+        setName(newnode, node);
+
+        osg.extend(newnode, node); // we should not do that
+        node = newnode;
+        node.primitives = primitives; // we should not do that
+        node.attributes = attributes; // we should not do that
+
+        var i;
+        for ( var p = 0, lp = primitives.length; p < lp; p++) {
+            var mode = primitives[p].mode;
+            if (primitives[p].indices) {
+                var array = primitives[p].indices;
+                array = new osg.BufferArray(osg.BufferArray[array.type], array.elements, array.itemSize );
+                if (!mode) {
+                    mode = gl.TRIANGLES;
+                } else {
+                    mode = osg.PrimitiveSet[mode];
+                }
+                primitives[p] = new osg.DrawElements(mode, array);
+            } else {
+                mode = gl[mode];
+                var first = primitives[p].first;
+                var count = primitives[p].count;
+                primitives[p] = new osg.DrawArrays(mode, first, count);
+            }
+        }
+
+        for (var key in attributes) {
+            if (attributes.hasOwnProperty(key)) {
+                var attributeArray = attributes[key];
+                attributes[key] = new osg.BufferArray(gl[attributeArray.type], attributeArray.elements, attributeArray.itemSize );
+            }
+        }
+    }
+
+    var stateset = getFieldBackwardCompatible("StateSet", node);
+    if (stateset) {
+        var newstateset = new osg.StateSet();
+        setStateSet(newstateset, stateset);
+        node.stateset = newstateset;
+    }
+
+    var matrix = node.matrix || node.Matrix || undefined;
+    if (matrix) {
+        newnode = new osg.MatrixTransform();
+        setName(newnode, node);
+
+        osg.extend(newnode, node);
+        newnode.setMatrix(osg.Matrix.copy(matrix));
+        node = newnode;
+    }
+
+    var projection = node.projection || node.Projection || undefined;
+    if (projection) {
+        newnode = new osg.Projection();
+        setName(newnode, node);
+        osg.extend(newnode, node);
+        newnode.setProjectionMatrix(osg.Matrix.copy(projection));
+        node = newnode;
+    }
+
+    // default type
+    if (node.objectType === undefined) {
+        newnode = new osg.Node();
+        setName(newnode, node);
+        osg.extend(newnode, node);
+        node = newnode;
+    }
+
+
+    if (children) {
+        // disable children, it will be processed in the end
+        node.children = [];
+
+        for (var child = 0, childLength = children.length; child < childLength; child++) {
+            node.addChild(osgDB.parseSceneGraph_deprecated(children[child]));
+        }
+    }
+
+    return node;
+};</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

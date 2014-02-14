@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>CullSettings.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>CullSettings.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
+    <span class="hljs-keyword">var</span> CullSettings = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">this</span>._computeNearFar = <span class="hljs-literal">true</span>;
+        <span class="hljs-keyword">this</span>._nearFarRatio = <span class="hljs-number">0.005</span>;
+
+        <span class="hljs-keyword">var</span> lookVector = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, -<span class="hljs-number">1.0</span> ];
+        <span class="hljs-comment">/*jshint bitwise: false */</span>
+        <span class="hljs-keyword">this</span>.bbCornerFar = ( lookVector[ <span class="hljs-number">0</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span> ) | ( lookVector[ <span class="hljs-number">1</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">2</span> : <span class="hljs-number">0</span> ) | ( lookVector[ <span class="hljs-number">2</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">4</span> : <span class="hljs-number">0</span> );
+        <span class="hljs-keyword">this</span>.bbCornerNear = ( ~<span class="hljs-keyword">this</span>.bbCornerFar ) &amp; <span class="hljs-number">7</span>;
+        <span class="hljs-comment">/*jshint bitwise: true */</span>
+    };
+
+    CullSettings.prototype = {
+        setCullSettings: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( settings )</span> {</span>
+            <span class="hljs-keyword">this</span>._computeNearFar = settings._computeNearFar;
+            <span class="hljs-keyword">this</span>._nearFarRatio = settings._nearFarRatio;
+        },
+        setNearFarRatio: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( ratio )</span> {</span>
+            <span class="hljs-keyword">this</span>._nearFarRatio = ratio;
+        },
+        getNearFarRatio: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._nearFarRatio;
+        },
+        setComputeNearFar: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( value )</span> {</span>
+            <span class="hljs-keyword">this</span>._computeNearFar = value;
+        },
+        getComputeNearFar: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._computeNearFar;
+        }
+    };
+
+    <span class="hljs-keyword">return</span> CullSettings;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

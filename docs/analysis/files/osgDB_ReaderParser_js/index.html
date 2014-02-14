@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgDB/ReaderParser.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">58.51</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">258</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">37.87</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">2.71</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;Q&#039;,
+    &#039;require&#039;,
+    &#039;osgDB/Input&#039;,
+    &#039;osg/Notify&#039;,
+    &#039;osg/Utils&#039;,
+    &#039;osg/Texture&#039;,
+    &#039;osg/Uniform&#039;,
+    &#039;osg/BlendFunc&#039;,
+    &#039;osg/Material&#039;,
+    &#039;osg/Geometry&#039;,
+    &#039;osg/BufferArray&#039;,
+    &#039;osg/PrimitiveSet&#039;,
+    &#039;osg/DrawArrays&#039;,
+    &#039;osg/DrawElements&#039;,
+    &#039;osg/StateSet&#039;,
+    &#039;osg/Node&#039;,
+    &#039;osg/Matrix&#039;,
+    &#039;osg/MatrixTransform&#039;,
+    &#039;osg/Projection&#039;
+], function ( Q, require, Input, Notify, MACROUTILS, Texture, Uniform, BlendFunc, Material, Geometry, BufferArray, PrimitiveSet, DrawArrays, DrawElements, StateSet, Node, Matrix, MatrixTransform, Projection ) {
+
+    var ReaderParser = {};
+
+    ReaderParser.ObjectWrapper = {};
+    ReaderParser.ObjectWrapper.serializers = {};
+
+    ReaderParser.readImage = function ( url, options ) {
+        return ReaderParser.registry().readImageURL( url, options );
+    };
+    ReaderParser.readImageURL = ReaderParser.readImage; // alias
+
+    ReaderParser.readNodeURL = function ( url, options ) {
+        return ReaderParser.registry().readNodeURL( url, options );
+    };
+
+    ReaderParser.registry = function () {
+        var Input = require( &#039;osgDB/Input&#039; );
+        if ( ReaderParser.registry._input === undefined ) {
+            ReaderParser.registry._input = new Input();
+        }
+        return ReaderParser.registry._input;
+    };
+
+    ReaderParser.parseSceneGraph = function ( node, options ) {
+        if ( node.Version !== undefined &amp;&amp; node.Version &gt; 0 ) {
+
+            var getPropertyValue = function ( o ) {
+                var props = window.Object.keys( o );
+                for ( var i = 0, l = props.length; i &lt; l; i++ ) {
+                    if ( props[ i ] !== &#039;Generator&#039; &amp;&amp; props[ i ] !== &#039;Version&#039; ) {
+                        return props[ i ];
+                    }
+                }
+                return undefined;
+            };
+
+            var key = getPropertyValue( node );
+            if ( key ) {
+                var obj = {};
+                obj[ key ] = node[ key ];
+                var Input = require( &#039;osgDB/Input&#039; );
+                var input = new Input( obj );
+
+                // copy global options and override with user options
+                var opt = MACROUTILS.objectMix( MACROUTILS.objectMix( {}, ReaderParser.registry().getOptions() ), options || {} );
+                input.setOptions( opt );
+                return input.readObject();
+            } else {
+                Notify.log( &#039;can\&#039;t parse scenegraph &#039; + node );
+            }
+        } else {
+            return ReaderParser.parseSceneGraphDeprecated( node );
+        }
+        return undefined;
+    };
+
+    ReaderParser.parseSceneGraphDeprecated = function ( node ) {
+        var getFieldBackwardCompatible = function ( field, json ) {
+            var value = json[ field ];
+            if ( value === undefined ) {
+                value = json[ field.toLowerCase() ];
+            }
+            return value;
+        };
+        var setName = function ( osgjs, json ) {
+            var name = getFieldBackwardCompatible( &#039;Name&#039;, json );
+            if ( name &amp;&amp; osgjs.setName !== undefined ) {
+                osgjs.setName( name );
+            }
+        };
+
+        var setMaterial = function ( osgjs, json ) {
+            setName( osgjs, json );
+            osgjs.setAmbient( getFieldBackwardCompatible( &#039;Ambient&#039;, json ) );
+            osgjs.setDiffuse( getFieldBackwardCompatible( &#039;Diffuse&#039;, json ) );
+            osgjs.setEmission( getFieldBackwardCompatible( &#039;Emission&#039;, json ) );
+            osgjs.setSpecular( getFieldBackwardCompatible( &#039;Specular&#039;, json ) );
+            osgjs.setShininess( getFieldBackwardCompatible( &#039;Shininess&#039;, json ) );
+        };
+
+        var setBlendFunc = function ( osgjs, json ) {
+            setName( osgjs, json );
+            osgjs.setSourceRGB( json.SourceRGB );
+            osgjs.setSourceAlpha( json.SourceAlpha );
+            osgjs.setDestinationRGB( json.DestinationRGB );
+            osgjs.setDestinationAlpha( json.DestinationAlpha );
+        };
+
+        var setTexture = function ( osgjs, json ) {
+            var magFilter = json.MagFilter || json[&#039;mag_filter&#039;] || undefined;
+            if ( magFilter ) {
+                osgjs.setMagFilter( magFilter );
+            }
+            var minFilter = json.MinFilter || json[&#039;min_filter&#039;] || undefined;
+            if ( minFilter ) {
+                osgjs.setMinFilter( minFilter );
+            }
+            var wrapT = json.WrapT || json[&#039;wrap_t&#039;] || undefined;
+            if ( wrapT ) {
+                osgjs.setWrapT( wrapT );
+            }
+            var wrapS = json.WrapS || json[&#039;wrap_s&#039;] || undefined;
+            if ( wrapS ) {
+                osgjs.setWrapS( wrapS );
+            }
+            var file = getFieldBackwardCompatible( &#039;File&#039;, json );
+            Q.when( ReaderParser.readImage( file ) ).then(
+                function ( img ) {
+                    osgjs.setImage( img );
+                } );
+        };
+
+        var setStateSet = function ( osgjs, json ) {
+            setName( osgjs, json );
+            var textures = getFieldBackwardCompatible( &#039;Textures&#039;, json ) || getFieldBackwardCompatible( &#039;TextureAttributeList&#039;, json ) || undefined;
+            if ( textures ) {
+                for ( var t = 0, tl = textures.length; t &lt; tl; t++ ) {
+                    var file = getFieldBackwardCompatible( &#039;File&#039;, textures[ t ] );
+                    if ( !file ) {
+                        Notify.log( &#039;no texture on unit &#039; + t + &#039; skip it&#039; );
+                        continue;
+                    }
+                    var Texture = require( &#039;osg/Texture&#039; );
+                    var tex = new Texture();
+                    setTexture( tex, textures[ t ] );
+
+                    osgjs.setTextureAttributeAndMode( t, tex );
+                    osgjs.addUniform( Uniform.createInt1( t, &#039;Texture&#039; + t ) );
+                }
+            }
+
+            var blendfunc = getFieldBackwardCompatible( &#039;BlendFunc&#039;, json );
+            if ( blendfunc ) {
+                var newblendfunc = new BlendFunc();
+                setBlendFunc( newblendfunc, blendfunc );
+                osgjs.setAttributeAndMode( newblendfunc );
+            }
+
+            var material = getFieldBackwardCompatible( &#039;Material&#039;, json );
+            if ( material ) {
+                var newmaterial = new Material();
+                setMaterial( newmaterial, material );
+                osgjs.setAttributeAndMode( newmaterial );
+            }
+        };
+
+
+        var newnode;
+        var children = node.children;
+        var primitives = node.primitives || node.Primitives || undefined;
+        var attributes = node.attributes || node.Attributes || undefined;
+        if ( primitives || attributes ) {
+            newnode = new Geometry();
+
+            setName( newnode, node );
+
+            MACROUTILS.extend( newnode, node ); // we should not do that
+            node = newnode;
+            node.primitives = primitives; // we should not do that
+            node.attributes = attributes; // we should not do that
+
+            for ( var p = 0, lp = primitives.length; p &lt; lp; p++ ) {
+                var mode = primitives[ p ].mode;
+                if ( primitives[ p ].indices ) {
+                    var array = primitives[ p ].indices;
+                    array = new BufferArray( BufferArray[ array.type ], array.elements, array.itemSize );
+                    if ( !mode ) {
+                        mode = &#039;TRIANGLES&#039;;
+                    } else {
+                        mode = PrimitiveSet[ mode ];
+                    }
+                    primitives[ p ] = new DrawElements( mode, array );
+                } else {
+                    mode = PrimitiveSet[ mode ];
+                    var first = primitives[ p ].first;
+                    var count = primitives[ p ].count;
+                    primitives[ p ] = new DrawArrays( mode, first, count );
+                }
+            }
+
+            for ( var key in attributes ) {
+                if ( attributes.hasOwnProperty( key ) ) {
+                    var attributeArray = attributes[ key ];
+                    attributes[ key ] = new BufferArray( attributeArray.type, attributeArray.elements, attributeArray.itemSize );
+                }
+            }
+        }
+
+        var stateset = getFieldBackwardCompatible( &#039;StateSet&#039;, node );
+        if ( stateset ) {
+            var newstateset = new StateSet();
+            setStateSet( newstateset, stateset );
+            node.stateset = newstateset;
+        }
+
+        var matrix = node.matrix || node.Matrix || undefined;
+        if ( matrix ) {
+            newnode = new MatrixTransform();
+            setName( newnode, node );
+
+            MACROUTILS.extend( newnode, node );
+            newnode.setMatrix( Matrix.copy( matrix ) );
+            node = newnode;
+        }
+
+        var projection = node.projection || node.Projection || undefined;
+        if ( projection ) {
+            newnode = new Projection();
+            setName( newnode, node );
+            MACROUTILS.extend( newnode, node );
+            newnode.setProjectionMatrix( Matrix.copy( projection ) );
+            node = newnode;
+        }
+
+        // default type
+        if ( node.typeID === undefined ) {
+            newnode = new Node();
+            setName( newnode, node );
+            MACROUTILS.extend( newnode, node );
+            node = newnode;
+        }
+
+
+        if ( children ) {
+            // disable children, it will be processed in the end
+            node.children = [];
+
+            for ( var child = 0, childLength = children.length; child &lt; childLength; child++ ) {
+                node.addChild( ReaderParser.parseSceneGraphDeprecated( children[ child ] ) );
+            }
+        }
+
+        return node;
+    };
+
+    return ReaderParser;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

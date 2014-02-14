@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgUtil/ParameterVisitor.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">63.14</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">420</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">61.73</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">4.57</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Utils&#039;,
+    &#039;osg/Notify&#039;,
+    &#039;osg/Uniform&#039;,
+    &#039;osg/NodeVisitor&#039;
+], function ( MACROUTILS, Notify, Uniform, NodeVisitor ) {
+
+    var ArraySlider = function ( params ) {
+        if ( params !== undefined ) {
+            if ( params.object !== undefined &amp;&amp; params.field !== undefined ) {
+                this.createInternalSlider( params );
+            }
+            this._uniform = this.createInternalSliderUniform( params );
+        }
+    };
+
+    ArraySlider.prototype = {
+        setTargetHTML: function ( target ) {
+            this.parent = target;
+        },
+        addToDom: function ( content ) {
+            var mydiv = document.createElement( &#039;div&#039; );
+            mydiv.innerHTML = content;
+            this.parent.appendChild( mydiv );
+        },
+
+        getValue: function ( name ) {
+            if ( window.localStorage ) {
+                var value = window.localStorage.getItem( name );
+                return value;
+            }
+            return null;
+        },
+        setValue: function ( name, value ) {
+            if ( window.localStorage ) {
+                window.localStorage.setItem( name, value );
+            }
+        },
+        createHTMLSlider: function ( param, value, nameIndex, cbnameIndex ) {
+            var input = &#039;&lt;div&gt;NAME [ MIN - MAX ] &lt;input type=&quot;range&quot; min=&quot;MIN&quot; max=&quot;MAX&quot; value=&quot;VALUE&quot; step=&quot;STEP&quot; onchange=&quot;ONCHANGE&quot; /&gt;&lt;span id=&quot;UPDATE&quot;&gt;&lt;/span&gt;&lt;/div&gt;&#039;;
+            var min = param.min;
+            var max = param.max;
+            var step = param.step;
+            var name = nameIndex;
+            var cbname = cbnameIndex;
+            var onchange = cbname + &#039;(this.value)&#039;;
+            input = input.replace( /MIN/g, min );
+            input = input.replace( /MAX/g, ( max + step ) );
+            input = input.replace( &#039;STEP&#039;, step );
+            input = input.replace( &#039;VALUE&#039;, value );
+            input = input.replace( /NAME/g, name );
+            input = input.replace( /UPDATE/g, cbname );
+            input = input.replace( &#039;ONCHANGE&#039;, onchange );
+            return input;
+        },
+
+        createUniformFunction: function ( param, name, index, uniform, cbnameIndex ) {
+            var self = this;
+            return ( function () {
+                var cname = name;
+                var cindex = index;
+                var cuniform = uniform;
+                var id = cbnameIndex;
+                var func = function ( value ) {
+                    cuniform.get()[ cindex ] = value;
+                    cuniform.dirty();
+                    Notify.debug( cname + &#039; value &#039; + value );
+                    document.getElementById( cbnameIndex ).innerHTML = Number( value ).toFixed( 4 );
+                    self.setValue( id, value );
+                    if ( param.onchange !== undefined ) {
+                        param.onchange( cuniform.get() );
+                    }
+                    // store the value to localstorage
+                };
+                return func;
+            } )();
+        },
+
+        createFunction: function ( param, name, index, object, field, cbnameIndex ) {
+            var self = this;
+            return ( function () {
+                var cname = name;
+                //var cindex = index;
+                var cfield = field;
+                var id = cbnameIndex;
+                var obj = object;
+                var func = function ( value ) {
+                    if ( typeof ( value ) === &#039;string&#039; ) {
+                        value = parseFloat( value );
+                    }
+
+                    if ( typeof ( object[ cfield ] ) === &#039;number&#039; ) {
+                        obj[ cfield ] = value;
+                    } else {
+                        obj[ cfield ][ index ] = value;
+                    }
+                    Notify.debug( cname + &#039; value &#039; + value );
+                    document.getElementById( cbnameIndex ).innerHTML = Number( value ).toFixed( 4 );
+                    self.setValue( id, value );
+                    if ( param.onchange !== undefined ) {
+                        param.onchange( obj[ cfield ] );
+                    }
+
+                    // store the value to localstorage
+                };
+                return func;
+            } )();
+        },
+
+        getCallbackName: function ( name, prgId ) {
+            return &#039;change_&#039; + prgId + &#039;_&#039; + name;
+        },
+
+        copyDefaultValue: function ( param ) {
+            var uvalue = param.value;
+            if ( Array.isArray( param.value ) ) {
+                uvalue = param.value.slice();
+            } else {
+                uvalue = [ uvalue ];
+            }
+            return uvalue;
+        },
+
+        createInternalSliderUniform: function ( param ) {
+            var uvalue = param.value;
+            var uniform = param.uniform;
+            if ( uniform === undefined ) {
+                var type = param.type;
+                type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
+                uniform = Uniform[ &#039;create&#039; + type ]( uvalue, param.name );
+            }
+
+            var cbname = this.getCallbackName( param.name, param.id );
+            var dim = uvalue.length;
+            for ( var i = 0; i &lt; dim; i++ ) {
+
+                var istring = i.toString();
+                var nameIndex = param.name + istring;
+                var cbnameIndex = cbname + istring;
+
+                // default value
+                var value = uvalue[ i ];
+
+                // read local storage value if it exist
+                var readValue = this.getValue( cbnameIndex );
+                if ( readValue !== null ) {
+                    value = readValue;
+                } else if ( param.uniform &amp;&amp; param.uniform.get()[ i ] !== undefined ) {
+                    // read value from original uniform
+                    value = param.uniform.get()[ i ];
+                }
+
+                var dom = this.createHTMLSlider( param, value, nameIndex, cbnameIndex );
+                this.addToDom( dom );
+                window[ cbnameIndex ] = this.createUniformFunction( param, nameIndex, i, uniform, cbnameIndex );
+                Notify.log( nameIndex + &#039; &#039; + value );
+                window[ cbnameIndex ]( value );
+            }
+            this.uniform = uniform;
+            return uniform;
+        },
+
+        createInternalSlider: function ( param ) {
+            var uvalue = param.value;
+            var name = param.name;
+            var id = param.id;
+            var dim = uvalue.length;
+            var cbname = this.getCallbackName( name, id );
+            var object = param.object;
+            var field = param.field;
+            for ( var i = 0; i &lt; dim; i++ ) {
+
+                var istring = i.toString();
+                var nameIndex = name + istring;
+                var cbnameIndex = cbname + istring;
+
+                // default value
+                var value = uvalue[ i ];
+
+                // read local storage value if it exist
+                var readValue = this.getValue( cbnameIndex );
+                if ( readValue !== null ) {
+                    value = readValue;
+                } else {
+                    if ( typeof object[ field ] === &#039;number&#039; ) {
+                        value = object[ field ];
+                    } else {
+                        value = object[ field ][ i ];
+                    }
+                }
+
+                var dom = this.createHTMLSlider( param, value, nameIndex, cbnameIndex );
+                this.addToDom( dom );
+                window[ cbnameIndex ] = this.createFunction( param, nameIndex, i, object, field, cbnameIndex );
+                Notify.log( nameIndex + &#039; &#039; + value );
+                window[ cbnameIndex ]( value );
+            }
+        },
+
+        createSlider: function ( param ) {
+            if ( param.html !== undefined ) {
+                this.setTargetHTML( param.html );
+            }
+            if ( param.id === undefined ) {
+                param.id = param.name;
+            }
+            param.value = this.copyDefaultValue( param );
+            if ( param.type !== undefined ) {
+                return this.createInternalSliderUniform( param );
+            } else {
+                if ( param.object === undefined ) {
+                    param.object = {
+                        &#039;data&#039;: param.value
+                    };
+                    param.field = &#039;data&#039;;
+                }
+                return this.createInternalSlider( param );
+            }
+        }
+    };
+
+
+    var ParameterVisitor = function () {
+        NodeVisitor.call( this );
+
+        this.arraySlider = new ArraySlider();
+        this.setTargetHTML( document.body );
+    };
+
+    ParameterVisitor.createSlider = function ( param ) {
+        ( new ArraySlider() ).createSlider( param );
+    };
+
+    ParameterVisitor.prototype = MACROUTILS.objectInehrit( NodeVisitor.prototype, {
+
+        setTargetHTML: function ( html ) {
+            this.targetHTML = html;
+            this.arraySlider.setTargetHTML( this.targetHTML );
+        },
+
+        getUniformList: function ( str, map ) {
+
+            //var txt=&#039;uniform float Power; // { min: 0.1, max: 2.0, step: 0.1, value: [0,0,0]  }&#039;;
+
+            var re1 = &#039;(uniform)&#039;; // Word 1
+            var re2 = &#039;.*?&#039;; // Non-greedy match on filler
+            var re3 = &#039;((?:[a-z][a-z]+))&#039;; // Word 2
+            var re4 = &#039;.*?&#039;; // Non-greedy match on filler
+            var re5 = &#039;((?:[a-z][a-z]+))&#039;; // Word 3
+            var re6 = &#039;.*?&#039;; // Non-greedy match on filler
+            var re7 = &#039;.&#039;; // Uninteresting: c
+            var re8 = &#039;.*?&#039;; // Non-greedy match on filler
+            var re9 = &#039;.&#039;; // Uninteresting: c
+            var re10 = &#039;.*?&#039;; // Non-greedy match on filler
+            var re11 = &#039;(.)&#039;; // Any Single Character 1
+            var re12 = &#039;(.)&#039;; // Any Single Character 2
+            var re13 = &#039;.*?&#039;; // Non-greedy match on filler
+            var re14 = &#039;(\\{.*?\\})&#039;; // Curly Braces 1
+
+            var p = new RegExp( re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9 + re10 + re11 + re12 + re13 + re14, [ &#039;g&#039; ] );
+            var r = str.match( p );
+            var list = map;
+
+            var createGetter = function( value ) {
+                return function() { return value; };
+            };
+
+            if ( r !== null ) {
+                var re = new RegExp( re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9 + re10 + re11 + re12 + re13 + re14, [ &#039;i&#039; ] );
+                for ( var i = 0, l = r.length; i &lt; l; i++ ) {
+                    var result = r[ i ].match( re );
+                    //var result = p.exec(str);
+                    if ( result !== null ) {
+                        //var word1 = result[ 1 ];
+                        var type = result[ 2 ];
+                        var name = result[ 3 ];
+                        //var c1 = result[ 4 ];
+                        //var c2 = result[ 5 ];
+                        var json = result[ 6 ];
+
+                        var param = JSON.parse( json );
+                        param.type = type;
+                        param.name = name;
+                        var value = param.value;
+                        param.value = createGetter( value );
+                        list[ name ] = param;
+                    }
+                }
+            }
+            return list;
+        },
+
+        getUniformFromStateSet: function ( stateSet, uniformMap ) {
+            var maps = stateSet.getUniformList();
+            if ( !maps ) {
+                return;
+            }
+            var keys = window.Object.keys( uniformMap );
+            for ( var i = 0, l = keys.length; i &lt; l; i++ ) {
+                var k = keys[ i ];
+                // get the first one found in the tree
+                if ( maps[ k ] !== undefined &amp;&amp; uniformMap[ k ].uniform === undefined ) {
+                    uniformMap[ k ].uniform = maps[ k ].object;
+                }
+            }
+        },
+
+        findExistingUniform: function ( node, uniformMap ) {
+            var BackVisitor = function () {
+                NodeVisitor.call( this, NodeVisitor.TRAVERSE_PARENTS );
+            };
+            BackVisitor.prototype = MACROUTILS.objectInehrit( NodeVisitor.prototype, {
+                setUniformMap: function ( map ) {
+                    this.uniformMap = map;
+                },
+                apply: function ( node ) {
+                    var stateSet = node.getStateSet();
+                    if ( stateSet ) {
+                        ParameterVisitor.prototype.getUniformFromStateSet( stateSet, this.uniformMap );
+                    }
+                    this.traverse( node );
+                }
+            } );
+            var visitor = new BackVisitor();
+            visitor.setUniformMap( uniformMap );
+            node.accept( visitor );
+        },
+
+        applyProgram: function ( node, stateset ) {
+            var program = stateset.getAttribute( &#039;Program&#039; );
+            var programName = program.getName();
+            //var string = program.getVertexShader().getText();
+            var uniformMap = {};
+            this.getUniformList( program.getVertexShader().getText(), uniformMap );
+            this.getUniformList( program.getFragmentShader().getText(), uniformMap );
+
+
+            var keys = window.Object.keys( uniformMap );
+
+            if ( programName === undefined ) {
+                var hashCode = function ( str ) {
+                    var hash = 0;
+                    var chara = 0;
+                    if ( str.length === 0 ) {
+                        return hash;
+                    }
+                    for ( i = 0; i &lt; str.length; i++ ) {
+                        chara = str.charCodeAt( i );
+                        /*jshint bitwise: false */
+                        hash = ( ( hash &lt;&lt; 5 ) - hash ) + chara;
+                        hash = hash &amp; hash; // Convert to 32bit integer
+                        /*jshint bitwise: true */
+                    }
+                    if ( hash &lt; 0 ) {
+                        hash = -hash;
+                    }
+                    return hash;
+                };
+                var str = keys.join( &#039;&#039; );
+                programName = hashCode( str ).toString();
+            }
+
+            this.findExistingUniform( node, uniformMap );
+
+            var addedSlider = false;
+            for ( var i = 0; i &lt; keys.length; i++ ) {
+                var k = keys[ i ];
+                var entry = uniformMap[ k ];
+                var type = entry.type;
+                var name = entry.name;
+                entry.id = programName;
+                var uniform = this.arraySlider.createSlider( entry );
+                if ( false ) {
+                    uniform = this.arraySlider.createSlider( {
+                        name: name,
+                        type: type,
+                        id: programName,
+                        uniform: entry.uniform
+                    } );
+                }
+                if ( entry.uniform === undefined &amp;&amp; uniform ) {
+                    stateset.addUniform( uniform );
+                }
+                addedSlider = true;
+            }
+
+            // add a separator
+            if ( addedSlider ) {
+                var mydiv = document.createElement( &#039;div&#039; );
+                mydiv.innerHTML = &#039;&lt;p&gt; &lt;/p&gt;&#039;;
+                this.targetHTML.appendChild( mydiv );
+            }
+
+            Notify.log( uniformMap );
+        },
+
+
+        applyStateSet: function ( node, stateset ) {
+            if ( stateset.getAttribute( &#039;Program&#039; ) !== undefined ) {
+                this.applyProgram( node, stateset );
+            }
+        },
+
+        apply: function ( node ) {
+            var element = this.targetHTML;
+            if ( element === undefined || element === null ) {
+                return;
+            }
+
+            var st = node.getStateSet();
+            if ( st !== undefined ) {
+                this.applyStateSet( node, st );
+            }
+
+            this.traverse( node );
+        }
+    } );
+
+    return ParameterVisitor;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

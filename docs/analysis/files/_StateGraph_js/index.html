@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>/StateGraph.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">56.61</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">0.96</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">72.37</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">142 / 86</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">osg.StateGraph = function () {
+    this.depth = 0;
+    this.children = {};
+    this.children.keys = [];
+    this.leafs = [];
+    this.stateset = undefined;
+    this.parent = undefined;
+
+};
+
+
+osg.StateGraph.prototype = {
+    clean: function() {
+        this.leafs.splice(0, this.leafs.length);
+        this.stateset = undefined;
+        this.parent = undefined;
+        this.depth = 0;
+        var key, keys = this.children.keys;
+        for (var i = 0, l = keys.length; i < l; i++) {
+            key = keys[i];
+            this.children[key].clean();
+            osg.memoryPools.stateGraph.put(this.children[key]);
+        }
+        this.children = {};
+        keys.splice(0, keys.length);
+        this.children.keys = keys;
+    },
+    getStateSet: function() { return this.stateset; },
+    findOrInsert: function (stateset)
+    {
+        var sg;
+        if (!this.children[stateset.id]) {
+
+            //sg = new osg.StateGraph();
+            sg = osg.memoryPools.stateGraph.get();
+
+            sg.parent = this;
+            sg.depth = this.depth + 1;
+            sg.stateset = stateset;
+            this.children[stateset.id] = sg;
+            this.children.keys.push(stateset.id);
+        } else {
+            sg = this.children[stateset.id];
+        }
+        return sg;
+    },
+    moveToRootStateGraph: function(state, sg_current)
+    {
+        // need to pop back all statesets and matrices.
+        while (sg_current)
+        {
+            if (sg_current.stateSet) {
+                state.popStateSet();
+            }
+            sg_current = sg_current._parent;
+        }
+    },
+    moveStateGraph: function(state, sg_current, sg_new)
+    {
+        var stack;
+        var i;
+        if (sg_new === sg_current || sg_new === undefined) {
+            return;
+        }
+
+        if (sg_current === undefined) {
+            stack = [];
+            // push stateset from sg_new to root, and apply
+            // stateset from root to sg_new
+            do {
+                if (sg_new.stateset !== undefined) {
+                    stack.push(sg_new.stateset);
+                }
+                sg_new = sg_new.parent;
+            } while (sg_new);
+
+            stack.reverse();
+            for (i = 0, l = stack.length; i < l; ++i) {
+                state.pushStateSet(stack[i]);
+            }
+            return;
+        } else if (sg_current.parent === sg_new.parent) {
+            // first handle the typical case which is two state groups
+            // are neighbours.
+
+            // state has changed so need to pop old state.
+            if (sg_current.stateset !== undefined) {
+                state.popStateSet();
+            }
+            // and push new state.
+            if (sg_new.stateset !== undefined) {
+                state.pushStateSet(sg_new.stateset);
+            }
+            return;
+        }
+
+        // need to pop back up to the same depth as the new state group.
+        while (sg_current.depth > sg_new.depth)
+        {
+            if (sg_current.stateset !== undefined) {
+                state.popStateSet();
+            }
+            sg_current = sg_current.parent;
+        }
+
+        // use return path to trace back steps to sg_new.
+        stack = [];
+
+        // need to pop back up to the same depth as the curr state group.
+        while (sg_new.depth > sg_current.depth)
+        {
+            if (sg_new.stateset !== undefined) {
+                stack.push(sg_new.stateset);
+            }
+            sg_new = sg_new.parent;
+        }
+
+        // now pop back up both parent paths until they agree.
+
+        // DRT - 10/22/02
+        // should be this to conform with above case where two StateGraph
+        // nodes have the same parent
+        while (sg_current !== sg_new)
+        {
+            if (sg_current.stateset !== undefined) {
+                state.popStateSet();
+            }
+            sg_current = sg_current.parent;
+
+            if (sg_new.stateset !== undefined) {
+                stack.push(sg_new.stateset);
+            }
+            sg_new = sg_new.parent;
+        }
+
+        stack.reverse();
+        stackLength = stack.length;
+        for( i = 0; i < stackLength; ++i) {
+            state.pushStateSet(stack[i]);
+        }
+    }
+};</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

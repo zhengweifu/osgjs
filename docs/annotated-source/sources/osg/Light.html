@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Light.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>Light.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Utils'</span>,
+    <span class="hljs-string">'osg/StateAttribute'</span>,
+    <span class="hljs-string">'osg/Uniform'</span>,
+    <span class="hljs-string">'osg/Matrix'</span>,
+    <span class="hljs-string">'osg/Vec4'</span>,
+    <span class="hljs-string">'osg/ShaderGenerator'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, StateAttribute, Uniform, Matrix, Vec4, ShaderGenerator )</span> {</span>
+
+        <span class="hljs-comment">/**
+     *  Light
+     *  @class Light
+     */</span>
+    <span class="hljs-keyword">var</span> Light = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( lightNumber )</span> {</span>
+        StateAttribute.call( <span class="hljs-keyword">this</span> );
+
+        <span class="hljs-keyword">if</span> ( lightNumber === <span class="hljs-literal">undefined</span> ) {
+            lightNumber = <span class="hljs-number">0</span>;
+        }
+
+        <span class="hljs-keyword">this</span>._ambient = [ <span class="hljs-number">0.2</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">1.0</span> ];
+        <span class="hljs-keyword">this</span>._diffuse = [ <span class="hljs-number">0.8</span>, <span class="hljs-number">0.8</span>, <span class="hljs-number">0.8</span>, <span class="hljs-number">1.0</span> ];
+        <span class="hljs-keyword">this</span>._specular = [ <span class="hljs-number">0.2</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">1.0</span> ];
+        <span class="hljs-keyword">this</span>._position = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span> ];
+        <span class="hljs-keyword">this</span>._direction = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, -<span class="hljs-number">1.0</span> ];
+        <span class="hljs-keyword">this</span>._spotCutoff = <span class="hljs-number">180.0</span>;
+        <span class="hljs-keyword">this</span>._spotBlend = <span class="hljs-number">0.01</span>;
+        <span class="hljs-keyword">this</span>._constantAttenuation = <span class="hljs-number">1.0</span>;
+        <span class="hljs-keyword">this</span>._linearAttenuation = <span class="hljs-number">0.0</span>;
+        <span class="hljs-keyword">this</span>._quadraticAttenuation = <span class="hljs-number">0.0</span>;
+        <span class="hljs-keyword">this</span>._lightUnit = lightNumber;
+        <span class="hljs-keyword">this</span>._enabled = <span class="hljs-number">0</span>;
+
+        <span class="hljs-keyword">this</span>.dirty();
+    };
+
+    <span class="hljs-comment">/** @lends Light.prototype */</span>
+    Light.uniforms = {};
+    Light.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( StateAttribute.prototype, {
+        attributeType: <span class="hljs-string">'Light'</span>,
+        cloneType: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Light( <span class="hljs-keyword">this</span>._lightUnit );
+        },
+        getType: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.attributeType;
+        },
+        getTypeMember: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.attributeType + <span class="hljs-keyword">this</span>._lightUnit;
+        },
+        getOrCreateUniforms: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> uniforms = Light.uniforms;
+            <span class="hljs-keyword">var</span> typeMember = <span class="hljs-keyword">this</span>.getTypeMember();
+            <span class="hljs-keyword">if</span> ( uniforms[ typeMember ] === <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">var</span> uFact = Uniform;
+                uniforms[ typeMember ] = {
+                    <span class="hljs-string">'ambient'</span>: uFact.createFloat4( [ <span class="hljs-number">0.2</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">1</span> ], <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'ambient'</span> ) ),
+                    <span class="hljs-string">'diffuse'</span>: uFact.createFloat4( [ <span class="hljs-number">0.8</span>, <span class="hljs-number">0.8</span>, <span class="hljs-number">0.8</span>, <span class="hljs-number">1</span> ], <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'diffuse'</span> ) ),
+                    <span class="hljs-string">'specular'</span>: uFact.createFloat4( [ <span class="hljs-number">0.2</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">1</span> ], <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'specular'</span> ) ),
+                    <span class="hljs-string">'position'</span>: uFact.createFloat4( [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span> ], <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'position'</span> ) ),
+                    <span class="hljs-string">'direction'</span>: uFact.createFloat3( [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> ], <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'direction'</span> ) ),
+                    <span class="hljs-string">'spotCutoff'</span>: uFact.createFloat1( <span class="hljs-number">180.0</span>, <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'spotCutoff'</span> ) ),
+                    <span class="hljs-string">'spotBlend'</span>: uFact.createFloat1( <span class="hljs-number">0.01</span>, <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'spotBlend'</span> ) ),
+                    <span class="hljs-string">'constantAttenuation'</span>: uFact.createFloat1( <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'constantAttenuation'</span> ) ),
+                    <span class="hljs-string">'linearAttenuation'</span>: uFact.createFloat1( <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'linearAttenuation'</span> ) ),
+                    <span class="hljs-string">'quadraticAttenuation'</span>: uFact.createFloat1( <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'quadraticAttenuation'</span> ) ),
+                    <span class="hljs-string">'enable'</span>: uFact.createInt1( <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'enable'</span> ) ),
+                    <span class="hljs-string">'matrix'</span>: uFact.createMatrix4( Matrix.makeIdentity( [] ), <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'matrix'</span> ) ),
+                    <span class="hljs-string">'invMatrix'</span>: uFact.createMatrix4( Matrix.makeIdentity( [] ), <span class="hljs-keyword">this</span>.getUniformName( <span class="hljs-string">'invMatrix'</span> ) )
+                };
+
+                uniforms[ typeMember ].uniformKeys = window.Object.keys( uniforms[ typeMember ] );
+            }
+            <span class="hljs-keyword">return</span> uniforms[ typeMember ];
+        },
+
+        setPosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( pos )</span> {</span>
+            Vec4.copy( pos, <span class="hljs-keyword">this</span>._position );
+        },
+        getPosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._position;
+        },
+
+        setAmbient: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a )</span> {</span>
+            <span class="hljs-keyword">this</span>._ambient = a;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+        setSpecular: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a )</span> {</span>
+            <span class="hljs-keyword">this</span>._specular = a;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+        setDiffuse: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a )</span> {</span>
+            <span class="hljs-keyword">this</span>._diffuse = a;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+
+        setSpotCutoff: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a )</span> {</span>
+            <span class="hljs-keyword">this</span>._spotCutoff = a;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+        getSpotCutoff: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._spotCutoff;
+        },
+
+        setSpotBlend: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a )</span> {</span>
+            <span class="hljs-keyword">this</span>._spotBlend = a;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+        getSpotBlend: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._spotBlend;
+        },
+
+        setConstantAttenuation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( value )</span> {</span>
+            <span class="hljs-keyword">this</span>._constantAttenuation = value;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+        setLinearAttenuation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( value )</span> {</span>
+            <span class="hljs-keyword">this</span>._linearAttenuation = value;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+        setQuadraticAttenuation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( value )</span> {</span>
+            <span class="hljs-keyword">this</span>._quadraticAttenuation = value;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+
+        setDirection: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a )</span> {</span>
+            <span class="hljs-keyword">this</span>._direction = a;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+        getDirection: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._direction;
+        },
+
+        setLightNumber: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( unit )</span> {</span>
+            <span class="hljs-keyword">this</span>._lightUnit = unit;
+            <span class="hljs-keyword">this</span>.dirty();
+        },
+        getLightNumber: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._lightUnit;
+        },
+
+        getPrefix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.getType() + <span class="hljs-keyword">this</span>._lightUnit;
+        },
+        getParameterName: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( name )</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.getPrefix() + <span class="hljs-string">'_'</span> + name;
+        },
+        getUniformName: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( name )</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.getPrefix() + <span class="hljs-string">'_uniform_'</span> + name;
+        },
+
+        applyPositionedUniform: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix <span class="hljs-comment">/*, state */</span> )</span> {</span>
+            <span class="hljs-keyword">var</span> uniform = <span class="hljs-keyword">this</span>.getOrCreateUniforms();
+            Matrix.copy( matrix, uniform.matrix.get() );
+            uniform.matrix.dirty();
+
+            Matrix.copy( matrix, uniform.invMatrix.get() );
+            uniform.invMatrix.get()[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0</span>;
+            uniform.invMatrix.get()[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0</span>;
+            uniform.invMatrix.get()[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0</span>;
+            Matrix.inverse( uniform.invMatrix.get(), uniform.invMatrix.get() );
+            Matrix.transpose( uniform.invMatrix.get(), uniform.invMatrix.get() );
+            uniform.invMatrix.dirty();
+        },
+
+        apply: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*state*/</span> )</span> {</span>
+            <span class="hljs-keyword">var</span> light = <span class="hljs-keyword">this</span>.getOrCreateUniforms();
+
+            light.ambient.set( <span class="hljs-keyword">this</span>._ambient );
+            light.diffuse.set( <span class="hljs-keyword">this</span>._diffuse );
+            light.specular.set( <span class="hljs-keyword">this</span>._specular );
+            light.position.set( <span class="hljs-keyword">this</span>._position );
+            light.direction.set( <span class="hljs-keyword">this</span>._direction );
+
+            <span class="hljs-keyword">var</span> spotsize = <span class="hljs-built_in">Math</span>.cos( <span class="hljs-keyword">this</span>._spotCutoff * <span class="hljs-built_in">Math</span>.PI / <span class="hljs-number">180.0</span> );
+            light.spotCutoff.get()[ <span class="hljs-number">0</span> ] = spotsize;
+            light.spotCutoff.dirty();
+
+            light.spotBlend.get()[ <span class="hljs-number">0</span> ] = ( <span class="hljs-number">1.0</span> - spotsize ) * <span class="hljs-keyword">this</span>._spotBlend;
+            light.spotBlend.dirty();
+
+            light.constantAttenuation.get()[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._constantAttenuation;
+            light.constantAttenuation.dirty();
+
+            light.linearAttenuation.get()[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._linearAttenuation;
+            light.linearAttenuation.dirty();
+
+            light.quadraticAttenuation.get()[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._quadraticAttenuation;
+            light.quadraticAttenuation.dirty();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>light._enable.set([this.enable]);</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+            <span class="hljs-keyword">this</span>.setDirty( <span class="hljs-literal">false</span> );
+        },
+
+
+        _replace: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( prefix, list, text, func )</span> {</span>
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = list.length; i &lt; l; i++ ) {
+                <span class="hljs-keyword">var</span> regex = <span class="hljs-keyword">new</span> <span class="hljs-built_in">RegExp</span>( prefix + list[ i ], <span class="hljs-string">'g'</span> );
+                text = text.replace( regex, func.call( <span class="hljs-keyword">this</span>, list[ i ] ) );
+            }
+            <span class="hljs-keyword">return</span> text;
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>will contain functions to generate shader</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        _shader: {},
+        _shaderCommon: {},
+
+        generateShader: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( type )</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._shader[ type ] ) {
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._shader[ type ].call( <span class="hljs-keyword">this</span> );
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-string">''</span>;
+        },
+
+        generateShaderCommon: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( type )</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._shaderCommon[ type ] ) {
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._shaderCommon[ type ].call( <span class="hljs-keyword">this</span> );
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-string">''</span>;
+        }
+
+
+    } ), <span class="hljs-string">'osg'</span>, <span class="hljs-string">'Light'</span> );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>common shader generation functions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    Light.prototype._shaderCommon[ ShaderGenerator.Type.VertexInit ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> [ <span class="hljs-string">''</span>,
+            <span class="hljs-string">'varying vec3 FragNormal;'</span>,
+            <span class="hljs-string">'varying vec3 FragEyeVector;'</span>,
+            <span class="hljs-string">''</span>,
+            <span class="hljs-string">''</span> ].join( <span class="hljs-string">'\n'</span> );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.VertexFunction ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> [ <span class="hljs-string">''</span>,
+            <span class="hljs-string">'vec3 computeNormal() {'</span>,
+            <span class="hljs-string">'   return vec3(NormalMatrix * vec4(Normal, 0.0));'</span>,
+            <span class="hljs-string">'}'</span>,
+            <span class="hljs-string">''</span>,
+            <span class="hljs-string">'vec3 computeEyeVertex() {'</span>,
+            <span class="hljs-string">'   return vec3(ModelViewMatrix * vec4(Vertex,1.0));'</span>,
+            <span class="hljs-string">'}'</span>,
+            <span class="hljs-string">''</span>,
+            <span class="hljs-string">''</span> ].join( <span class="hljs-string">'\n'</span> );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.VertexMain ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> [ <span class="hljs-string">''</span>,
+            <span class="hljs-string">'  FragEyeVector = computeEyeVertex();'</span>,
+            <span class="hljs-string">'  FragNormal = computeNormal();'</span>,
+            <span class="hljs-string">''</span> ].join( <span class="hljs-string">'\n'</span> );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.FragmentInit ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> [ <span class="hljs-string">'varying vec3 FragNormal;'</span>,
+            <span class="hljs-string">'varying vec3 FragEyeVector;'</span>,
+            <span class="hljs-string">''</span> ].join( <span class="hljs-string">'\n'</span> );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.FragmentFunction ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> [ <span class="hljs-string">''</span>,
+            <span class="hljs-string">'float getLightAttenuation(vec3 lightDir, float constant, float linear, float quadratic) {'</span>,
+            <span class="hljs-string">'    '</span>,
+            <span class="hljs-string">'    float d = length(lightDir);'</span>,
+            <span class="hljs-string">'    float att = 1.0 / ( constant + linear*d + quadratic*d*d);'</span>,
+            <span class="hljs-string">'    return att;'</span>,
+            <span class="hljs-string">'}'</span>,
+            <span class="hljs-string">'vec4 computeLightContribution(vec4 materialAmbient,'</span>,
+            <span class="hljs-string">'                              vec4 materialDiffuse,'</span>,
+            <span class="hljs-string">'                              vec4 materialSpecular,'</span>,
+            <span class="hljs-string">'                              float materialShininess,'</span>,
+            <span class="hljs-string">'                              vec4 lightAmbient,'</span>,
+            <span class="hljs-string">'                              vec4 lightDiffuse,'</span>,
+            <span class="hljs-string">'                              vec4 lightSpecular,'</span>,
+            <span class="hljs-string">'                              vec3 normal,'</span>,
+            <span class="hljs-string">'                              vec3 eye,'</span>,
+            <span class="hljs-string">'                              vec3 lightDirection,'</span>,
+            <span class="hljs-string">'                              vec3 lightSpotDirection,'</span>,
+            <span class="hljs-string">'                              float lightCosSpotCutoff,'</span>,
+            <span class="hljs-string">'                              float lightSpotBlend,'</span>,
+            <span class="hljs-string">'                              float lightAttenuation)'</span>,
+            <span class="hljs-string">'{'</span>,
+            <span class="hljs-string">'    vec3 L = lightDirection;'</span>,
+            <span class="hljs-string">'    vec3 N = normal;'</span>,
+            <span class="hljs-string">'    float NdotL = max(dot(L, N), 0.0);'</span>,
+            <span class="hljs-string">'    float halfTerm = NdotL;'</span>,
+            <span class="hljs-string">'    vec4 ambient = lightAmbient;'</span>,
+            <span class="hljs-string">'    vec4 diffuse = vec4(0.0);'</span>,
+            <span class="hljs-string">'    vec4 specular = vec4(0.0);'</span>,
+            <span class="hljs-string">'    float spot = 0.0;'</span>,
+            <span class="hljs-string">''</span>,
+            <span class="hljs-string">'    if (NdotL &gt; 0.0) {'</span>,
+            <span class="hljs-string">'        vec3 E = eye;'</span>,
+            <span class="hljs-string">'        vec3 R = reflect(-L, N);'</span>,
+            <span class="hljs-string">'        float RdotE = max(dot(R, E), 0.0);'</span>,
+            <span class="hljs-string">'        if ( RdotE &gt; 0.0) {'</span>,
+            <span class="hljs-string">'           RdotE = pow( RdotE, materialShininess );'</span>,
+            <span class="hljs-string">'        }'</span>,
+            <span class="hljs-string">'        vec3 D = lightSpotDirection;'</span>,
+            <span class="hljs-string">'        spot = 1.0;'</span>,
+            <span class="hljs-string">'        if (lightCosSpotCutoff &gt; 0.0) {'</span>,
+            <span class="hljs-string">'          float cosCurAngle = dot(-L, D);'</span>,
+            <span class="hljs-string">'          if (cosCurAngle &lt; lightCosSpotCutoff) {'</span>,
+            <span class="hljs-string">'             spot = 0.0;'</span>,
+            <span class="hljs-string">'          } else {'</span>,
+            <span class="hljs-string">'             if (lightSpotBlend &gt; 0.0)'</span>,
+            <span class="hljs-string">'               spot = cosCurAngle * smoothstep(0.0, 1.0, (cosCurAngle-lightCosSpotCutoff)/(lightSpotBlend));'</span>,
+            <span class="hljs-string">'          }'</span>,
+            <span class="hljs-string">'        }'</span>,
+
+            <span class="hljs-string">'        diffuse = lightDiffuse * ((halfTerm));'</span>,
+            <span class="hljs-string">'        specular = lightSpecular * RdotE;'</span>,
+            <span class="hljs-string">'    }'</span>,
+            <span class="hljs-string">''</span>,
+            <span class="hljs-string">'    return (materialAmbient*ambient + (materialDiffuse*diffuse + materialSpecular*specular) * spot) * lightAttenuation;'</span>,
+            <span class="hljs-string">'}'</span>,
+            <span class="hljs-string">'float linearrgb_to_srgb1(const in float c)'</span>,
+            <span class="hljs-string">'{'</span>,
+            <span class="hljs-string">'  float v = 0.0;'</span>,
+            <span class="hljs-string">'  if(c &lt; 0.0031308) {'</span>,
+            <span class="hljs-string">'    if ( c &gt; 0.0)'</span>,
+            <span class="hljs-string">'      v = c * 12.92;'</span>,
+            <span class="hljs-string">'  } else {'</span>,
+            <span class="hljs-string">'    v = 1.055 * pow(c, 1.0/2.4) - 0.055;'</span>,
+            <span class="hljs-string">'  }'</span>,
+            <span class="hljs-string">'  return v;'</span>,
+            <span class="hljs-string">'}'</span>,
+
+            <span class="hljs-string">'vec4 linearrgb_to_srgb(const in vec4 col_from)'</span>,
+            <span class="hljs-string">'{'</span>,
+            <span class="hljs-string">'  vec4 col_to;'</span>,
+            <span class="hljs-string">'  col_to.r = linearrgb_to_srgb1(col_from.r);'</span>,
+            <span class="hljs-string">'  col_to.g = linearrgb_to_srgb1(col_from.g);'</span>,
+            <span class="hljs-string">'  col_to.b = linearrgb_to_srgb1(col_from.b);'</span>,
+            <span class="hljs-string">'  col_to.a = col_from.a;'</span>,
+            <span class="hljs-string">'  return col_to;'</span>,
+            <span class="hljs-string">'}'</span>,
+            <span class="hljs-string">'float srgb_to_linearrgb1(const in float c)'</span>,
+            <span class="hljs-string">'{'</span>,
+            <span class="hljs-string">'  float v = 0.0;'</span>,
+            <span class="hljs-string">'  if(c &lt; 0.04045) {'</span>,
+            <span class="hljs-string">'    if (c &gt;= 0.0)'</span>,
+            <span class="hljs-string">'      v = c * (1.0/12.92);'</span>,
+            <span class="hljs-string">'  } else {'</span>,
+            <span class="hljs-string">'    v = pow((c + 0.055)*(1.0/1.055), 2.4);'</span>,
+            <span class="hljs-string">'  }'</span>,
+            <span class="hljs-string">' return v;'</span>,
+            <span class="hljs-string">'}'</span>,
+            <span class="hljs-string">'vec4 srgb2linear(const in vec4 col_from)'</span>,
+            <span class="hljs-string">'{'</span>,
+            <span class="hljs-string">'  vec4 col_to;'</span>,
+            <span class="hljs-string">'  col_to.r = srgb_to_linearrgb1(col_from.r);'</span>,
+            <span class="hljs-string">'  col_to.g = srgb_to_linearrgb1(col_from.g);'</span>,
+            <span class="hljs-string">'  col_to.b = srgb_to_linearrgb1(col_from.b);'</span>,
+            <span class="hljs-string">'  col_to.a = col_from.a;'</span>,
+            <span class="hljs-string">'  return col_to;'</span>,
+            <span class="hljs-string">'}'</span>,
+
+            <span class="hljs-string">''</span> ].join( <span class="hljs-string">'\n'</span> );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.FragmentMain ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> [ <span class="hljs-string">''</span>,
+            <span class="hljs-string">'  vec3 normal = normalize(FragNormal);'</span>,
+            <span class="hljs-string">'  vec3 eyeVector = normalize(-FragEyeVector);'</span>,
+            <span class="hljs-string">'  vec4 lightColor = MaterialEmission;'</span>,
+            <span class="hljs-string">''</span> ].join( <span class="hljs-string">'\n'</span> );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.FragmentEnd ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> [ <span class="hljs-string">''</span>,
+            <span class="hljs-string">'  fragColor *= lightColor;'</span>,
+            <span class="hljs-string">''</span> ].join( <span class="hljs-string">'\n'</span> );
+    };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>shader generation per instance of attribute</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    Light.prototype._shader[ ShaderGenerator.Type.FragmentInit ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">var</span> str = [ <span class="hljs-string">''</span>,
+            <span class="hljs-string">'uniform vec4 Light_position;'</span>,
+            <span class="hljs-string">'uniform vec3 Light_direction;'</span>,
+            <span class="hljs-string">'uniform mat4 Light_matrix;'</span>,
+            <span class="hljs-string">'uniform mat4 Light_invMatrix;'</span>,
+            <span class="hljs-string">'uniform float Light_constantAttenuation;'</span>,
+            <span class="hljs-string">'uniform float Light_linearAttenuation;'</span>,
+            <span class="hljs-string">'uniform float Light_quadraticAttenuation;'</span>,
+            <span class="hljs-string">'uniform vec4 Light_ambient;'</span>,
+            <span class="hljs-string">'uniform vec4 Light_diffuse;'</span>,
+            <span class="hljs-string">'uniform vec4 Light_specular;'</span>,
+            <span class="hljs-string">'uniform float Light_spotCutoff;'</span>,
+            <span class="hljs-string">'uniform float Light_spotBlend;'</span>,
+            <span class="hljs-string">''</span>
+        ].join( <span class="hljs-string">'\n'</span> );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>replace Light_xxxx by instance variable of ‘this’ light</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> uniforms = window.Object.keys( <span class="hljs-keyword">this</span>.getOrCreateUniforms() );
+        str = <span class="hljs-keyword">this</span>._replace( <span class="hljs-string">'Light_'</span>, uniforms, str, <span class="hljs-keyword">this</span>.getUniformName );
+        <span class="hljs-keyword">return</span> str;
+    };
+
+    Light.prototype._shader[ ShaderGenerator.Type.FragmentMain ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">var</span> str = [ <span class="hljs-string">''</span>,
+            <span class="hljs-string">'  vec3 lightEye = vec3(Light_matrix * Light_position);'</span>,
+            <span class="hljs-string">'  vec3 lightDir;'</span>,
+            <span class="hljs-string">'  if (Light_position[3] == 1.0) {'</span>,
+            <span class="hljs-string">'    lightDir = lightEye - FragEyeVector;'</span>,
+            <span class="hljs-string">'  } else {'</span>,
+            <span class="hljs-string">'    lightDir = lightEye;'</span>,
+            <span class="hljs-string">'  }'</span>,
+            <span class="hljs-string">'  vec3 spotDirection = normalize(mat3(vec3(Light_invMatrix[0]), vec3(Light_invMatrix[1]), vec3(Light_invMatrix[2]))*Light_direction);'</span>,
+            <span class="hljs-string">'  float attenuation = getLightAttenuation(lightDir, Light_constantAttenuation, Light_linearAttenuation, Light_quadraticAttenuation);'</span>,
+            <span class="hljs-string">'  lightDir = normalize(lightDir);'</span>,
+            <span class="hljs-string">'  lightColor += computeLightContribution(MaterialAmbient,'</span>,
+            <span class="hljs-string">'                                         MaterialDiffuse, '</span>,
+            <span class="hljs-string">'                                         MaterialSpecular,'</span>,
+            <span class="hljs-string">'                                         MaterialShininess,'</span>,
+            <span class="hljs-string">'                                         Light_ambient,'</span>,
+            <span class="hljs-string">'                                         Light_diffuse,'</span>,
+            <span class="hljs-string">'                                         Light_specular,'</span>,
+            <span class="hljs-string">'                                         normal,'</span>,
+            <span class="hljs-string">'                                         eyeVector,'</span>,
+            <span class="hljs-string">'                                         lightDir,'</span>,
+            <span class="hljs-string">'                                         spotDirection,'</span>,
+            <span class="hljs-string">'                                         Light_spotCutoff,'</span>,
+            <span class="hljs-string">'                                         Light_spotBlend,'</span>,
+            <span class="hljs-string">'                                         attenuation);'</span>,
+            <span class="hljs-string">''</span>
+        ].join( <span class="hljs-string">'\n'</span> );
+
+        <span class="hljs-keyword">var</span> fields = [ <span class="hljs-string">'lightEye'</span>,
+            <span class="hljs-string">'lightDir'</span>,
+            <span class="hljs-string">'spotDirection'</span>,
+            <span class="hljs-string">'attenuation'</span>
+        ];
+        str = <span class="hljs-keyword">this</span>._replace( <span class="hljs-string">''</span>, fields, str, <span class="hljs-keyword">this</span>.getParameterName );
+        <span class="hljs-keyword">var</span> uniforms = window.Object.keys( <span class="hljs-keyword">this</span>.getOrCreateUniforms() );
+        str = <span class="hljs-keyword">this</span>._replace( <span class="hljs-string">'Light_'</span>, uniforms, str, <span class="hljs-keyword">this</span>.getUniformName );
+        <span class="hljs-keyword">return</span> str;
+    };
+
+    <span class="hljs-keyword">return</span> Light;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

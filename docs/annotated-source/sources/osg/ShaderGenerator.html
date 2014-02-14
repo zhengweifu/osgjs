@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>ShaderGenerator.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>ShaderGenerator.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Notify'</span>,
+    <span class="hljs-string">'osg/Program'</span>,
+    <span class="hljs-string">'osg/Shader'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, Program, Shader )</span> {</span>
+
+    <span class="hljs-keyword">var</span> ShaderGenerator = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">this</span>.cache = [];
+    };
+
+    ShaderGenerator.Type = {
+        VertexInit: <span class="hljs-number">0</span>,
+        VertexFunction: <span class="hljs-number">1</span>,
+        VertexMain: <span class="hljs-number">2</span>,
+        VertexEnd: <span class="hljs-number">3</span>,
+        FragmentInit: <span class="hljs-number">5</span>,
+        FragmentFunction: <span class="hljs-number">6</span>,
+        FragmentMain: <span class="hljs-number">7</span>,
+        FragmentEnd: <span class="hljs-number">8</span>
+    };
+
+    ShaderGenerator.prototype = {
+
+        getActiveTypeMember: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state )</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>we should check attribute is active or not</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> types = [];
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>, k = state.attributeMap.attributeKeys.length; j &lt; k; j++ ) {
+                <span class="hljs-keyword">var</span> keya = state.attributeMap.attributeKeys[ j ];
+                <span class="hljs-keyword">var</span> attributeStack = state.attributeMap[ keya ];
+                <span class="hljs-keyword">if</span> ( attributeStack.length === <span class="hljs-number">0</span> &amp;&amp; attributeStack.globalDefault.applyPositionedUniform === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">continue</span>;
+                }
+                <span class="hljs-keyword">if</span> ( attributeStack.globalDefault.getOrCreateUniforms !== <span class="hljs-literal">undefined</span> || attributeStack.globalDefault.writeToShader !== <span class="hljs-literal">undefined</span> ) {
+                    types.push( keya );
+                }
+            }
+
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = state.textureAttributeMapList.length; i &lt; l; i++ ) {
+                <span class="hljs-keyword">var</span> attributesForUnit = state.textureAttributeMapList[ i ];
+                <span class="hljs-keyword">if</span> ( attributesForUnit === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">continue</span>;
+                }
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> h = <span class="hljs-number">0</span>, m = attributesForUnit.attributeKeys.length; h &lt; m; h++ ) {
+                    <span class="hljs-keyword">var</span> key = attributesForUnit.attributeKeys[ h ];
+                    <span class="hljs-keyword">var</span> textureAttributeStack = attributesForUnit[ key ];
+                    <span class="hljs-keyword">if</span> ( textureAttributeStack.length === <span class="hljs-number">0</span> ) {
+                        <span class="hljs-keyword">continue</span>;
+                    }
+                    <span class="hljs-keyword">if</span> ( textureAttributeStack.globalDefault.getOrCreateUniforms !== <span class="hljs-literal">undefined</span> || textureAttributeStack.globalDefault.writeToShader !== <span class="hljs-literal">undefined</span> ) {
+                        types.push( key + i );
+                    }
+                }
+            }
+            <span class="hljs-keyword">return</span> types;
+        },
+
+        getActiveAttributeMapKeys: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state )</span> {</span>
+            <span class="hljs-keyword">var</span> keys = [];
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>, k = state.attributeMap.attributeKeys.length; j &lt; k; j++ ) {
+                <span class="hljs-keyword">var</span> keya = state.attributeMap.attributeKeys[ j ];
+                <span class="hljs-keyword">var</span> attributeStack = state.attributeMap[ keya ];
+                <span class="hljs-keyword">if</span> ( attributeStack.length === <span class="hljs-number">0</span> &amp;&amp; attributeStack.globalDefault.applyPositionedUniform === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">continue</span>;
+                }
+                <span class="hljs-keyword">if</span> ( attributeStack.globalDefault.getOrCreateUniforms !== <span class="hljs-literal">undefined</span> || attributeStack.globalDefault.writeToShader !== <span class="hljs-literal">undefined</span> ) {
+                    keys.push( keya );
+                }
+            }
+            <span class="hljs-keyword">return</span> keys;
+        },
+
+        getActiveTextureAttributeMapKeys: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state )</span> {</span>
+            <span class="hljs-keyword">var</span> textureAttributeKeys = [];
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = state.textureAttributeMapList.length; i &lt; l; i++ ) {
+                <span class="hljs-keyword">var</span> attributesForUnit = state.textureAttributeMapList[ i ];
+                <span class="hljs-keyword">if</span> ( attributesForUnit === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">continue</span>;
+                }
+                textureAttributeKeys[ i ] = [];
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>, m = attributesForUnit.attributeKeys.length; j &lt; m; j++ ) {
+                    <span class="hljs-keyword">var</span> key = attributesForUnit.attributeKeys[ j ];
+                    <span class="hljs-keyword">var</span> textureAttributeStack = attributesForUnit[ key ];
+                    <span class="hljs-keyword">if</span> ( textureAttributeStack.length === <span class="hljs-number">0</span> ) {
+                        <span class="hljs-keyword">continue</span>;
+                    }
+                    <span class="hljs-keyword">if</span> ( textureAttributeStack.globalDefault.getOrCreateUniforms !== <span class="hljs-literal">undefined</span> || textureAttributeStack.globalDefault.writeToShader !== <span class="hljs-literal">undefined</span> ) {
+                        textureAttributeKeys[ i ].push( key );
+                    }
+                }
+            }
+            <span class="hljs-keyword">return</span> textureAttributeKeys;
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>getActiveUniforms
+return the list of uniforms enabled from the State
+The idea behind this is to generate a shader depending on attributes/uniforms enabled by the user</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        getActiveUniforms: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state, attributeKeys, textureAttributeKeys )</span> {</span>
+            <span class="hljs-keyword">var</span> uniforms = {};
+
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = attributeKeys.length; i &lt; l; i++ ) {
+                <span class="hljs-keyword">var</span> key = attributeKeys[ i ];
+
+                <span class="hljs-keyword">if</span> ( state.attributeMap[ key ].globalDefault.getOrCreateUniforms === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">continue</span>;
+                }
+                <span class="hljs-keyword">var</span> attributeUniforms = state.attributeMap[ key ].globalDefault.getOrCreateUniforms();
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>, m = attributeUniforms.uniformKeys.length; j &lt; m; j++ ) {
+                    <span class="hljs-keyword">var</span> name = attributeUniforms.uniformKeys[ j ];
+                    <span class="hljs-keyword">var</span> uniform = attributeUniforms[ name ];
+                    uniforms[ uniform.name ] = uniform;
+                }
+            }
+
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> a = <span class="hljs-number">0</span>, n = textureAttributeKeys.length; a &lt; n; a++ ) {
+                <span class="hljs-keyword">var</span> unitAttributekeys = textureAttributeKeys[ a ];
+                <span class="hljs-keyword">if</span> ( unitAttributekeys === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">continue</span>;
+                }
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> b = <span class="hljs-number">0</span>, o = unitAttributekeys.length; b &lt; o; b++ ) {
+                    <span class="hljs-keyword">var</span> attrName = unitAttributekeys[ b ];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>if (state.textureAttributeMapList[a][attrName].globalDefault === undefined) {
+debugger;
+}</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">var</span> textureAttribute = state.textureAttributeMapList[ a ][ attrName ].globalDefault;
+                    <span class="hljs-keyword">if</span> ( textureAttribute.getOrCreateUniforms === <span class="hljs-literal">undefined</span> ) {
+                        <span class="hljs-keyword">continue</span>;
+                    }
+                    <span class="hljs-keyword">var</span> texUniforms = textureAttribute.getOrCreateUniforms( a );
+                    <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> t = <span class="hljs-number">0</span>, tl = texUniforms.uniformKeys.length; t &lt; tl; t++ ) {
+                        <span class="hljs-keyword">var</span> tname = texUniforms.uniformKeys[ t ];
+                        <span class="hljs-keyword">var</span> tuniform = texUniforms[ tname ];
+                        uniforms[ tuniform.name ] = tuniform;
+                    }
+                }
+            }
+
+            <span class="hljs-keyword">var</span> keys = [];
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> ukey <span class="hljs-keyword">in</span> uniforms ) {
+                keys.push( ukey );
+            }
+            uniforms.uniformKeys = keys;
+            <span class="hljs-keyword">return</span> uniforms;
+        },
+
+        getOrCreateProgram: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state )</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>first get trace of active attribute and texture attributes to check
+if we already have generated a program for this configuration</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> flattenKeys = <span class="hljs-keyword">this</span>.getActiveTypeMember( state );
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = <span class="hljs-keyword">this</span>.cache.length; i &lt; l; ++i ) {
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.compareAttributeMap( flattenKeys, <span class="hljs-keyword">this</span>.cache[ i ].flattenKeys ) === <span class="hljs-number">0</span> ) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.cache[ i ];
+                }
+            }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>extract valid attributes keys with more details</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> attributeKeys = <span class="hljs-keyword">this</span>.getActiveAttributeMapKeys( state );
+            <span class="hljs-keyword">var</span> textureAttributeKeys = <span class="hljs-keyword">this</span>.getActiveTextureAttributeMapKeys( state );
+
+
+            <span class="hljs-keyword">var</span> vertexshader = <span class="hljs-keyword">this</span>.getOrCreateVertexShader( state, attributeKeys, textureAttributeKeys );
+            <span class="hljs-keyword">var</span> fragmentshader = <span class="hljs-keyword">this</span>.getOrCreateFragmentShader( state, attributeKeys, textureAttributeKeys );
+            <span class="hljs-keyword">var</span> program = <span class="hljs-keyword">new</span> Program(
+                <span class="hljs-keyword">new</span> Shader( <span class="hljs-string">'VERTEX_SHADER'</span>, vertexshader ),
+                <span class="hljs-keyword">new</span> Shader( <span class="hljs-string">'FRAGMENT_SHADER'</span>, fragmentshader ) );
+
+            program.flattenKeys = flattenKeys;
+            program.activeAttributeKeys = attributeKeys;
+            program.activeTextureAttributeKeys = textureAttributeKeys;
+            program.activeUniforms = <span class="hljs-keyword">this</span>.getActiveUniforms( state, attributeKeys, textureAttributeKeys );
+            program.generated = <span class="hljs-literal">true</span>;
+
+            Notify.debug( program.vertex.text );
+            Notify.debug( program.fragment.text );
+
+            <span class="hljs-keyword">this</span>.cache.push( program );
+            <span class="hljs-keyword">return</span> program;
+        },
+
+        compareAttributeMap: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attributeKeys0, attributeKeys1 )</span> {</span>
+            <span class="hljs-keyword">var</span> key;
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = attributeKeys0.length; i &lt; l; i++ ) {
+                key = attributeKeys0[ i ];
+                <span class="hljs-keyword">if</span> ( attributeKeys1.indexOf( key ) === -<span class="hljs-number">1</span> ) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+                }
+            }
+            <span class="hljs-keyword">if</span> ( attributeKeys1.length !== attributeKeys0.length ) {
+                <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+        },
+
+        fillTextureShader: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attributeMapList, validTextureAttributeKeys, mode )</span> {</span>
+            <span class="hljs-keyword">var</span> shader = <span class="hljs-string">''</span>;
+            <span class="hljs-keyword">var</span> commonTypeShader = {};
+
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = validTextureAttributeKeys.length; i &lt; l; i++ ) {
+                <span class="hljs-keyword">var</span> attributeKeys = validTextureAttributeKeys[ i ];
+                <span class="hljs-keyword">if</span> ( attributeKeys === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">continue</span>;
+                }
+                <span class="hljs-keyword">var</span> attributes = attributeMapList[ i ];
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>, m = attributeKeys.length; j &lt; m; j++ ) {
+                    <span class="hljs-keyword">var</span> key = attributeKeys[ j ];
+
+                    <span class="hljs-keyword">var</span> element = attributes[ key ].globalDefault;
+
+                    <span class="hljs-keyword">if</span> ( element.generateShaderCommon !== <span class="hljs-literal">undefined</span> &amp;&amp; commonTypeShader[ key ] === <span class="hljs-literal">undefined</span> ) {
+                        shader += element.generateShaderCommon( i, mode );
+                        commonTypeShader[ key ] = <span class="hljs-literal">true</span>;
+                    }
+
+                    <span class="hljs-keyword">if</span> ( element.generateShader ) {
+                        shader += element.generateShader( i, mode );
+                    }
+                }
+            }
+            <span class="hljs-keyword">return</span> shader;
+        },
+
+        fillShader: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attributeMap, validAttributeKeys, mode )</span> {</span>
+            <span class="hljs-keyword">var</span> shader = <span class="hljs-string">''</span>;
+            <span class="hljs-keyword">var</span> commonTypeShader = {};
+
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>, m = validAttributeKeys.length; j &lt; m; j++ ) {
+                <span class="hljs-keyword">var</span> key = validAttributeKeys[ j ];
+                <span class="hljs-keyword">var</span> element = attributeMap[ key ].globalDefault;
+                <span class="hljs-keyword">var</span> type = element.getType();
+                <span class="hljs-keyword">if</span> ( element.generateShaderCommon !== <span class="hljs-literal">undefined</span> &amp;&amp; commonTypeShader[ type ] === <span class="hljs-literal">undefined</span> ) {
+                    shader += element.generateShaderCommon( mode );
+                    commonTypeShader[ type ] = <span class="hljs-literal">true</span>;
+                }
+
+                <span class="hljs-keyword">if</span> ( element.generateShader ) {
+                    shader += element.generateShader( mode );
+                }
+            }
+            <span class="hljs-keyword">return</span> shader;
+        },
+
+        getOrCreateVertexShader: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state, validAttributeKeys, validTextureAttributeKeys )</span> {</span>
+
+            <span class="hljs-keyword">var</span> modes = ShaderGenerator.Type;
+            <span class="hljs-keyword">var</span> shader = [
+                <span class="hljs-string">''</span>,
+                <span class="hljs-string">'#ifdef GL_ES'</span>,
+                <span class="hljs-string">'precision highp float;'</span>,
+                <span class="hljs-string">'#endif'</span>,
+                <span class="hljs-string">'attribute vec3 Vertex;'</span>,
+                <span class="hljs-string">'attribute vec4 Color;'</span>,
+                <span class="hljs-string">'attribute vec3 Normal;'</span>,
+                <span class="hljs-string">'uniform float ArrayColorEnabled;'</span>,
+                <span class="hljs-string">'uniform mat4 ModelViewMatrix;'</span>,
+                <span class="hljs-string">'uniform mat4 ProjectionMatrix;'</span>,
+                <span class="hljs-string">'uniform mat4 NormalMatrix;'</span>,
+                <span class="hljs-string">'varying vec4 VertexColor;'</span>,
+                <span class="hljs-string">''</span>
+            ].join( <span class="hljs-string">'\n'</span> );
+
+            shader += <span class="hljs-keyword">this</span>._writeShaderFromMode( state, validAttributeKeys, validTextureAttributeKeys, modes.VertexInit );
+
+            <span class="hljs-keyword">var</span> func = [
+                <span class="hljs-string">''</span>,
+                <span class="hljs-string">'vec4 ftransform() {'</span>,
+                <span class="hljs-string">'  return ProjectionMatrix * ModelViewMatrix * vec4(Vertex, 1.0);'</span>,
+                <span class="hljs-string">'}'</span>
+            ].join( <span class="hljs-string">'\n'</span> );
+
+            shader += func;
+
+            shader += <span class="hljs-keyword">this</span>._writeShaderFromMode( state, validAttributeKeys, validTextureAttributeKeys, modes.VertexFunction );
+
+            <span class="hljs-keyword">var</span> body = [
+                <span class="hljs-string">''</span>,
+                <span class="hljs-string">'void main(void) {'</span>,
+                <span class="hljs-string">'  gl_Position = ftransform();'</span>,
+                <span class="hljs-string">'  if (ArrayColorEnabled == 1.0)'</span>,
+                <span class="hljs-string">'    VertexColor = Color;'</span>,
+                <span class="hljs-string">'  else'</span>,
+                <span class="hljs-string">'    VertexColor = vec4(1.0,1.0,1.0,1.0);'</span>,
+                <span class="hljs-string">'  gl_PointSize = 1.0;'</span>,
+                <span class="hljs-string">''</span>
+            ].join( <span class="hljs-string">'\n'</span> );
+
+            shader += body;
+
+            shader += <span class="hljs-keyword">this</span>._writeShaderFromMode( state, validAttributeKeys, validTextureAttributeKeys, modes.VertexMain );
+
+            shader += [
+                <span class="hljs-string">'}'</span>,
+                <span class="hljs-string">''</span>
+            ].join( <span class="hljs-string">'\n'</span> );
+
+            <span class="hljs-keyword">return</span> shader;
+        },
+
+        _writeShaderFromMode: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state, validAttributeKeys, validTextureAttributeKeys, mode )</span> {</span>
+            <span class="hljs-keyword">var</span> str = <span class="hljs-string">''</span>;
+            str += <span class="hljs-keyword">this</span>.fillTextureShader( state.textureAttributeMapList, validTextureAttributeKeys, mode );
+            str += <span class="hljs-keyword">this</span>.fillShader( state.attributeMap, validAttributeKeys, mode );
+            <span class="hljs-keyword">return</span> str;
+        },
+
+        getOrCreateFragmentShader: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state, validAttributeKeys, validTextureAttributeKeys )</span> {</span>
+
+            <span class="hljs-keyword">var</span> shader = [
+                <span class="hljs-string">''</span>,
+                <span class="hljs-string">'#ifdef GL_ES'</span>,
+                <span class="hljs-string">'precision highp float;'</span>,
+                <span class="hljs-string">'#endif'</span>,
+                <span class="hljs-string">'varying vec4 VertexColor;'</span>,
+                <span class="hljs-string">'uniform float ArrayColorEnabled;'</span>,
+                <span class="hljs-string">'vec4 fragColor;'</span>,
+                <span class="hljs-string">''</span>
+            ].join( <span class="hljs-string">'\n'</span> );
+
+            <span class="hljs-keyword">var</span> modes = ShaderGenerator.Type;
+
+            shader += <span class="hljs-keyword">this</span>._writeShaderFromMode( state, validAttributeKeys, validTextureAttributeKeys, modes.FragmentInit );
+
+            shader += <span class="hljs-keyword">this</span>._writeShaderFromMode( state, validAttributeKeys, validTextureAttributeKeys, modes.FragmentFunction );
+
+            shader += [
+                <span class="hljs-string">'void main(void) {'</span>,
+                <span class="hljs-string">'  fragColor = VertexColor;'</span>,
+                <span class="hljs-string">''</span>
+            ].join( <span class="hljs-string">'\n'</span> );
+
+            shader += <span class="hljs-keyword">this</span>._writeShaderFromMode( state, validAttributeKeys, validTextureAttributeKeys, modes.FragmentMain );
+
+            shader += <span class="hljs-keyword">this</span>._writeShaderFromMode( state, validAttributeKeys, validTextureAttributeKeys, modes.FragmentEnd );
+
+            shader += [
+                <span class="hljs-string">''</span>,
+                <span class="hljs-string">'  gl_FragColor = fragColor;'</span>,
+                <span class="hljs-string">'}'</span>
+            ].join( <span class="hljs-string">'\n'</span> );
+
+            <span class="hljs-keyword">return</span> shader;
+        }
+    };
+
+    <span class="hljs-keyword">return</span> ShaderGenerator;
+} );</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

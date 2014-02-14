@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osgViewer/Viewer.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">63.53</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">583</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">49.54</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">6.86</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Notify&#039;,
+    &#039;osg/Utils&#039;,
+    &#039;osg/UpdateVisitor&#039;,
+    &#039;osg/CullVisitor&#039;,
+    &#039;osgUtil/osgUtil&#039;,
+    &#039;osgViewer/View&#039;,
+    &#039;osg/RenderStage&#039;,
+    &#039;osg/StateGraph&#039;,
+    &#039;osg/Matrix&#039;,
+    &#039;osg/State&#039;,
+    &#039;osgGA/OrbitManipulator&#039;,
+    &#039;osgViewer/eventProxy/EventProxy&#039;,
+    &#039;osgViewer/webgl-utils&#039;,
+    &#039;osgViewer/webgl-debug&#039;,
+    &#039;osgViewer/stats&#039;
+], function ( Notify, MACROUTILS, UpdateVisitor, CullVisitor, osgUtil, View, RenderStage, StateGraph, Matrix, State, OrbitManipulator, EventProxy, WebGLUtils, WebGLDebugUtils, Stats ) {
+
+    ( function () {
+
+        // install an html console logger for mobile
+        var optionsURL = function () {
+            var vars = [],
+                hash;
+            var hashes = window.location.href.slice( window.location.href.indexOf( &#039;?&#039; ) + 1 ).split( &#039;&amp;&#039; );
+            for ( var i = 0; i &lt; hashes.length; i++ ) {
+                hash = hashes[ i ].split( &#039;=&#039; );
+                var element = hash[ 0 ].toLowerCase();
+                vars.push( element );
+                var result = hash[ 1 ];
+                if ( result === undefined ) {
+                    result = &#039;1&#039;;
+                }
+                vars[ element ] = result.toLowerCase();
+
+            }
+            return vars;
+        };
+
+        var options = optionsURL();
+
+        if ( options.log !== undefined ) {
+            var level = options.log.toLowerCase();
+
+            switch ( level ) {
+            case &#039;debug&#039;:
+                Notify.setNotifyLevel( Notify.DEBUG );
+                break;
+            case &#039;info&#039;:
+                Notify.setNotifyLevel( Notify.INFO );
+                break;
+            case &#039;notice&#039;:
+                Notify.setNotifyLevel( Notify.NOTICE );
+                break;
+            case &#039;warn&#039;:
+                Notify.setNotifyLevel( Notify.WARN );
+                break;
+            case &#039;error&#039;:
+                Notify.setNotifyLevel( Notify.ERROR );
+                break;
+            case &#039;html&#039;:
+                ( function () {
+                    var logContent = [];
+                    var divLogger = document.createElement( &#039;div&#039; );
+                    var codeElement = document.createElement( &#039;pre&#039; );
+                    document.addEventListener( &#039;DOMContentLoaded&#039;, function () {
+                        document.body.appendChild( divLogger );
+                        divLogger.appendChild( codeElement );
+                    } );
+                    var logFunc = function ( str ) {
+                        logContent.unshift( str );
+                        codeElement.innerHTML = logContent.join( &#039;\n&#039; );
+                    };
+                    divLogger.style.overflow = &#039;hidden&#039;;
+                    divLogger.style.position = &#039;absolute&#039;;
+                    divLogger.style.zIndex = &#039;10000&#039;;
+                    divLogger.style.height = &#039;100%&#039;;
+                    divLogger.style.maxWidth = &#039;600px&#039;;
+                    codeElement.style.overflow = &#039;scroll&#039;;
+                    codeElement.style.width = &#039;105%&#039;;
+                    codeElement.style.height = &#039;100%&#039;;
+                    codeElement.style.fontSize = &#039;10px&#039;;
+
+                    [ &#039;log&#039;, &#039;error&#039;, &#039;warn&#039;, &#039;info&#039;, &#039;debug&#039; ].forEach( function ( value ) {
+                        window.console[ value ] = logFunc;
+                    } );
+                } )();
+                break;
+            }
+        }
+
+    } )();
+
+    var Viewer = function ( canvas, options, error ) {
+        View.call( this );
+
+        if ( options === undefined ) {
+            options = {
+                antialias: true
+            };
+        }
+        this._options = options;
+
+        // #FIXME see tojiro&#039;s blog for webgl lost context stuffs
+        if ( options.SimulateWebGLLostContext ) {
+            canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas( canvas );
+            canvas.loseContextInNCalls( options.SimulateWebGLLostContext );
+        }
+
+        var gl = WebGLUtils.setupWebGL( canvas, options, error );
+        var self = this;
+        canvas.addEventListener( &#039;webglcontextlost&#039;, function ( event ) {
+            self.contextLost();
+            event.preventDefault();
+        }, false );
+
+        canvas.addEventListener( &#039;webglcontextrestored&#039;, function () {
+            self.contextRestored();
+        }, false );
+
+
+        if ( Notify.reportWebGLError || options.reportWebGLError ) {
+            gl = WebGLDebugUtils.makeDebugContext( gl );
+        }
+
+
+        if ( gl ) {
+            this.setGraphicContext( gl );
+            MACROUTILS.init();
+            this._canvas = canvas;
+            this._frameRate = 60.0;
+            osgUtil.UpdateVisitor = UpdateVisitor;
+            osgUtil.CullVisitor = CullVisitor;
+            this._urlOptions = true;
+
+            // default argument for mouse binding
+            var eventsBackend = this._options.EventBackend || {};
+            this._options.EventBackend = eventsBackend;
+
+            eventsBackend.StandardMouseKeyboard = this._options.EventBackend.StandardMouseKeyboard || {};
+            var mouseEventNode = eventsBackend.StandardMouseKeyboard.mouseEventNode || options.mouseEventNode || canvas;
+            eventsBackend.StandardMouseKeyboard.mouseEventNode = mouseEventNode;
+            eventsBackend.StandardMouseKeyboard.keyboardEventNode = eventsBackend.StandardMouseKeyboard.keyboardEventNode || document;
+
+            // hammer
+            eventsBackend.Hammer = eventsBackend.Hammer || {};
+            eventsBackend.Hammer.eventNode = eventsBackend.Hammer.eventNode || options.mouseEventNode || canvas;
+
+            // gamepade
+            eventsBackend.GamePad = eventsBackend.GamePad || {};
+
+            this.setUpView( canvas );
+        } else {
+            throw &#039;No WebGL implementation found&#039;;
+        }
+    };
+
+
+    Viewer.prototype = MACROUTILS.objectInehrit( View.prototype, {
+
+        contextLost: function () {
+            Notify.log( &#039;webgl context lost&#039; );
+            window.cancelRequestAnimFrame( this._requestID );
+        },
+        contextRestored: function () {
+            Notify.log( &#039;webgl context restored, but not supported - reload the page&#039; );
+        },
+
+        init: function () {
+            this._done = false;
+            this._state = new State();
+
+            var gl = this.getGraphicContext();
+            this._state.setGraphicContext( gl );
+            gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
+
+            this._updateVisitor = new osgUtil.UpdateVisitor();
+            this._cullVisitor = new osgUtil.CullVisitor();
+
+            this._renderStage = new RenderStage();
+            this._stateGraph = new StateGraph();
+
+            if ( this._urlOptions ) {
+                this.parseOptions();
+            }
+
+            this.getCamera().setClearColor( [ 0.0, 0.0, 0.0, 0.0 ] );
+            this._eventProxy = this.initEventProxy( this._options );
+        },
+        getState: function () {
+            // would have more sense to be in view
+            // but I would need to put cull and draw on lower Object
+            // in View or a new Renderer object
+            return this._state;
+        },
+        parseOptions: function () {
+
+            var optionsURL = function () {
+                var vars = [],
+                    hash;
+                var hashes = window.location.href.slice( window.location.href.indexOf( &#039;?&#039; ) + 1 ).split( &#039;&amp;&#039; );
+                for ( var i = 0; i &lt; hashes.length; i++ ) {
+                    hash = hashes[ i ].split( &#039;=&#039; );
+                    var element = hash[ 0 ].toLowerCase();
+                    vars.push( element );
+                    var result = hash[ 1 ];
+                    if ( result === undefined ) {
+                        result = &#039;1&#039;;
+                    }
+                    vars[ element ] = result.toLowerCase();
+
+                }
+                return vars;
+            };
+
+            var options = optionsURL();
+
+            if ( options.stats === &#039;1&#039; ) {
+                this.initStats( options );
+            }
+
+            var gl = this.getGraphicContext();
+            // not the best way to do it
+            if ( options[&#039;depth_test&#039;] === &#039;0&#039; ) {
+                this.getGraphicContext().disable( gl.DEPTH_TEST );
+            }
+            if ( options[&#039;blend&#039;] === &#039;0&#039; ) {
+                this.getGraphicContext().disable( gl.BLEND );
+            }
+            if ( options[&#039;cull_face&#039;] === &#039;0&#039; ) {
+                this.getGraphicContext().disable( gl.CULL_FACE );
+            }
+            if ( options[&#039;light&#039;] === &#039;0&#039; ) {
+                this.setLightingMode( View.LightingMode.NO_LIGHT );
+            }
+
+        },
+
+        initStats: function ( options ) {
+
+            var maxMS = 35;
+            var stepMS = 5;
+            //var fontsize = 14;
+
+            if ( options.statsMaxMS !== undefined ) {
+                maxMS = parseInt( options.statsMaxMS, 10 );
+            }
+            if ( options.statsStepMS !== undefined ) {
+                stepMS = parseInt( options.statsStepMS, 10 );
+            }
+
+            var createDomElements = function ( elementToAppend ) {
+                var dom = [
+                    &#039;&lt;div id=&quot;StatsDiv&quot; style=&quot;top: 0; position: absolute; width: 300px; height: 150px; z-index: 10;&quot;&gt;&#039;,
+
+                    &#039;&lt;div id=&quot;StatsCanvasDiv&quot; style=&quot;position: relative;&quot;&gt;&#039;,
+                    &#039;&lt;canvas id=&quot;StatsCanvasGrid&quot; width=&quot;300&quot; height=&quot;150&quot; style=&quot;z-index:-1; position: absolute; background: rgba(14,14,14,0.8); &quot; &gt;&lt;/canvas&gt;&#039;,
+                    &#039;&lt;canvas id=&quot;StatsCanvas&quot; width=&quot;300&quot; height=&quot;150&quot; style=&quot;z-index:8; position: absolute;&quot; &gt;&lt;/canvas&gt;&#039;,
+                    &#039;&lt;canvas id=&quot;StatsCanvasText&quot; width=&quot;300&quot; height=&quot;150&quot; style=&quot;z-index:9; position: absolute;&quot; &gt;&lt;/canvas&gt;&#039;,
+                    &#039;&lt;/div&gt;&#039;,
+
+                    &#039;&lt;/div&gt;&#039;
+                ].join( &#039;\n&#039; );
+                var parent;
+                if ( elementToAppend === undefined ) {
+                    parent = document.body;
+                    //elementToAppend = &#039;body&#039;;
+                } else {
+                    parent = document.getElementById( elementToAppend );
+                }
+
+                //jQuery(dom).appendTo(elementToAppend);
+                var mydiv = document.createElement( &#039;div&#039; );
+                mydiv.innerHTML = dom;
+                parent.appendChild( mydiv );
+
+                var grid = document.getElementById( &#039;StatsCanvasGrid&#039; );
+                var ctx = grid.getContext( &#039;2d&#039; );
+                ctx.clearRect( 0, 0, grid.width, grid.height );
+
+                var step = Math.floor( maxMS / stepMS ).toFixed( 0 );
+                var r = grid.height / step;
+                ctx.strokeStyle = &#039;rgb(70,70,70)&#039;;
+                for ( var i = 0, l = step; i &lt; l; i++ ) {
+                    ctx.beginPath();
+                    ctx.moveTo( 0, i * r );
+                    ctx.lineTo( grid.width, i * r );
+                    ctx.stroke();
+                }
+
+
+                return {
+                    graph: document.getElementById( &#039;StatsCanvas&#039; ),
+                    text: document.getElementById( &#039;StatsCanvasText&#039; )
+                };
+            };
+
+            if ( this._canvasStats === undefined || this._canvasStats === null ) {
+                var domStats = createDomElements();
+                this._canvasStats = domStats.graph;
+                this._canvasStatsText = domStats.text;
+            }
+            this._stats = new Stats.Stats( this._canvasStats, this._canvasStatsText );
+            var that = this;
+            this._frameRate = 1;
+            this._frameTime = 0;
+            this._updateTime = 0;
+            this._cullTime = 0;
+            this._drawTime = 0;
+            this._stats.addLayer( &#039;#ff0fff&#039;, 120,
+                                  function ( /*t*/ ) {
+                                      return ( 1000.0 / that._frameRate );
+                                  },
+                                  function ( a ) {
+                                      return &#039;FrameRate: &#039; + ( a ).toFixed( 0 ) + &#039; fps&#039;;
+                                  } );
+
+            this._stats.addLayer( &#039;#ffff00&#039;, maxMS,
+                                  function ( /*t*/ ) {
+                                      return that._frameTime;
+                                  },
+                                  function ( a ) {
+                                      return &#039;FrameTime: &#039; + a.toFixed( 2 ) + &#039; ms&#039;;
+                                  } );
+
+            this._stats.addLayer( &#039;#d07b1f&#039;, maxMS,
+                                  function ( /*t*/ ) {
+                                      return that._updateTime;
+                                  },
+                                  function ( a ) {
+                                      return &#039;UpdateTime: &#039; + a.toFixed( 2 ) + &#039; ms&#039;;
+                                  } );
+
+            this._stats.addLayer( &#039;#73e0ff&#039;, maxMS,
+                                  function ( /*t*/ ) {
+                                      return that._cullTime;
+                                  },
+                                  function ( a ) {
+                                      return &#039;CullTime: &#039; + a.toFixed( 2 ) + &#039; ms&#039;;
+                                  } );
+
+            this._stats.addLayer( &#039;#ff0000&#039;,
+                                  maxMS,
+                                  function ( /*t*/ ) {
+                                      return that._drawTime;
+                                  },
+                                  function ( a ) {
+                                      return &#039;DrawTime: &#039; + a.toFixed( 2 ) + &#039; ms&#039;;
+                                  } );
+
+            if ( window.performance &amp;&amp; window.performance.memory &amp;&amp; window.performance.memory.totalJSHeapSize )
+                this._stats.addLayer( &#039;#00ff00&#039;,
+                                      window.performance.memory.totalJSHeapSize * 2,
+                                      function ( /*t*/ ) {
+                                          return that._memSize;
+                                      },
+                                      function ( a ) {
+                                          return &#039;Memory : &#039; + a.toFixed( 0 ) + &#039; b&#039;;
+                                      } );
+
+        },
+
+        update: function () {
+            this.getScene().accept( this._updateVisitor );
+        },
+        cull: function () {
+            // this part of code should be called for each view
+            // right now, we dont support multi view
+            this._stateGraph.clean();
+            this._renderStage.reset();
+
+            this._cullVisitor.reset();
+            this._cullVisitor.setStateGraph( this._stateGraph );
+            this._cullVisitor.setRenderStage( this._renderStage );
+            var camera = this.getCamera();
+            this._cullVisitor.pushStateSet( camera.getStateSet() );
+            this._cullVisitor.pushProjectionMatrix( camera.getProjectionMatrix() );
+
+            // update bound
+            camera.getBound();
+
+            var identity = Matrix.makeIdentity( [] );
+            this._cullVisitor.pushModelviewMatrix( identity );
+
+            if ( this._light ) {
+                this._cullVisitor.addPositionedAttribute( this._light );
+            }
+
+            this._cullVisitor.pushModelviewMatrix( camera.getViewMatrix() );
+            this._cullVisitor.pushViewport( camera.getViewport() );
+            this._cullVisitor.setCullSettings( camera );
+
+            this._renderStage.setClearDepth( camera.getClearDepth() );
+            this._renderStage.setClearColor( camera.getClearColor() );
+            this._renderStage.setClearMask( camera.getClearMask() );
+            this._renderStage.setViewport( camera.getViewport() );
+
+            //CullVisitor.prototype.handleCullCallbacksAndTraverse.call(this._cullVisitor,camera);
+            this.getScene().accept( this._cullVisitor );
+
+            // fix projection matrix if camera has near/far auto compute
+            this._cullVisitor.popModelviewMatrix();
+            this._cullVisitor.popProjectionMatrix();
+            this._cullVisitor.popViewport();
+            this._cullVisitor.popStateSet();
+
+            this._renderStage.sort();
+        },
+        draw: function () {
+            var state = this.getState();
+            this._renderStage.draw( state );
+
+            // noticed that we accumulate lot of stack, maybe because of the stateGraph
+            state.popAllStateSets();
+            state.applyWithoutProgram(); //state.apply(); // apply default state (global)
+        },
+
+        frame: function () {
+            var frameTime, beginFrameTime;
+            frameTime = MACROUTILS.performance.now();
+            if ( this._lastFrameTime === undefined ) {
+                this._lastFrameTime = 0;
+            }
+            this._frameRate = frameTime - this._lastFrameTime;
+            this._lastFrameTime = frameTime;
+            beginFrameTime = frameTime;
+
+            var frameStamp = this.getFrameStamp();
+
+            if ( frameStamp.getFrameNumber() === 0 ) {
+                frameStamp.setReferenceTime( frameTime / 1000.0 );
+                this._numberFrame = 0;
+            }
+
+            frameStamp.setSimulationTime( frameTime / 1000.0 - frameStamp.getReferenceTime() );
+
+            // setup framestamp
+            this._updateVisitor.setFrameStamp( frameStamp );
+            //this._cullVisitor.setFrameStamp(this.getFrameStamp());
+
+            // update inputs devices
+            this.updateEventProxy( this._eventProxy, frameStamp );
+
+            // Update Manipulator/Event
+            // should be merged with the update of game pad below
+            if ( this.getManipulator() ) {
+                this.getManipulator().update( this._updateVisitor );
+                Matrix.copy( this.getManipulator().getInverseMatrix(), this.getCamera().getViewMatrix() );
+            }
+
+            if ( this._stats === undefined ) {
+                // time the update
+                this.update();
+                this.cull();
+                this.draw();
+                frameStamp.setFrameNumber( frameStamp.getFrameNumber() + 1 );
+                this._numberFrame++;
+                this._frameTime = MACROUTILS.performance.now() - beginFrameTime;
+            } else {
+                this._updateTime = MACROUTILS.performance.now();
+                this.update();
+                this._updateTime = MACROUTILS.performance.now() - this._updateTime;
+
+
+                this._cullTime = MACROUTILS.performance.now();
+                this.cull();
+                this._cullTime = MACROUTILS.performance.now() - this._cullTime;
+
+                this._drawTime = MACROUTILS.performance.now();
+                this.draw();
+                this._drawTime = MACROUTILS.performance.now() - this._drawTime;
+
+                frameStamp.setFrameNumber( frameStamp.getFrameNumber() + 1 );
+
+                this._numberFrame++;
+                this._frameTime = MACROUTILS.performance.now() - beginFrameTime;
+
+                if ( window.performance &amp;&amp; window.performance.memory &amp;&amp; window.performance.memory.usedJSHeapSize )
+                    this._memSize = window.performance.memory.usedJSHeapSize;
+                this._stats.update();
+            }
+        },
+
+        setDone: function ( bool ) {
+            this._done = bool;
+        },
+        done: function () {
+            return this._done;
+        },
+
+        run: function () {
+            var self = this;
+            var render = function () {
+                if ( !self.done() ) {
+                    self._requestID = window.requestAnimationFrame( render, self.canvas );
+                    self.frame();
+                }
+            };
+            render();
+        },
+
+        setupManipulator: function ( manipulator /*, dontBindDefaultEvent */ ) {
+            if ( manipulator === undefined ) {
+                manipulator = new OrbitManipulator();
+            }
+
+            if ( manipulator.setNode !== undefined ) {
+                manipulator.setNode( this.getSceneData() );
+            } else {
+                // for backward compatibility
+                manipulator.view = this;
+            }
+
+            this.setManipulator( manipulator );
+
+            var self = this;
+            var resize = function ( /*ev*/ ) {
+                var w = window.innerWidth;
+                var h = window.innerHeight;
+
+                var camera = self.getCamera();
+                var vp = camera.getViewport();
+
+                var prevWidth = vp.width();
+                var prevHeight = vp.height();
+                self._canvas.width = w;
+                self._canvas.height = h;
+                self._canvas.style.width = w;
+                self._canvas.style.height = h;
+                Notify.debug( &#039;window resize &#039; + prevWidth + &#039;x&#039; + prevHeight + &#039; to &#039; + w + &#039;x&#039; + h );
+                var widthChangeRatio = w / prevWidth;
+                var heightChangeRatio = h / prevHeight;
+                var aspectRatioChange = widthChangeRatio / heightChangeRatio;
+                vp.setViewport( vp.x() * widthChangeRatio, vp.y() * heightChangeRatio, vp.width() * widthChangeRatio, vp.height() * heightChangeRatio );
+
+                if ( aspectRatioChange !== 1.0 ) {
+                    Matrix.preMult( camera.getProjectionMatrix(), Matrix.makeScale( 1.0 / aspectRatioChange, 1.0, 1.0, [] ) );
+                }
+            };
+            window.onresize = resize;
+        },
+
+        // intialize all input devices
+        initEventProxy: function ( argsObject ) {
+            var args = argsObject || {};
+            var deviceEnabled = {};
+
+            var lists = EventProxy;
+            var argumentEventBackend = args.EventBackend;
+            // loop on each devices and try to initialize it
+            var keys = window.Object.keys( lists );
+            for ( var i = 0, l = keys.length; i &lt; l; i++ ) {
+                var device = keys[ i ];
+
+                // check if the config has a require
+                var initialize = true;
+                var argDevice = {};
+                if ( argumentEventBackend &amp;&amp; ( argumentEventBackend[ device ] !== undefined ) ) {
+                    initialize = argumentEventBackend[ device ].enable || true;
+                    argDevice = argumentEventBackend[ device ];
+                }
+
+                if ( initialize ) {
+                    var inputDevice = new lists[ device ]( this );
+                    inputDevice.init( argDevice );
+                    deviceEnabled[ device ] = inputDevice;
+                }
+            }
+            return deviceEnabled;
+        },
+        updateEventProxy: function ( list, frameStamp ) {
+            var keys = window.Object.keys( list );
+            keys.forEach( function ( key ) {
+                var device = list[ key ];
+                if ( device.update )
+                    device.update( frameStamp );
+            } );
+        }
+
+    } );
+
+    return Viewer;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

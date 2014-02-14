@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osg/Uniform.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">68.17</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">404</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">78.40</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">4.53</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Utils&#039;
+], function ( MACROUTILS ) {
+        /**
+     * Uniform manage variable used in glsl shader.
+     * @class Uniform
+     */
+    var Uniform = function () {
+        this.transpose = false;
+        this._dirty = true;
+        this.name = &#039;&#039;;
+        this.type = undefined;
+    };
+
+    Uniform.isUniform = function ( obj ) {
+        if ( obj.prototype === Uniform.prototype ) {
+            return true;
+        }
+        return false;
+    };
+
+    /** @lends Uniform.prototype */
+    Uniform.prototype = {
+        getName: function () {
+            return this.name;
+        },
+        getType: function () {
+            return this.type;
+        },
+
+        get: function () { // call dirty if you update this array outside
+            return this.data;
+        },
+        set: function ( array ) {
+            this.data = array;
+            this.dirty();
+        },
+        dirty: function () {
+            this._dirty = true;
+        },
+        apply: function ( gl, location ) {
+            if ( this._dirty ) {
+                this.update.call( this.glData, this.data );
+                this._dirty = false;
+            }
+            this.glCall( gl, location, this.glData );
+        },
+        applyMatrix: function ( gl, location ) {
+            if ( this._dirty ) {
+                this.update.call( this.glData, this.data );
+                this._dirty = false;
+            }
+            this.glCall( gl, location, this.transpose, this.glData );
+        },
+        update: function ( array ) {
+            for ( var i = 0, l = array.length; i &lt; l; ++i ) { // FF not traced maybe short
+                this[ i ] = array[ i ];
+            }
+        },
+
+        _updateArray: function ( array ) {
+            for ( var i = 0, l = array.length; i &lt; l; ++i ) { // FF not traced maybe short
+                this[ i ] = array[ i ];
+            }
+        },
+
+        _updateFloat1: function ( f ) {
+            this[ 0 ] = f[ 0 ];
+        },
+        _updateFloat2: function ( f ) {
+            this[ 0 ] = f[ 0 ];
+            this[ 1 ] = f[ 1 ];
+        },
+        _updateFloat3: function ( f ) {
+            this[ 0 ] = f[ 0 ];
+            this[ 1 ] = f[ 1 ];
+            this[ 2 ] = f[ 2 ];
+        },
+        _updateFloat4: function ( f ) {
+            this[ 0 ] = f[ 0 ];
+            this[ 1 ] = f[ 1 ];
+            this[ 2 ] = f[ 2 ];
+            this[ 3 ] = f[ 3 ];
+        },
+        _updateFloat9: function ( f ) {
+            this[ 0 ] = f[ 0 ];
+            this[ 1 ] = f[ 1 ];
+            this[ 2 ] = f[ 2 ];
+            this[ 3 ] = f[ 3 ];
+            this[ 4 ] = f[ 4 ];
+            this[ 5 ] = f[ 5 ];
+            this[ 6 ] = f[ 6 ];
+            this[ 7 ] = f[ 7 ];
+            this[ 8 ] = f[ 8 ];
+        },
+        _updateFloat16: function ( f ) {
+            this[ 0 ] = f[ 0 ];
+            this[ 1 ] = f[ 1 ];
+            this[ 2 ] = f[ 2 ];
+            this[ 3 ] = f[ 3 ];
+            this[ 4 ] = f[ 4 ];
+            this[ 5 ] = f[ 5 ];
+            this[ 6 ] = f[ 6 ];
+            this[ 7 ] = f[ 7 ];
+            this[ 8 ] = f[ 8 ];
+            this[ 9 ] = f[ 9 ];
+            this[ 10 ] = f[ 10 ];
+            this[ 11 ] = f[ 11 ];
+            this[ 12 ] = f[ 12 ];
+            this[ 13 ] = f[ 13 ];
+            this[ 14 ] = f[ 14 ];
+            this[ 15 ] = f[ 15 ];
+        }
+    };
+
+    Uniform.createFloat1 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 0 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = [ value ];
+        uniform.glCall = function ( gl, location, glData ) {
+            gl.uniform1fv( location, glData );
+        };
+        uniform.glData = new MACROUTILS.Float32Array( uniform.data );
+        uniform.update = Uniform.prototype._updateFloat1;
+        uniform.set = function ( value ) {
+            if ( typeof value === &#039;number&#039; ) {
+                this.data[ 0 ] = value;
+            } else {
+                this.data = value;
+            }
+            this.dirty();
+        };
+
+        uniform.name = name;
+        uniform.type = &#039;float&#039;;
+        return uniform;
+    };
+    Uniform.createFloat = Uniform.createFloat1;
+    Uniform[ &#039;float&#039; ] = Uniform.createFloat1;
+    Uniform.createFloatArray = function ( array, name ) {
+        var u = Uniform.createFloat.call( this, array, name );
+        u.update = Uniform.prototype._updateArray;
+        return u;
+    };
+
+    Uniform.createFloat2 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 0, 0 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, glData ) {
+            gl.uniform2fv( location, glData );
+        };
+        uniform.glData = new MACROUTILS.Float32Array( uniform.data );
+        uniform.update = Uniform.prototype._updateFloat2;
+        uniform.name = name;
+        uniform.type = &#039;vec2&#039;;
+        return uniform;
+    };
+    Uniform.vec2 = Uniform.createFloat2;
+    Uniform.createFloat2Array = function ( array, name ) {
+        var u = Uniform.createFloat2.call( this, array, name );
+        u.update = Uniform.prototype._updateArray;
+        return u;
+    };
+
+    Uniform.createFloat3 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 0, 0, 0 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, glData ) {
+            gl.uniform3fv( location, glData );
+        };
+        uniform.glData = new MACROUTILS.Float32Array( uniform.data );
+        uniform.update = Uniform.prototype._updateFloat3;
+        uniform.name = name;
+        uniform.type = &#039;vec3&#039;;
+        return uniform;
+    };
+    Uniform.vec3 = Uniform.createFloat3;
+    Uniform.createFloat3Array = function ( array, name ) {
+        var u = Uniform.createFloat3.call( this, array, name );
+        u.update = Uniform.prototype._updateArray;
+        return u;
+    };
+
+    Uniform.createFloat4 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 0, 0, 0, 0 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, glData ) {
+            gl.uniform4fv( location, glData );
+        };
+        uniform.glData = new MACROUTILS.Float32Array( uniform.data );
+        uniform.update = Uniform.prototype._updateFloat4;
+        uniform.name = name;
+        uniform.type = &#039;vec4&#039;;
+        return uniform;
+    };
+    Uniform.vec4 = Uniform.createFloat4;
+    Uniform.createFloat4Array = function ( array, name ) {
+        var u = Uniform.createFloat4.call( this, array, name );
+        u.update = Uniform.prototype._updateArray;
+        return u;
+    };
+
+    Uniform.createInt1 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 0 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = [ value ];
+        uniform.glCall = function ( gl, location, glData ) {
+            gl.uniform1iv( location, glData );
+        };
+        uniform.set = function ( value ) {
+            if ( typeof value === &#039;number&#039; ) {
+                this.data[ 0 ] = value;
+            } else {
+                this.data = value;
+            }
+            this.dirty();
+        };
+
+        uniform.glData = new MACROUTILS.Int32Array( uniform.data );
+        uniform.name = name;
+        uniform.type = &#039;int&#039;;
+        return uniform;
+    };
+    Uniform[ &#039;int&#039; ] = Uniform.createInt1;
+    Uniform.createInt = Uniform.createInt1;
+    Uniform.createIntArray = function ( array, name ) {
+        var u = Uniform.createInt.call( this, array, name );
+        u.update = Uniform.prototype._updateArray;
+        return u;
+    };
+
+
+    Uniform.createInt2 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 0, 0 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, glData ) {
+            gl.uniform2iv( location, glData );
+        };
+        uniform.glData = new MACROUTILS.Int32Array( uniform.data );
+        uniform.name = name;
+        uniform.type = &#039;vec2i&#039;;
+        return uniform;
+    };
+    Uniform.vec2i = Uniform.createInt2;
+    Uniform.createInt2Array = function ( array, name ) {
+        var u = Uniform.createInt2.call( this, array, name );
+        u.update = Uniform.prototype._updateArray;
+        return u;
+    };
+
+    Uniform.createInt3 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 0, 0, 0 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, glData ) {
+            gl.uniform3iv( location, glData );
+        };
+        uniform.glData = new MACROUTILS.Int32Array( uniform.data );
+        uniform.name = name;
+        uniform.type = &#039;vec3i&#039;;
+        return uniform;
+    };
+    Uniform.vec3i = Uniform.createInt3;
+    Uniform.createInt3Array = function ( array, name ) {
+        var u = Uniform.createInt3.call( this, array, name );
+        u.update = Uniform.prototype._updateArray;
+        return u;
+    };
+
+    Uniform.createInt4 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 0, 0, 0, 0 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, glData ) {
+            gl.uniform4iv( location, glData );
+        };
+        uniform.glData = new MACROUTILS.Int32Array( uniform.data );
+        uniform.name = name;
+        uniform.type = &#039;vec4i&#039;;
+        return uniform;
+    };
+    Uniform.vec4i = Uniform.createInt4;
+
+    Uniform.createInt4Array = function ( array, name ) {
+        var u = Uniform.createInt4.call( this, array, name );
+        u.update = Uniform.prototype._updateArray;
+        return u;
+    };
+
+    Uniform.createMatrix2 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 1, 0, 0, 1 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, transpose, glData ) {
+            gl.uniformMatrix2fv( location, transpose, glData );
+        };
+        uniform.apply = uniform.applyMatrix;
+        uniform.transpose = false;
+        uniform.glData = new MACROUTILS.Float32Array( uniform.data );
+        uniform.update = Uniform.prototype._updateFloat4;
+        uniform.name = name;
+        uniform.type = &#039;mat2&#039;;
+        return uniform;
+    };
+    Uniform.createMat2 = Uniform.createMatrix2;
+    Uniform.mat2 = Uniform.createMat2;
+
+    Uniform.createMatrix3 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, transpose, glData ) {
+            gl.uniformMatrix3fv( location, transpose, glData );
+        };
+        uniform.apply = uniform.applyMatrix;
+        uniform.transpose = false;
+        uniform.glData = new MACROUTILS.Float32Array( uniform.data );
+        uniform.update = Uniform.prototype._updateFloat9;
+        uniform.name = name;
+        uniform.type = &#039;mat3&#039;;
+        return uniform;
+    };
+    Uniform.createMat3 = Uniform.createMatrix3;
+    Uniform.mat3 = Uniform.createMatrix3;
+
+    Uniform.createMatrix4 = function ( data, uniformName ) {
+        var value = data;
+        var name = uniformName;
+        if ( name === undefined ) {
+            name = value;
+            value = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ];
+        }
+        var uniform = new Uniform();
+        uniform.data = value;
+        uniform.glCall = function ( gl, location, transpose, glData ) {
+            gl.uniformMatrix4fv( location, transpose, glData );
+        };
+        uniform.apply = uniform.applyMatrix;
+        uniform.transpose = false;
+        uniform.glData = new MACROUTILS.Float32Array( uniform.data );
+        uniform.update = Uniform.prototype._updateFloat16;
+        uniform.name = name;
+        uniform.type = &#039;mat4&#039;;
+        return uniform;
+    };
+    Uniform.createMat4 = Uniform.createMatrix4;
+    Uniform.mat4 = Uniform.createMatrix4;
+
+    return Uniform;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

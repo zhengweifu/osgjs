@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap-3.0.0-wip.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>/ShaderGenerator.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">55.13</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">Estimated # Bugs  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">3.18</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">64.30</p>
+    </div>
+    <div class="span6">
+      <h2 class="header">SLOC/LSLOC <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">323 / 206</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="span6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="span12">osg.ShaderGenerator = function() {
+    this.cache = [];
+};
+osg.ShaderGenerator.prototype = {
+
+    getActiveTypeMember: function(state) {
+        // we should check attribute is active or not
+        var types = [];
+        for (var j = 0, k = state.attributeMap.attributeKeys.length; j < k; j++) {
+            var keya = state.attributeMap.attributeKeys[j];
+            var attributeStack = state.attributeMap[keya];
+            if (attributeStack.length === 0 && attributeStack.globalDefault.applyPositionedUniform === undefined) {
+                continue;
+            }
+            if (attributeStack.globalDefault.getOrCreateUniforms !== undefined || attributeStack.globalDefault.writeToShader !== undefined) {
+                types.push(keya);
+            }
+        }
+
+        for (var i = 0, l = state.textureAttributeMapList.length; i < l; i++) {
+            var attributesForUnit = state.textureAttributeMapList[i];
+            if (attributesForUnit === undefined) {
+                continue;
+            }
+            for (var h = 0, m = attributesForUnit.attributeKeys.length; h < m; h++) {
+                var key = attributesForUnit.attributeKeys[h];
+                var textureAttributeStack = attributesForUnit[key];
+                if (textureAttributeStack.length === 0) {
+                    continue;
+                }
+                if (textureAttributeStack.globalDefault.getOrCreateUniforms !== undefined || textureAttributeStack.globalDefault.writeToShader !== undefined) {
+                    types.push(key+i);
+                }
+            }
+        }
+        return types;
+    },
+
+    getActiveAttributeMapKeys: function(state) {
+        var keys = [];
+        for (var j = 0, k = state.attributeMap.attributeKeys.length; j < k; j++) {
+            var keya = state.attributeMap.attributeKeys[j];
+            var attributeStack = state.attributeMap[keya];
+            if (attributeStack.length === 0 && attributeStack.globalDefault.applyPositionedUniform === undefined) {
+                continue;
+            }
+            if (attributeStack.globalDefault.getOrCreateUniforms !== undefined || attributeStack.globalDefault.writeToShader !== undefined) {
+                keys.push(keya);
+            }
+        }
+        return keys;
+    },
+
+    getActiveTextureAttributeMapKeys: function(state) {
+        var textureAttributeKeys = [];
+        for (var i = 0, l = state.textureAttributeMapList.length; i < l; i++) {
+            var attributesForUnit = state.textureAttributeMapList[i];
+            if (attributesForUnit === undefined) {
+                continue;
+            }
+            textureAttributeKeys[i] = [];
+            for (var j = 0, m = attributesForUnit.attributeKeys.length; j < m; j++) {
+                var key = attributesForUnit.attributeKeys[j];
+                var textureAttributeStack = attributesForUnit[key];
+                if (textureAttributeStack.length === 0) {
+                    continue;
+                }
+                if (textureAttributeStack.globalDefault.getOrCreateUniforms !== undefined || textureAttributeStack.globalDefault.writeToShader !== undefined) {
+                    textureAttributeKeys[i].push(key);
+                }
+            }
+        }
+        return textureAttributeKeys;
+    },
+
+    // getActiveUniforms
+    // return the list of uniforms enabled from the State
+    // The idea behind this is to generate a shader depending on attributes/uniforms enabled by the user
+    getActiveUniforms: function(state, attributeKeys, textureAttributeKeys) {
+        var uniforms = {};
+
+        for (var i = 0, l = attributeKeys.length; i < l; i++) {
+            var key = attributeKeys[i];
+
+            if (state.attributeMap[key].globalDefault.getOrCreateUniforms === undefined) {
+                continue;
+            }
+            var attributeUniforms = state.attributeMap[key].globalDefault.getOrCreateUniforms();
+            for (var j = 0, m = attributeUniforms.uniformKeys.length; j < m; j++) {
+                var name = attributeUniforms.uniformKeys[j];
+                var uniform = attributeUniforms[name];
+                uniforms[uniform.name] = uniform;
+            }
+        }
+
+        for (var a = 0, n = textureAttributeKeys.length; a < n; a++) {
+            var unitAttributekeys = textureAttributeKeys[a];
+            if (unitAttributekeys === undefined) {
+                continue;
+            }
+            for (var b = 0, o = unitAttributekeys.length; b < o; b++) {
+                var attrName = unitAttributekeys[b];
+                //if (state.textureAttributeMapList[a][attrName].globalDefault === undefined) {
+                    //debugger;
+                //}
+                var textureAttribute = state.textureAttributeMapList[a][attrName].globalDefault;
+                if (textureAttribute.getOrCreateUniforms === undefined) {
+                    continue;
+                }
+                var texUniforms = textureAttribute.getOrCreateUniforms(a);
+                for (var t = 0, tl = texUniforms.uniformKeys.length; t < tl; t++) {
+                    var tname = texUniforms.uniformKeys[t];
+                    var tuniform = texUniforms[tname];
+                    uniforms[tuniform.name] = tuniform;
+                }
+            }
+        }
+
+        var keys = [];
+        for (var ukey in uniforms) {
+            keys.push(ukey);
+        }
+        uniforms.uniformKeys = keys;
+        return uniforms;
+    },
+
+    getOrCreateProgram: function(state) {
+
+        // first get trace of active attribute and texture attributes to check
+        // if we already have generated a program for this configuration
+        var flattenKeys = this.getActiveTypeMember(state);
+        for (var i = 0, l = this.cache.length; i < l; ++i) {
+            if (this.compareAttributeMap(flattenKeys, this.cache[i].flattenKeys) === 0) {
+                return this.cache[i];
+            }
+        }
+
+        // extract valid attributes keys with more details
+        var attributeKeys = this.getActiveAttributeMapKeys(state);
+        var textureAttributeKeys = this.getActiveTextureAttributeMapKeys(state);
+
+
+        var vertexshader = this.getOrCreateVertexShader(state, attributeKeys, textureAttributeKeys);
+        var fragmentshader = this.getOrCreateFragmentShader(state, attributeKeys, textureAttributeKeys);
+        var program = new osg.Program(
+            new osg.Shader(gl.VERTEX_SHADER, vertexshader),
+            new osg.Shader(gl.FRAGMENT_SHADER, fragmentshader));
+
+        program.flattenKeys = flattenKeys;
+        program.activeAttributeKeys = attributeKeys;
+        program.activeTextureAttributeKeys = textureAttributeKeys;
+        program.activeUniforms = this.getActiveUniforms(state, attributeKeys, textureAttributeKeys);
+        program.generated = true;
+
+        osg.log(program.vertex.text);
+        osg.log(program.fragment.text);
+
+        this.cache.push(program);
+        return program;
+    },
+
+    compareAttributeMap: function(attributeKeys0, attributeKeys1) {
+        var key;
+        for (var i = 0, l = attributeKeys0.length; i < l; i++) {
+            key = attributeKeys0[i];
+            if (attributeKeys1.indexOf(key) === -1 ) {
+                return 1;
+            }
+        }
+        if (attributeKeys1.length !== attributeKeys0.length) {
+            return -1;
+        }
+        return 0;
+    },
+
+    fillTextureShader: function (attributeMapList, validTextureAttributeKeys, mode) {
+        var shader = "";
+        var commonTypeShader = {};
+
+        for (var i = 0, l = validTextureAttributeKeys.length; i < l; i++) {
+            var attributeKeys = validTextureAttributeKeys[i];
+            if (attributeKeys === undefined) {
+                continue;
+            }
+            var attributes = attributeMapList[i];
+            for (var j = 0, m = attributeKeys.length; j < m; j++) {
+                var key = attributeKeys[j];
+
+                var element = attributes[key].globalDefault;
+
+                if (element.generateShaderCommon !== undefined && commonTypeShader[key] === undefined) {
+                    shader += element.generateShaderCommon(i, mode);
+                    commonTypeShader[key] = true;
+                }
+
+                if (element.generateShader) {
+                    shader += element.generateShader(i, mode);
+                }
+            }
+        }
+        return shader;
+    },
+
+    fillShader: function (attributeMap, validAttributeKeys, mode) {
+        var shader = "";
+        var commonTypeShader = {};
+
+        for (var j = 0, m = validAttributeKeys.length; j < m; j++) {
+            var key = validAttributeKeys[j];
+            var element = attributeMap[key].globalDefault;
+            var type = element.getType();
+            if (element.generateShaderCommon !== undefined && commonTypeShader[type] === undefined) {
+                shader += element.generateShaderCommon(mode);
+                commonTypeShader[type] = true;
+            }
+
+            if (element.generateShader) {
+                shader += element.generateShader(mode);
+            }
+        }
+        return shader;
+    },
+
+    getOrCreateVertexShader: function (state, validAttributeKeys, validTextureAttributeKeys) {
+        var i;
+        var modes = osg.ShaderGeneratorType;
+        var shader = [
+            "",
+            "#ifdef GL_ES",
+            "precision highp float;",
+            "#endif",
+            "attribute vec3 Vertex;",
+            "attribute vec4 Color;",
+            "attribute vec3 Normal;",
+            "uniform float ArrayColorEnabled;",
+            "uniform mat4 ModelViewMatrix;",
+            "uniform mat4 ProjectionMatrix;",
+            "uniform mat4 NormalMatrix;",
+            "varying vec4 VertexColor;",
+            ""
+        ].join('\n');
+
+        shader += this._writeShaderFromMode(state, validAttributeKeys, validTextureAttributeKeys, modes.VertexInit);
+
+        var func = [
+            "",
+            "vec4 ftransform() {",
+            "  return ProjectionMatrix * ModelViewMatrix * vec4(Vertex, 1.0);",
+            "}"].join('\n');
+
+        shader += func;
+
+        shader += this._writeShaderFromMode(state, validAttributeKeys, validTextureAttributeKeys, modes.VertexFunction);
+
+        var body = [
+            "",
+            "void main(void) {",
+            "  gl_Position = ftransform();",
+            "  if (ArrayColorEnabled == 1.0)",
+            "    VertexColor = Color;",
+            "  else",
+            "    VertexColor = vec4(1.0,1.0,1.0,1.0);",
+            "  gl_PointSize = 1.0;",
+            ""
+        ].join('\n');
+
+        shader += body;
+
+        shader += this._writeShaderFromMode(state, validAttributeKeys, validTextureAttributeKeys, modes.VertexMain);
+
+        shader += [
+            "}",
+            ""
+        ].join('\n');
+
+        return shader;
+    },
+
+    _writeShaderFromMode: function(state, validAttributeKeys, validTextureAttributeKeys, mode) {
+        var str = "";
+        str += this.fillTextureShader(state.textureAttributeMapList, validTextureAttributeKeys, mode);
+        str += this.fillShader(state.attributeMap, validAttributeKeys, mode);
+        return str;
+    },
+
+    getOrCreateFragmentShader: function (state, validAttributeKeys, validTextureAttributeKeys) {
+        var i;
+        var shader = [
+            "",
+            "#ifdef GL_ES",
+            "precision highp float;",
+            "#endif",
+            "varying vec4 VertexColor;",
+            "uniform float ArrayColorEnabled;",
+            "vec4 fragColor;",
+            ""
+        ].join("\n");
+
+        var modes = osg.ShaderGeneratorType;
+        
+        shader += this._writeShaderFromMode(state, validAttributeKeys, validTextureAttributeKeys, modes.FragmentInit);
+
+        shader += this._writeShaderFromMode(state, validAttributeKeys, validTextureAttributeKeys, modes.FragmentFunction);
+
+        shader += [
+            "void main(void) {",
+            "  fragColor = VertexColor;",
+            ""
+        ].join('\n');
+
+        shader += this._writeShaderFromMode(state, validAttributeKeys, validTextureAttributeKeys, modes.FragmentMain);
+
+        shader += this._writeShaderFromMode(state, validAttributeKeys, validTextureAttributeKeys, modes.FragmentEnd);
+
+        shader += [
+            "",
+            "  gl_FragColor = fragColor;",
+            "}"
+        ].join('\n');
+
+        return shader;
+    }
+};</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+<script>
+  $('[rel=popover]').popover();
+</script>
+
+</body>
+</html>

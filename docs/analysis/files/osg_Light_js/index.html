@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome-ie7.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/jsoverson/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>osg/Light.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"></i></a></h2>
+      <p class="stat">70.73</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h2>
+      <p class="stat">443</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty"></i></a></h2>
+      <p class="stat">30.80</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs"></i></a></h2>
+      <p class="stat">4.07</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">define( [
+    &#039;osg/Utils&#039;,
+    &#039;osg/StateAttribute&#039;,
+    &#039;osg/Uniform&#039;,
+    &#039;osg/Matrix&#039;,
+    &#039;osg/Vec4&#039;,
+    &#039;osg/ShaderGenerator&#039;
+], function ( MACROUTILS, StateAttribute, Uniform, Matrix, Vec4, ShaderGenerator ) {
+
+        /**
+     *  Light
+     *  @class Light
+     */
+    var Light = function ( lightNumber ) {
+        StateAttribute.call( this );
+
+        if ( lightNumber === undefined ) {
+            lightNumber = 0;
+        }
+
+        this._ambient = [ 0.2, 0.2, 0.2, 1.0 ];
+        this._diffuse = [ 0.8, 0.8, 0.8, 1.0 ];
+        this._specular = [ 0.2, 0.2, 0.2, 1.0 ];
+        this._position = [ 0.0, 0.0, 1.0, 0.0 ];
+        this._direction = [ 0.0, 0.0, -1.0 ];
+        this._spotCutoff = 180.0;
+        this._spotBlend = 0.01;
+        this._constantAttenuation = 1.0;
+        this._linearAttenuation = 0.0;
+        this._quadraticAttenuation = 0.0;
+        this._lightUnit = lightNumber;
+        this._enabled = 0;
+
+        this.dirty();
+    };
+
+    /** @lends Light.prototype */
+    Light.uniforms = {};
+    Light.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( StateAttribute.prototype, {
+        attributeType: &#039;Light&#039;,
+        cloneType: function () {
+            return new Light( this._lightUnit );
+        },
+        getType: function () {
+            return this.attributeType;
+        },
+        getTypeMember: function () {
+            return this.attributeType + this._lightUnit;
+        },
+        getOrCreateUniforms: function () {
+            var uniforms = Light.uniforms;
+            var typeMember = this.getTypeMember();
+            if ( uniforms[ typeMember ] === undefined ) {
+                var uFact = Uniform;
+                uniforms[ typeMember ] = {
+                    &#039;ambient&#039;: uFact.createFloat4( [ 0.2, 0.2, 0.2, 1 ], this.getUniformName( &#039;ambient&#039; ) ),
+                    &#039;diffuse&#039;: uFact.createFloat4( [ 0.8, 0.8, 0.8, 1 ], this.getUniformName( &#039;diffuse&#039; ) ),
+                    &#039;specular&#039;: uFact.createFloat4( [ 0.2, 0.2, 0.2, 1 ], this.getUniformName( &#039;specular&#039; ) ),
+                    &#039;position&#039;: uFact.createFloat4( [ 0, 0, 1, 0 ], this.getUniformName( &#039;position&#039; ) ),
+                    &#039;direction&#039;: uFact.createFloat3( [ 0, 0, 1 ], this.getUniformName( &#039;direction&#039; ) ),
+                    &#039;spotCutoff&#039;: uFact.createFloat1( 180.0, this.getUniformName( &#039;spotCutoff&#039; ) ),
+                    &#039;spotBlend&#039;: uFact.createFloat1( 0.01, this.getUniformName( &#039;spotBlend&#039; ) ),
+                    &#039;constantAttenuation&#039;: uFact.createFloat1( 0, this.getUniformName( &#039;constantAttenuation&#039; ) ),
+                    &#039;linearAttenuation&#039;: uFact.createFloat1( 0, this.getUniformName( &#039;linearAttenuation&#039; ) ),
+                    &#039;quadraticAttenuation&#039;: uFact.createFloat1( 0, this.getUniformName( &#039;quadraticAttenuation&#039; ) ),
+                    &#039;enable&#039;: uFact.createInt1( 0, this.getUniformName( &#039;enable&#039; ) ),
+                    &#039;matrix&#039;: uFact.createMatrix4( Matrix.makeIdentity( [] ), this.getUniformName( &#039;matrix&#039; ) ),
+                    &#039;invMatrix&#039;: uFact.createMatrix4( Matrix.makeIdentity( [] ), this.getUniformName( &#039;invMatrix&#039; ) )
+                };
+
+                uniforms[ typeMember ].uniformKeys = window.Object.keys( uniforms[ typeMember ] );
+            }
+            return uniforms[ typeMember ];
+        },
+
+        setPosition: function ( pos ) {
+            Vec4.copy( pos, this._position );
+        },
+        getPosition: function () {
+            return this._position;
+        },
+
+        setAmbient: function ( a ) {
+            this._ambient = a;
+            this.dirty();
+        },
+        setSpecular: function ( a ) {
+            this._specular = a;
+            this.dirty();
+        },
+        setDiffuse: function ( a ) {
+            this._diffuse = a;
+            this.dirty();
+        },
+
+        setSpotCutoff: function ( a ) {
+            this._spotCutoff = a;
+            this.dirty();
+        },
+        getSpotCutoff: function () {
+            return this._spotCutoff;
+        },
+
+        setSpotBlend: function ( a ) {
+            this._spotBlend = a;
+            this.dirty();
+        },
+        getSpotBlend: function () {
+            return this._spotBlend;
+        },
+
+        setConstantAttenuation: function ( value ) {
+            this._constantAttenuation = value;
+            this.dirty();
+        },
+        setLinearAttenuation: function ( value ) {
+            this._linearAttenuation = value;
+            this.dirty();
+        },
+        setQuadraticAttenuation: function ( value ) {
+            this._quadraticAttenuation = value;
+            this.dirty();
+        },
+
+        setDirection: function ( a ) {
+            this._direction = a;
+            this.dirty();
+        },
+        getDirection: function () {
+            return this._direction;
+        },
+
+        setLightNumber: function ( unit ) {
+            this._lightUnit = unit;
+            this.dirty();
+        },
+        getLightNumber: function () {
+            return this._lightUnit;
+        },
+
+        getPrefix: function () {
+            return this.getType() + this._lightUnit;
+        },
+        getParameterName: function ( name ) {
+            return this.getPrefix() + &#039;_&#039; + name;
+        },
+        getUniformName: function ( name ) {
+            return this.getPrefix() + &#039;_uniform_&#039; + name;
+        },
+
+        applyPositionedUniform: function ( matrix /*, state */ ) {
+            var uniform = this.getOrCreateUniforms();
+            Matrix.copy( matrix, uniform.matrix.get() );
+            uniform.matrix.dirty();
+
+            Matrix.copy( matrix, uniform.invMatrix.get() );
+            uniform.invMatrix.get()[ 12 ] = 0;
+            uniform.invMatrix.get()[ 13 ] = 0;
+            uniform.invMatrix.get()[ 14 ] = 0;
+            Matrix.inverse( uniform.invMatrix.get(), uniform.invMatrix.get() );
+            Matrix.transpose( uniform.invMatrix.get(), uniform.invMatrix.get() );
+            uniform.invMatrix.dirty();
+        },
+
+        apply: function ( /*state*/ ) {
+            var light = this.getOrCreateUniforms();
+
+            light.ambient.set( this._ambient );
+            light.diffuse.set( this._diffuse );
+            light.specular.set( this._specular );
+            light.position.set( this._position );
+            light.direction.set( this._direction );
+
+            var spotsize = Math.cos( this._spotCutoff * Math.PI / 180.0 );
+            light.spotCutoff.get()[ 0 ] = spotsize;
+            light.spotCutoff.dirty();
+
+            light.spotBlend.get()[ 0 ] = ( 1.0 - spotsize ) * this._spotBlend;
+            light.spotBlend.dirty();
+
+            light.constantAttenuation.get()[ 0 ] = this._constantAttenuation;
+            light.constantAttenuation.dirty();
+
+            light.linearAttenuation.get()[ 0 ] = this._linearAttenuation;
+            light.linearAttenuation.dirty();
+
+            light.quadraticAttenuation.get()[ 0 ] = this._quadraticAttenuation;
+            light.quadraticAttenuation.dirty();
+
+            //light._enable.set([this.enable]);
+
+            this.setDirty( false );
+        },
+
+
+        _replace: function ( prefix, list, text, func ) {
+            for ( var i = 0, l = list.length; i &lt; l; i++ ) {
+                var regex = new RegExp( prefix + list[ i ], &#039;g&#039; );
+                text = text.replace( regex, func.call( this, list[ i ] ) );
+            }
+            return text;
+        },
+
+        // will contain functions to generate shader
+        _shader: {},
+        _shaderCommon: {},
+
+        generateShader: function ( type ) {
+            if ( this._shader[ type ] ) {
+                return this._shader[ type ].call( this );
+            }
+            return &#039;&#039;;
+        },
+
+        generateShaderCommon: function ( type ) {
+            if ( this._shaderCommon[ type ] ) {
+                return this._shaderCommon[ type ].call( this );
+            }
+            return &#039;&#039;;
+        }
+
+
+    } ), &#039;osg&#039;, &#039;Light&#039; );
+
+
+    // common shader generation functions
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.VertexInit ] = function () {
+        return [ &#039;&#039;,
+            &#039;varying vec3 FragNormal;&#039;,
+            &#039;varying vec3 FragEyeVector;&#039;,
+            &#039;&#039;,
+            &#039;&#039; ].join( &#039;\n&#039; );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.VertexFunction ] = function () {
+        return [ &#039;&#039;,
+            &#039;vec3 computeNormal() {&#039;,
+            &#039;   return vec3(NormalMatrix * vec4(Normal, 0.0));&#039;,
+            &#039;}&#039;,
+            &#039;&#039;,
+            &#039;vec3 computeEyeVertex() {&#039;,
+            &#039;   return vec3(ModelViewMatrix * vec4(Vertex,1.0));&#039;,
+            &#039;}&#039;,
+            &#039;&#039;,
+            &#039;&#039; ].join( &#039;\n&#039; );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.VertexMain ] = function () {
+        return [ &#039;&#039;,
+            &#039;  FragEyeVector = computeEyeVertex();&#039;,
+            &#039;  FragNormal = computeNormal();&#039;,
+            &#039;&#039; ].join( &#039;\n&#039; );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.FragmentInit ] = function () {
+        return [ &#039;varying vec3 FragNormal;&#039;,
+            &#039;varying vec3 FragEyeVector;&#039;,
+            &#039;&#039; ].join( &#039;\n&#039; );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.FragmentFunction ] = function () {
+        return [ &#039;&#039;,
+            &#039;float getLightAttenuation(vec3 lightDir, float constant, float linear, float quadratic) {&#039;,
+            &#039;    &#039;,
+            &#039;    float d = length(lightDir);&#039;,
+            &#039;    float att = 1.0 / ( constant + linear*d + quadratic*d*d);&#039;,
+            &#039;    return att;&#039;,
+            &#039;}&#039;,
+            &#039;vec4 computeLightContribution(vec4 materialAmbient,&#039;,
+            &#039;                              vec4 materialDiffuse,&#039;,
+            &#039;                              vec4 materialSpecular,&#039;,
+            &#039;                              float materialShininess,&#039;,
+            &#039;                              vec4 lightAmbient,&#039;,
+            &#039;                              vec4 lightDiffuse,&#039;,
+            &#039;                              vec4 lightSpecular,&#039;,
+            &#039;                              vec3 normal,&#039;,
+            &#039;                              vec3 eye,&#039;,
+            &#039;                              vec3 lightDirection,&#039;,
+            &#039;                              vec3 lightSpotDirection,&#039;,
+            &#039;                              float lightCosSpotCutoff,&#039;,
+            &#039;                              float lightSpotBlend,&#039;,
+            &#039;                              float lightAttenuation)&#039;,
+            &#039;{&#039;,
+            &#039;    vec3 L = lightDirection;&#039;,
+            &#039;    vec3 N = normal;&#039;,
+            &#039;    float NdotL = max(dot(L, N), 0.0);&#039;,
+            &#039;    float halfTerm = NdotL;&#039;,
+            &#039;    vec4 ambient = lightAmbient;&#039;,
+            &#039;    vec4 diffuse = vec4(0.0);&#039;,
+            &#039;    vec4 specular = vec4(0.0);&#039;,
+            &#039;    float spot = 0.0;&#039;,
+            &#039;&#039;,
+            &#039;    if (NdotL &gt; 0.0) {&#039;,
+            &#039;        vec3 E = eye;&#039;,
+            &#039;        vec3 R = reflect(-L, N);&#039;,
+            &#039;        float RdotE = max(dot(R, E), 0.0);&#039;,
+            &#039;        if ( RdotE &gt; 0.0) {&#039;,
+            &#039;           RdotE = pow( RdotE, materialShininess );&#039;,
+            &#039;        }&#039;,
+            &#039;        vec3 D = lightSpotDirection;&#039;,
+            &#039;        spot = 1.0;&#039;,
+            &#039;        if (lightCosSpotCutoff &gt; 0.0) {&#039;,
+            &#039;          float cosCurAngle = dot(-L, D);&#039;,
+            &#039;          if (cosCurAngle &lt; lightCosSpotCutoff) {&#039;,
+            &#039;             spot = 0.0;&#039;,
+            &#039;          } else {&#039;,
+            &#039;             if (lightSpotBlend &gt; 0.0)&#039;,
+            &#039;               spot = cosCurAngle * smoothstep(0.0, 1.0, (cosCurAngle-lightCosSpotCutoff)/(lightSpotBlend));&#039;,
+            &#039;          }&#039;,
+            &#039;        }&#039;,
+
+            &#039;        diffuse = lightDiffuse * ((halfTerm));&#039;,
+            &#039;        specular = lightSpecular * RdotE;&#039;,
+            &#039;    }&#039;,
+            &#039;&#039;,
+            &#039;    return (materialAmbient*ambient + (materialDiffuse*diffuse + materialSpecular*specular) * spot) * lightAttenuation;&#039;,
+            &#039;}&#039;,
+            &#039;float linearrgb_to_srgb1(const in float c)&#039;,
+            &#039;{&#039;,
+            &#039;  float v = 0.0;&#039;,
+            &#039;  if(c &lt; 0.0031308) {&#039;,
+            &#039;    if ( c &gt; 0.0)&#039;,
+            &#039;      v = c * 12.92;&#039;,
+            &#039;  } else {&#039;,
+            &#039;    v = 1.055 * pow(c, 1.0/2.4) - 0.055;&#039;,
+            &#039;  }&#039;,
+            &#039;  return v;&#039;,
+            &#039;}&#039;,
+
+            &#039;vec4 linearrgb_to_srgb(const in vec4 col_from)&#039;,
+            &#039;{&#039;,
+            &#039;  vec4 col_to;&#039;,
+            &#039;  col_to.r = linearrgb_to_srgb1(col_from.r);&#039;,
+            &#039;  col_to.g = linearrgb_to_srgb1(col_from.g);&#039;,
+            &#039;  col_to.b = linearrgb_to_srgb1(col_from.b);&#039;,
+            &#039;  col_to.a = col_from.a;&#039;,
+            &#039;  return col_to;&#039;,
+            &#039;}&#039;,
+            &#039;float srgb_to_linearrgb1(const in float c)&#039;,
+            &#039;{&#039;,
+            &#039;  float v = 0.0;&#039;,
+            &#039;  if(c &lt; 0.04045) {&#039;,
+            &#039;    if (c &gt;= 0.0)&#039;,
+            &#039;      v = c * (1.0/12.92);&#039;,
+            &#039;  } else {&#039;,
+            &#039;    v = pow((c + 0.055)*(1.0/1.055), 2.4);&#039;,
+            &#039;  }&#039;,
+            &#039; return v;&#039;,
+            &#039;}&#039;,
+            &#039;vec4 srgb2linear(const in vec4 col_from)&#039;,
+            &#039;{&#039;,
+            &#039;  vec4 col_to;&#039;,
+            &#039;  col_to.r = srgb_to_linearrgb1(col_from.r);&#039;,
+            &#039;  col_to.g = srgb_to_linearrgb1(col_from.g);&#039;,
+            &#039;  col_to.b = srgb_to_linearrgb1(col_from.b);&#039;,
+            &#039;  col_to.a = col_from.a;&#039;,
+            &#039;  return col_to;&#039;,
+            &#039;}&#039;,
+
+            &#039;&#039; ].join( &#039;\n&#039; );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.FragmentMain ] = function () {
+        return [ &#039;&#039;,
+            &#039;  vec3 normal = normalize(FragNormal);&#039;,
+            &#039;  vec3 eyeVector = normalize(-FragEyeVector);&#039;,
+            &#039;  vec4 lightColor = MaterialEmission;&#039;,
+            &#039;&#039; ].join( &#039;\n&#039; );
+    };
+
+    Light.prototype._shaderCommon[ ShaderGenerator.Type.FragmentEnd ] = function () {
+        return [ &#039;&#039;,
+            &#039;  fragColor *= lightColor;&#039;,
+            &#039;&#039; ].join( &#039;\n&#039; );
+    };
+
+
+    // shader generation per instance of attribute
+    Light.prototype._shader[ ShaderGenerator.Type.FragmentInit ] = function () {
+        var str = [ &#039;&#039;,
+            &#039;uniform vec4 Light_position;&#039;,
+            &#039;uniform vec3 Light_direction;&#039;,
+            &#039;uniform mat4 Light_matrix;&#039;,
+            &#039;uniform mat4 Light_invMatrix;&#039;,
+            &#039;uniform float Light_constantAttenuation;&#039;,
+            &#039;uniform float Light_linearAttenuation;&#039;,
+            &#039;uniform float Light_quadraticAttenuation;&#039;,
+            &#039;uniform vec4 Light_ambient;&#039;,
+            &#039;uniform vec4 Light_diffuse;&#039;,
+            &#039;uniform vec4 Light_specular;&#039;,
+            &#039;uniform float Light_spotCutoff;&#039;,
+            &#039;uniform float Light_spotBlend;&#039;,
+            &#039;&#039;
+        ].join( &#039;\n&#039; );
+
+        // replace Light_xxxx by instance variable of &#039;this&#039; light
+        var uniforms = window.Object.keys( this.getOrCreateUniforms() );
+        str = this._replace( &#039;Light_&#039;, uniforms, str, this.getUniformName );
+        return str;
+    };
+
+    Light.prototype._shader[ ShaderGenerator.Type.FragmentMain ] = function () {
+        var str = [ &#039;&#039;,
+            &#039;  vec3 lightEye = vec3(Light_matrix * Light_position);&#039;,
+            &#039;  vec3 lightDir;&#039;,
+            &#039;  if (Light_position[3] == 1.0) {&#039;,
+            &#039;    lightDir = lightEye - FragEyeVector;&#039;,
+            &#039;  } else {&#039;,
+            &#039;    lightDir = lightEye;&#039;,
+            &#039;  }&#039;,
+            &#039;  vec3 spotDirection = normalize(mat3(vec3(Light_invMatrix[0]), vec3(Light_invMatrix[1]), vec3(Light_invMatrix[2]))*Light_direction);&#039;,
+            &#039;  float attenuation = getLightAttenuation(lightDir, Light_constantAttenuation, Light_linearAttenuation, Light_quadraticAttenuation);&#039;,
+            &#039;  lightDir = normalize(lightDir);&#039;,
+            &#039;  lightColor += computeLightContribution(MaterialAmbient,&#039;,
+            &#039;                                         MaterialDiffuse, &#039;,
+            &#039;                                         MaterialSpecular,&#039;,
+            &#039;                                         MaterialShininess,&#039;,
+            &#039;                                         Light_ambient,&#039;,
+            &#039;                                         Light_diffuse,&#039;,
+            &#039;                                         Light_specular,&#039;,
+            &#039;                                         normal,&#039;,
+            &#039;                                         eyeVector,&#039;,
+            &#039;                                         lightDir,&#039;,
+            &#039;                                         spotDirection,&#039;,
+            &#039;                                         Light_spotCutoff,&#039;,
+            &#039;                                         Light_spotBlend,&#039;,
+            &#039;                                         attenuation);&#039;,
+            &#039;&#039;
+        ].join( &#039;\n&#039; );
+
+        var fields = [ &#039;lightEye&#039;,
+            &#039;lightDir&#039;,
+            &#039;spotDirection&#039;,
+            &#039;attenuation&#039;
+        ];
+        str = this._replace( &#039;&#039;, fields, str, this.getParameterName );
+        var uniforms = window.Object.keys( this.getOrCreateUniforms() );
+        str = this._replace( &#039;Light_&#039;, uniforms, str, this.getUniformName );
+        return str;
+    };
+
+    return Light;
+} );</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>
