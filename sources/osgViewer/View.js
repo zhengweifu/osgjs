@@ -9,8 +9,9 @@ define( [
     'osg/Viewport',
     'osg/Matrix',
     'osg/Light',
+    'osg/WebGLCaps',
     'osgUtil/IntersectVisitor'
-], function ( Camera, Node, FrameStamp, Material, Depth, BlendFunc, CullFace, Viewport, Matrix, Light, IntersectVisitor ) {
+], function ( Camera, Node, FrameStamp, Material, Depth, BlendFunc, CullFace, Viewport, Matrix, Light, WebGLCaps, IntersectVisitor ) {
 
     var View = function () {
         this._graphicContext = undefined;
@@ -20,6 +21,8 @@ define( [
         this._frameStamp = new FrameStamp();
         this._lightingMode = undefined;
         this._manipulator = undefined;
+        this._webGLCaps = undefined;
+
 
         this.setLightingMode( View.LightingMode.HEADLIGHT );
 
@@ -42,17 +45,33 @@ define( [
         getGraphicContext: function () {
             return this._graphicContext;
         },
+        getWebGLCaps: function () {
+            return this._webGLCaps;
+        },
+        initWebGLCaps: function( gl ) {
+            this._webGLCaps = new WebGLCaps();
+            this._webGLCaps.init( gl );
+        },
         setUpView: function ( canvas ) {
-            var width = canvas.width !== 0 ? canvas.width : 800;
-            var height = canvas.height !== 0 ? canvas.height : 600;
+
+            var width = canvas.clientWidth !== 0 ? canvas.clientWidth : 800;
+            var height = canvas.clientHeight !== 0 ? canvas.clientHeight : 600;
+
+            var devicePixelRatio = window.devicePixelRatio || 1;
+            width *= devicePixelRatio;
+            height *= devicePixelRatio;
+
+            canvas.width = width;
+            canvas.height = height;
+
             var ratio = width / height;
             this._camera.setViewport( new Viewport( 0, 0, width, height ) );
             Matrix.makeLookAt( [ 0, 0, -10 ], [ 0, 0, 0 ], [ 0, 1, 0 ], this._camera.getViewMatrix() );
             Matrix.makePerspective( 55, ratio, 1.0, 1000.0, this._camera.getProjectionMatrix() );
         },
-        /** 
+        /**
          * X = 0 at the left
-         * Y = 0 at the BOTTOM 
+         * Y = 0 at the BOTTOM
          */
         computeIntersections: function ( x, y, traversalMask ) {
             /*jshint bitwise: false */

@@ -12,6 +12,10 @@ define( [], function () {
     /** Obtain a stacktrace from the current stack http://eriwen.com/javascript/js-stack-trace/
      */
     function getStackTrace( err ) {
+		if (window.console && window.console.trace){
+			window.console.trace();
+			return '';
+        }
         var callstack = [];
         try {
             if ( arguments.length === 1 ) {
@@ -77,7 +81,7 @@ define( [], function () {
 
         Notify.debug = dummy;
         Notify.info = dummy;
-        Notify.log = dummy;
+        Notify.log = Notify.notice = dummy;
         Notify.warn = dummy;
         Notify.error = dummy;
 
@@ -88,7 +92,7 @@ define( [], function () {
             Notify.info = info;
         }
         if ( level <= Notify.NOTICE ) {
-            Notify.log = log;
+            Notify.log = Notify.notice = log;
         }
         if ( level <= Notify.WARN ) {
             Notify.warn = warn;

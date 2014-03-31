@@ -101,6 +101,9 @@ define( [
         }
         this._options = options;
 
+        if ( this._options.fullscreen === undefined )
+            this._options.fullscreen = true;
+
         // #FIXME see tojiro's blog for webgl lost context stuffs
         if ( options.SimulateWebGLLostContext ) {
             canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas( canvas );
@@ -126,6 +129,9 @@ define( [
 
         if ( gl ) {
             this.setGraphicContext( gl );
+            this.initWebGLCaps( gl );
+
+
             MACROUTILS.init();
             this._canvas = canvas;
             this._frameRate = 60.0;
@@ -515,19 +521,31 @@ define( [
 
             var self = this;
             var resize = function ( /*ev*/ ) {
-                var w = window.innerWidth;
-                var h = window.innerHeight;
+                var w, h;
+                if ( self._options.fullscreen === true ) {
+                    w = window.innerWidth;
+                    h = window.innerHeight;
+                } else {
+                    w = self._canvas.clientWidth;
+                    h = self._canvas.clientHeight;
+                }
+                if ( w < 1 )
+                    w = 1;
+                if ( h < 1 )
+                    h = 1;
 
                 var camera = self.getCamera();
                 var vp = camera.getViewport();
 
                 var prevWidth = vp.width();
                 var prevHeight = vp.height();
-                self._canvas.width = w;
-                self._canvas.height = h;
-                self._canvas.style.width = w;
-                self._canvas.style.height = h;
-                Notify.debug( 'window resize ' + prevWidth + 'x' + prevHeight + ' to ' + w + 'x' + h );
+                if ( self._options.fullscreen === true ) {
+                    self._canvas.width = w;
+                    self._canvas.height = h;
+                    self._canvas.style.width = w;
+                    self._canvas.style.height = h;
+                }
+                Notify.debug( 'canvas resize ' + prevWidth + 'x' + prevHeight + ' to ' + w + 'x' + h );
                 var widthChangeRatio = w / prevWidth;
                 var heightChangeRatio = h / prevHeight;
                 var aspectRatioChange = widthChangeRatio / heightChangeRatio;
@@ -537,7 +555,7 @@ define( [
                     Matrix.preMult( camera.getProjectionMatrix(), Matrix.makeScale( 1.0 / aspectRatioChange, 1.0, 1.0, [] ) );
                 }
             };
-            window.onresize = resize;
+            window.addEventListener( 'resize', resize, true );
         },
 
         // intialize all input devices

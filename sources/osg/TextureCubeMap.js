@@ -1,7 +1,8 @@
 define( [
     'osg/Utils',
     'osg/Texture',
-    'osg/Image'
+    'osg/Image',
+    'osg/Utils'
 
 ], function ( MACROUTILS, Texture, Image ) {
     /**
@@ -68,6 +69,7 @@ define( [
 
             this.setTextureSize( image.getWidth(), image.getHeight() );
 
+            MACROUTILS.timeStamp( 'osgjs.metrics:texImage2d' );
             gl.texImage2D( target, 0, internalFormat, format, type, image.getImage() );
             return true;
         },
@@ -102,7 +104,7 @@ define( [
             var gl = state.getGraphicContext();
 
             if ( this._textureObject !== undefined && !this.isDirty() ) {
-                gl.bindTexture( this._textureTarget, this._textureObject );
+                this._textureObject.bind( gl );
 
             } else if ( this.defaultType ) {
                 gl.bindTexture( this._textureTarget, null );
@@ -111,7 +113,7 @@ define( [
                 if ( !this._textureObject ) {
                     this.init( gl );
                 }
-                gl.bindTexture( this._textureTarget, this._textureObject );
+                this._textureObject.bind( gl );
 
                 var internalFormat = this._internalFormat;
 

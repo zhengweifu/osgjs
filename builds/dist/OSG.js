@@ -649,10 +649,122 @@ define( 'osg/StateGraph',[
     return StateGraph;
 } );
 
+define( 'osg/Notify',[], function () {
+
+    var Notify = {};
+
+    Notify.DEBUG = 0;
+    Notify.INFO = 1;
+    Notify.NOTICE = 2;
+    Notify.WARN = 3;
+    Notify.ERROR = 4;
+
+    // #FIXME getStackTrace was initially in webgl-utils (as a global function) but only used in this file
+    /** Obtain a stacktrace from the current stack http://eriwen.com/javascript/js-stack-trace/
+     */
+    function getStackTrace( err ) {
+		if (window.console && window.console.trace){
+			window.console.trace();
+			return '';
+        }
+        var callstack = [];
+        try {
+            if ( arguments.length === 1 ) {
+                throw err;
+            } else {
+                throw new Error();
+            }
+        } catch ( error ) {
+            if ( error.stack ) { //Firefox and Chrome
+                callstack = ( error.stack + '\n' ).replace( /^\S[^\(]+?[\n$]/gm, '' ).
+                replace( /^\s+(at eval )?at\s+/gm, '' ).
+                replace( /^([^\(]+?)([\n$])/gm, '{anonymous}()@$1$2' ).
+                replace( /^Object.<anonymous>\s*\(([^\)]+)\)/gm, '{anonymous}()@$1' ).split( '\n' );
+                // Remove call to this function
+                callstack.shift();
+
+            }
+        }
+        // Remove empty entries
+        for ( var i = 0; i < callstack.length; ++i ) {
+            if ( callstack[ i ] === '' ) {
+                callstack.splice( i, 1 );
+                --i;
+            }
+        }
+
+        return callstack;
+    }
+
+    Notify.setNotifyLevel = function ( level ) {
+
+        var log = function ( str ) {
+            if ( window.console !== undefined ) {
+                window.console.log( str, getStackTrace() );
+            }
+        };
+
+        var info = function ( str ) {
+            if ( window.console !== undefined ) {
+                window.console.info( str, getStackTrace() );
+            }
+        };
+
+        var warn = function ( str ) {
+            if ( window.console !== undefined ) {
+                window.console.warn( str, getStackTrace() );
+            }
+        };
+
+        var error = function ( str ) {
+            if ( window.console !== undefined ) {
+                window.console.error( str, getStackTrace() );
+            }
+        };
+
+        var debug = function ( str ) {
+            if ( window.console !== undefined ) {
+                window.console.debug( str, getStackTrace() );
+            }
+        };
+
+        var dummy = function () {};
+
+        Notify.debug = dummy;
+        Notify.info = dummy;
+        Notify.log = Notify.notice = dummy;
+        Notify.warn = dummy;
+        Notify.error = dummy;
+
+        if ( level <= Notify.DEBUG ) {
+            Notify.debug = debug;
+        }
+        if ( level <= Notify.INFO ) {
+            Notify.info = info;
+        }
+        if ( level <= Notify.NOTICE ) {
+            Notify.log = Notify.notice = log;
+        }
+        if ( level <= Notify.WARN ) {
+            Notify.warn = warn;
+        }
+        if ( level <= Notify.ERROR ) {
+            Notify.error = error;
+        }
+    };
+
+    Notify.setNotifyLevel( Notify.NOTICE );
+
+    Notify.reportWebGLError = false;
+
+    return Notify;
+} );
+
 define( 'osg/Utils',[
     'osgUtil/osgPool',
-    'osg/StateGraph'
-], function ( osgPool, StateGraph ) {
+    'osg/StateGraph',
+    'osg/Notify'
+], function ( osgPool, StateGraph, Notify ) {
 
     // make the warning about StateGraph desappear
     Object.keys( StateGraph );
@@ -830,8 +942,74 @@ define( 'osg/Utils',[
         };
     } )();
 
+    Utils.timeStamp = ( function () {
+
+        var fn = console.timeStamp || console.markTimeline || function () {};
+        return function () {
+            return fn.apply( console, arguments );
+        };
+
+    } )();
+
+    ( function () {
+
+        var times = {};
+
+        Utils.time = ( function () {
+
+            var fn = console.time || function ( name ) {
+                times[ name ] = Utils.performance.now();
+            };
+            return function ( /*name*/ ) {
+                return fn.apply( console, arguments );
+            };
+
+        } )();
+
+        Utils.timeEnd = ( function () {
+
+            var fn = console.timeEnd || function ( name ) {
+
+                if ( times[ name ] === undefined )
+                    return;
+
+                var now = Utils.performance.now();
+                var duration = now - times[ name ];
+
+                Notify.debug( name + ': ' + duration + 'ms');
+                times[ name ] = undefined;
+
+            };
+            return function () {
+                return fn.apply( console, arguments );
+            };
+
+        } )();
+
+    } )();
+
+    Utils.profile = ( function () {
+
+        var fn = console.profile || function () {};
+        return function () {
+            return fn.apply( console, arguments );
+        };
+
+    } )();
+
+    Utils.profileEnd = ( function () {
+
+        var fn = console.profileEnd || function () {};
+        return function () {
+            return fn.apply( console, arguments );
+        };
+
+    } )();
+
+
     return Utils;
 } );
+
 define( 'osg/Object',[
     'osg/Utils'
 ], function ( MACROUTILS ) {
@@ -1585,113 +1763,6 @@ define( 'osg/BoundingSphere',[
     return BoundingSphere;
 } );
 
-define( 'osg/Notify',[], function () {
-
-    var Notify = {};
-
-    Notify.DEBUG = 0;
-    Notify.INFO = 1;
-    Notify.NOTICE = 2;
-    Notify.WARN = 3;
-    Notify.ERROR = 4;
-
-    // #FIXME getStackTrace was initially in webgl-utils (as a global function) but only used in this file
-    /** Obtain a stacktrace from the current stack http://eriwen.com/javascript/js-stack-trace/
-     */
-    function getStackTrace( err ) {
-        var callstack = [];
-        try {
-            if ( arguments.length === 1 ) {
-                throw err;
-            } else {
-                throw new Error();
-            }
-        } catch ( error ) {
-            if ( error.stack ) { //Firefox and Chrome
-                callstack = ( error.stack + '\n' ).replace( /^\S[^\(]+?[\n$]/gm, '' ).
-                replace( /^\s+(at eval )?at\s+/gm, '' ).
-                replace( /^([^\(]+?)([\n$])/gm, '{anonymous}()@$1$2' ).
-                replace( /^Object.<anonymous>\s*\(([^\)]+)\)/gm, '{anonymous}()@$1' ).split( '\n' );
-                // Remove call to this function
-                callstack.shift();
-
-            }
-        }
-        // Remove empty entries
-        for ( var i = 0; i < callstack.length; ++i ) {
-            if ( callstack[ i ] === '' ) {
-                callstack.splice( i, 1 );
-                --i;
-            }
-        }
-
-        return callstack;
-    }
-
-    Notify.setNotifyLevel = function ( level ) {
-
-        var log = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.log( str, getStackTrace() );
-            }
-        };
-
-        var info = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.info( str, getStackTrace() );
-            }
-        };
-
-        var warn = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.warn( str, getStackTrace() );
-            }
-        };
-
-        var error = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.error( str, getStackTrace() );
-            }
-        };
-
-        var debug = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.debug( str, getStackTrace() );
-            }
-        };
-
-        var dummy = function () {};
-
-        Notify.debug = dummy;
-        Notify.info = dummy;
-        Notify.log = dummy;
-        Notify.warn = dummy;
-        Notify.error = dummy;
-
-        if ( level <= Notify.DEBUG ) {
-            Notify.debug = debug;
-        }
-        if ( level <= Notify.INFO ) {
-            Notify.info = info;
-        }
-        if ( level <= Notify.NOTICE ) {
-            Notify.log = log;
-        }
-        if ( level <= Notify.WARN ) {
-            Notify.warn = warn;
-        }
-        if ( level <= Notify.ERROR ) {
-            Notify.error = error;
-        }
-    };
-
-    Notify.setNotifyLevel( Notify.NOTICE );
-
-    Notify.reportWebGLError = false;
-
-    return Notify;
-} );
-
 define( 'osg/BufferArray',[
     'osg/Utils',
     'osg/Notify',
@@ -1776,6 +1847,7 @@ define( 'osg/BufferArray',[
         },
         compile: function ( gl ) {
             if ( this._dirty ) {
+                MACROUTILS.timeStamp( 'osgjs.metrics:bufferData' );
                 gl.bufferData( this._type, this._elements, gl.STATIC_DRAW );
                 this._dirty = false;
             }
@@ -1912,6 +1984,7 @@ define( 'osg/StateSet',[
             this._setAttribute( this.getAttributePair( attribute, mode ) );
         },
 
+        // TODO: check if it's an attribute type or a attribute to remove it
         removeAttribute: function ( attributeName ) {
             if ( this.attributeMap[ attributeName ] !== undefined ) {
                 delete this.attributeMap[ attributeName ];
@@ -2013,7 +2086,7 @@ define( 'osg/NodeVisitor',[], function () {
     //NodeVisitor.TRAVERSE_NONE = 0;
     NodeVisitor.TRAVERSE_PARENTS = 1;
     NodeVisitor.TRAVERSE_ALL_CHILDREN = 2;
-    //NodeVisitor.TRAVERSE_ACTIVE_CHILDREN = 3;
+    NodeVisitor.TRAVERSE_ACTIVE_CHILDREN = 3;
     NodeVisitor._traversalFunctions = {};
     NodeVisitor._traversalFunctions[ NodeVisitor.TRAVERSE_PARENTS ] = function ( node ) {
         node.ascend( this );
@@ -2021,7 +2094,11 @@ define( 'osg/NodeVisitor',[], function () {
     NodeVisitor._traversalFunctions[ NodeVisitor.TRAVERSE_ALL_CHILDREN ] = function ( node ) {
         node.traverse( this );
     };
-
+	NodeVisitor._traversalFunctions[ NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ] = function ( node ) {
+        node.traverse( this );
+    };
+	
+	
     NodeVisitor._pushOntoNodePath = {};
     NodeVisitor._pushOntoNodePath[ NodeVisitor.TRAVERSE_PARENTS ] = function ( node ) {
         this.nodePath.unshift( node );
@@ -2029,12 +2106,17 @@ define( 'osg/NodeVisitor',[], function () {
     NodeVisitor._pushOntoNodePath[ NodeVisitor.TRAVERSE_ALL_CHILDREN ] = function ( node ) {
         this.nodePath.push( node );
     };
-
+	NodeVisitor._pushOntoNodePath[ NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ] = function ( node ) {
+        this.nodePath.push( node );
+    };
     NodeVisitor._popFromNodePath = {};
     NodeVisitor._popFromNodePath[ NodeVisitor.TRAVERSE_PARENTS ] = function () {
         return this.nodePath.shift();
     };
     NodeVisitor._popFromNodePath[ NodeVisitor.TRAVERSE_ALL_CHILDREN ] = function () {
+        this.nodePath.pop();
+    };
+	NodeVisitor._popFromNodePath[ NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ] = function () {
         this.nodePath.pop();
     };
 
@@ -2095,10 +2177,10 @@ define( 'osg/Quat',[], function () {
         },
 
         init: function ( element ) {
-            element[ 0 ] = 0;
-            element[ 1 ] = 0;
-            element[ 2 ] = 0;
-            element[ 3 ] = 1;
+            element[ 0 ] = 0.0;
+            element[ 1 ] = 0.0;
+            element[ 2 ] = 0.0;
+            element[ 3 ] = 1.0;
             return element;
         },
 
@@ -2135,19 +2217,20 @@ define( 'osg/Quat',[], function () {
         },
 
         makeRotate: function ( angle, x, y, z, result ) {
+            if ( result === undefined ) {
+                result = [ 0.0, 0.0, 0.0, 0.0 ];
+            }
+
             var epsilon = 0.0000001;
             var length = Math.sqrt( x * x + y * y + z * z );
             if ( length < epsilon ) {
-                return this.init();
+                return this.init( result );
             }
 
             var inversenorm = 1.0 / length;
             var coshalfangle = Math.cos( 0.5 * angle );
             var sinhalfangle = Math.sin( 0.5 * angle );
 
-            if ( result === undefined ) {
-                result = [];
-            }
             result[ 0 ] = x * sinhalfangle * inversenorm;
             result[ 1 ] = y * sinhalfangle * inversenorm;
             result[ 2 ] = z * sinhalfangle * inversenorm;
@@ -3724,17 +3807,20 @@ define( 'osg/Node',[
                 for ( var i = 0, l = children.length; i < l; i++ ) {
                     children[ i ].removeParent( this );
                 }
-                this.children.splice( 0, this.children.length );
+                children.length = 0;
                 this.dirtyBound();
             }
         },
 
         // preserve order
         removeChild: function ( child ) {
-            for ( var i = 0, l = this.children.length; i < l; i++ ) {
-                if ( this.children[ i ] === child ) {
+            var children = this.children;
+            for ( var i = 0, l = children.length; i < l; i++ ) {
+                if ( children[ i ] === child ) {
                     child.removeParent( this );
-                    this.children.splice( i, 1 );
+                    children.splice( i, 1 );
+                    i--;
+                    l--;
                     this.dirtyBound();
                 }
             }
@@ -4930,8 +5016,7 @@ define( 'osg/FrameBufferObject',[
                             // apply on unit 0 to init it
                             state.applyTextureAttribute( 0, texture );
 
-                            //gl.framebufferTexture2D(gl.FRAMEBUFFER, this.attachments[i].attachment, texture.getTextureTarget(), texture.getTextureObject(), this.attachments[i].level);
-                            gl.framebufferTexture2D( gl.FRAMEBUFFER, this.attachments[ i ].attachment, texture.getTextureTarget(), texture.getTextureObject(), this.attachments[ i ].level );
+                            gl.framebufferTexture2D( gl.FRAMEBUFFER, this.attachments[ i ].attachment, texture.getTextureTarget(), texture.getTextureObject().id(), this.attachments[ i ].level );
                         }
                     }
                     status = gl.checkFramebufferStatus( gl.FRAMEBUFFER );
@@ -5182,6 +5267,105 @@ define( 'osg/RenderStage',[
     return RenderStage;
 } );
 
+/**
+ * @author Jordi Torres
+ */
+
+
+define( 'osg/Lod',[
+    'osg/Utils',
+    'osg/Node',
+    'osg/NodeVisitor',
+    'osg/Matrix',
+    'osg/Vec3'
+], function ( MACROUTILS, Node, NodeVisitor, Matrix, Vec3) {
+    /**
+     *  Lod that can contains child node
+     *  @class Lod
+     */
+    var Lod = function () {
+        Node.call( this );
+        this.radius = -1;
+        this.range = [];
+    };
+    /** @lends Lod.prototype */
+    Lod.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( Node.prototype, {
+        // Functions here
+        getRadius: function () {
+            return this.radius;
+        },
+
+        /** Set the object-space reference radius of the volume enclosed by the LOD.
+         * Used to determine the bounding sphere of the LOD in the absence of any children.*/
+        setRadius: function ( radius ) {
+            this.radius = radius;
+        },
+
+        addChild: function ( node, min, max ) {
+            Node.prototype.addChild.call( this, node );
+
+            if ( this.children.length > this.range.length ) {
+                var r = [];
+                r.push( [ min, min ] );
+                this.range.push( r );
+            }
+            this.range[ this.children.length - 1 ][ 0 ] = min;
+            this.range[ this.children.length - 1 ][ 1 ] = max;
+            return true;
+        },
+
+        traverse: (function() {
+
+            // avoid to generate variable on the heap to limit garbage collection
+            // instead create variable and use the same each time
+            var zeroVector = [ 0.0, 0.0, 0.0 ];
+            var eye = [ 0.0, 0.0, 0.0 ];
+            var viewModel = Matrix.makeIdentity( [] );
+
+            return function ( visitor ) {
+                var traversalMode = visitor.traversalMode;
+
+                switch ( traversalMode ) {
+
+                case NodeVisitor.TRAVERSE_ALL_CHILDREN:
+
+                    for ( var index = 0; index < this.children.length; index++ ) {
+                        this.children[ index ].accept( visitor );
+                    }
+                    break;
+
+                case ( NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ):
+                    var requiredRange = 0;
+
+                    // First approximation calculate distance from viewpoint
+                    var matrix = visitor.getCurrentModelviewMatrix();
+                    Matrix.inverse( matrix, viewModel );
+                    Matrix.transformVec3( viewModel, zeroVector, eye );
+                    var d = Vec3.distance( eye, this.getBound().center() );
+                    requiredRange = d;
+
+                    var numChildren = this.children.length;
+                    if ( this.range.length < numChildren ) numChildren = this.range.length;
+
+                    for ( var j = 0; j < numChildren; ++j ) {
+                        if ( this.range[ j ][ 0 ] <= requiredRange && requiredRange < this.range[ j ][ 1 ] ) {
+                            this.children[ j ].accept( visitor );
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+                }
+            };
+        })()
+
+    } ), 'osg', 'Lod' );
+
+    MACROUTILS.setTypeID( Lod );
+    return Lod;
+});
+
 define( 'osg/CullVisitor',[
     'osg/Notify',
     'osg/Utils',
@@ -5195,16 +5379,17 @@ define( 'osg/CullVisitor',[
     'osg/Geometry',
     'osg/RenderStage',
     'osg/Node',
+    'osg/Lod',
     'osg/Camera',
     'osg/TransformEnums'
-], function ( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Camera, TransformEnums ) {
+], function ( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Lod, Camera, TransformEnums ) {
 
     /**
      * CullVisitor traverse the tree and collect Matrix/State for the rendering traverse
      * @class CullVisitor
      */
     var CullVisitor = function () {
-        NodeVisitor.call( this );
+        NodeVisitor.call( this, NodeVisitor.TRAVERSE_ACTIVE_CHILDREN);
         CullSettings.call( this );
         CullStack.call( this );
 
@@ -5633,6 +5818,10 @@ define( 'osg/CullVisitor',[
             this.popStateSet();
         }
     };
+
+    // same code like Node
+    CullVisitor.prototype[ Lod.typeID ] = CullVisitor.prototype[ Node.typeID ];
+
     CullVisitor.prototype[ LightSource.typeID ] = function ( node ) {
 
         var stateset = node.getStateSet();
@@ -7553,7 +7742,7 @@ define( 'osg/Uniform',[
 define( 'osg/Program',[
     'osg/Utils',
     'osg/Notify',
-    'osg/StateAttribute'
+    'osg/StateAttribute',
 ], function ( MACROUTILS, Notify, StateAttribute ) {
 
     /**
@@ -7613,6 +7802,7 @@ define( 'osg/Program',[
                 this.program = gl.createProgram();
                 gl.attachShader( this.program, this.vertex.shader );
                 gl.attachShader( this.program, this.fragment.shader );
+                MACROUTILS.timeStamp( 'osgjs.metrics:linkShader' );
                 gl.linkProgram( this.program );
                 gl.validateProgram( this.program );
                 if ( !gl.getProgramParameter( this.program, gl.LINK_STATUS ) && !gl.isContextLost() ) {
@@ -7682,8 +7872,9 @@ define( 'osg/Program',[
 } );
 
 define( 'osg/Shader',[
-    'osg/Notify'
-], function ( Notify ) {
+    'osg/Notify',
+    'osg/Utils'
+], function ( Notify, Utils ) {
 
     /**
      * Shader manage shader for vertex and fragment, you need both to create a glsl program.
@@ -7713,6 +7904,7 @@ define( 'osg/Shader',[
         compile: function ( gl ) {
             this.shader = gl.createShader( this.type );
             gl.shaderSource( this.shader, this.text );
+            Utils.timeStamp( 'osgjs.metrics:compileShader' );
             gl.compileShader( this.shader );
             if ( !gl.getShaderParameter( this.shader, gl.COMPILE_STATUS ) && !gl.isContextLost() ) {
                 Notify.log( 'can\'t compile shader:\n' + this.text + '\n' );
@@ -10077,8 +10269,202 @@ define( 'osg/State',[
 } );
 
 define( 'Q',[],function ( ) {
-    return window.Q;
+    if ( window.Q ) {
+        return window.Q;
+    }
+    return window.require( 'Q' );
 } );
+
+define( 'osg/TextureManager',[
+    'osg/Notify'
+
+], function ( Notify ) {
+
+    var TextureProfile = function( target, internalFormat, width, height ) {
+        this._target = target;
+        this._internalFormat = internalFormat;
+        this._width = width;
+        this._height = height;
+        this._size = 0;
+        this.computeSize();
+    };
+
+    TextureProfile.prototype = {
+        match: function( textureProfile ) {
+            return textureProfile._target === this._target &&
+                textureProfile._internalFormat === this._internalFormat &&
+                textureProfile._width === this._width &&
+                textureProfile._height === this._height;
+        },
+        computeSize: function() {
+            var Texture = require( 'osg/Texture' );
+
+            var numBitsPerTexel = 0;
+            switch( this._internalFormat) {
+            case(1): numBitsPerTexel = 8; break;
+            case(Texture.ALPHA): numBitsPerTexel = 8; break;
+            case(Texture.LUMINANCE): numBitsPerTexel = 8; break;
+
+            case(Texture.LUMINANCE_ALPHA): numBitsPerTexel = 16; break;
+            case(2): numBitsPerTexel = 16; break;
+
+            case(Texture.RGB): numBitsPerTexel = 24; break;
+            case(3): numBitsPerTexel = 24; break;
+
+            case(Texture.RGBA): numBitsPerTexel = 32; break;
+            case(4): numBitsPerTexel = 32; break;
+
+            }
+            this._size = (Math.ceil( this._width * this._height * numBitsPerTexel)/8.0);
+        },
+
+        getSize: function() { return this._size; }
+
+    };
+    TextureProfile.getHash = function() {
+        var array = Array.prototype.slice.call( arguments );
+        var hash = '';
+        array.forEach( function( element ) {
+            hash += element;
+        });
+        return hash;
+    };
+
+
+    var TextureObject = function( texture, id, textureSet ) {
+        this._texture = texture;
+        this._id = id;
+        this._textureSet = textureSet;
+    };
+
+    TextureObject.prototype = {
+        target: function() { return this._textureSet._profile._target; },
+        id: function() { return this._id; },
+        getTextureSet: function() {
+            return this._textureSet;
+        },
+        reset: function() {
+            this._textureObject = null;
+            this._texture = undefined;
+        },
+        bind: function( gl ) {
+            gl.bindTexture( this.target(), this._id );
+        }
+    };
+
+    var TextureObjectSet = function( profile ) {
+        this._profile = profile;
+        this._usedTextureObjects = [];
+        this._orphanedTextureObjects = [];
+    };
+
+    TextureObjectSet.prototype = {
+        getProfile: function() { return this._profile; },
+        getUsedTextureObjects: function() { return this._usedTextureObjects; },
+        getOrphanedTextureObjects: function() { return this._orphanedTextureObjects; },
+        takeOrGenerate: function( gl, texture ) {
+
+            var textureObject;
+            if ( this._orphanedTextureObjects.length > 0 ) {
+                textureObject = this.takeFromOrphans();
+                textureObject.setTexture( texture );
+                this._usedTextureObjects.push( textureObject );
+                return textureObject;
+            }
+
+            var textureID = gl.createTexture();
+            textureObject = new TextureObject( texture, textureID, this );
+            this._usedTextureObjects.push( textureObject );
+
+            return textureObject;
+        },
+
+        // get texture object from pool
+        takeFromOrphans: function() {
+            if ( this._orphanedTextureObjects.length ) {
+                var textureObject = this._orphanedTextureObjects.pop();
+                this._usedTextureObjects.push( textureObject );
+                return textureObject;
+            }
+            return undefined;
+        },
+
+        // release texture object
+        orphan: function( textureObject ) {
+            var index = this._usedTextureObjects.indexOf( textureObject );
+            if ( index > -1 ) {
+                this._orphanedTextureObjects.push( this._usedTextureObjects[ index ] );
+                this._usedTextureObjects.splice( index, 1 );
+            }
+        },
+        flushAllDeletedTextureObjects: function( gl ) {
+            var nbTextures = this._orphanedTextureObjects.length;
+            var size = this.getProfile().getSize();
+            this._orphanedTextureObjects.forEach( function( textureObject ) {
+                gl.deleteTexture( textureObject.id() );
+                textureObject.reset();
+            });
+            this._orphanedTextureObjects.length = 0;
+            Notify.info( 'TextureManager: released ' + nbTextures + ' with ' + (nbTextures*size/(1024*1024)) + ' MB' );
+        }
+    };
+
+
+    var TextureManager = function() {
+        this._textureSetMap = {};
+    };
+
+    TextureManager.prototype = {
+
+        generateTextureObject: function( gl,
+                                         texture,
+                                         target,
+                                         internalFormat,
+                                         width,
+                                         height )
+        {
+            var hash = TextureProfile.getHash( target, internalFormat, width, height );
+
+            if ( this._textureSetMap[ hash ] === undefined ) {
+                 this._textureSetMap[ hash ] = new TextureObjectSet( new TextureProfile( target, internalFormat, width, height ) );
+            }
+
+            var textureSet = this._textureSetMap[ hash ];
+            var textureObject = textureSet.takeOrGenerate( gl, texture );
+            return textureObject;
+        },
+        reportStats: function() {
+            var total = 0;
+            Object.keys( this._textureSetMap ).forEach( function( key ) {
+                var profile = this._textureSetMap[ key ].getProfile();
+                var size = profile.getSize() / ( 1024 * 1024 );
+                var nb = this._textureSetMap[ key ].getUsedTextureObjects().length;
+                size *= nb;
+                total += size ;
+                Notify.notice( ''+ size + ' MB with ' + nb + ' texture of ' + profile._width +'x' + profile._height + ' ' + profile._internalFormat);
+            }, this );
+            Notify.notice( ''+ total + ' MB in total');
+
+        },
+
+        flushAllDeletedTextureObjects: function( gl ) {
+            Object.keys( this._textureSetMap ).forEach( function( key ) {
+                this._textureSetMap[ key ].flushAllDeletedTextureObjects( gl );
+            }, this );
+        },
+
+        releaseTextureObject: function( textureObject ) {
+            if ( textureObject ) {
+                var ts = textureObject.getTextureSet();
+                ts.orphan( textureObject );
+            }
+        }
+
+    };
+
+    return TextureManager;
+
+});
 
 define( 'osgDB/Options',[
 ], function( ) {
@@ -10687,6 +11073,7 @@ define( 'osgDB/ReaderParser',[
 
     ReaderParser.parseSceneGraph = function ( node, options ) {
         if ( node.Version !== undefined && node.Version > 0 ) {
+            MACROUTILS.time('osgjs.metric:ReaderParser.parseSceneGraph');
 
             var getPropertyValue = function ( o ) {
                 var props = window.Object.keys( o );
@@ -10708,12 +11095,17 @@ define( 'osgDB/ReaderParser',[
                 // copy global options and override with user options
                 var opt = MACROUTILS.objectMix( MACROUTILS.objectMix( {}, ReaderParser.registry().getOptions() ), options || {} );
                 input.setOptions( opt );
-                return input.readObject();
+                var object = input.readObject();
+                MACROUTILS.timeEnd('osgjs.metric:ReaderParser.parseSceneGraph');
+                return object;
             } else {
                 Notify.log( 'can\'t parse scenegraph ' + node );
             }
         } else {
-            return ReaderParser.parseSceneGraphDeprecated( node );
+            MACROUTILS.time('osgjs.metric:ReaderParser.parseSceneGraphDeprecated');
+            var nodeOld = ReaderParser.parseSceneGraphDeprecated( node );
+            MACROUTILS.timeEnd('osgjs.metric:ReaderParser.parseSceneGraphDeprecated');
+            return nodeOld;
         }
         return undefined;
     };
@@ -10904,12 +11296,13 @@ define( 'osg/Texture',[
     'Q',
     'osg/Notify',
     'osg/Utils',
+    'osg/TextureManager',
     'osg/StateAttribute',
     'osg/Uniform',
     'osg/Image',
     'osg/ShaderGenerator',
     'osgDB/ReaderParser'
-], function ( Q, Notify, MACROUTILS, StateAttribute, Uniform, Image, ShaderGenerator, ReaderParser ) {
+], function ( Q, Notify, MACROUTILS, TextureManager, StateAttribute, Uniform, Image, ShaderGenerator, ReaderParser ) {
 
     // helper
     var isPowerOf2 = function ( x ) {
@@ -10964,6 +11357,7 @@ define( 'osg/Texture',[
     Texture.UNSIGNED_BYTE = 0x1401;
     Texture.FLOAT = 0x1406;
 
+    Texture.textureManager = new TextureManager();
 
     /** @lends Texture.prototype */
     Texture.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( StateAttribute.prototype, {
@@ -11002,7 +11396,7 @@ define( 'osg/Texture',[
             this._textureWidth = 0;
             this._textureHeight = 0;
             this._unrefImageDataAfterApply = false;
-            this.setInternalFormat( Texture.RGBA );
+            this._internalFormat = undefined;
             this._textureTarget = Texture.TEXTURE_2D;
             this._type = Texture.UNSIGNED_BYTE;
         },
@@ -11018,7 +11412,12 @@ define( 'osg/Texture',[
         },
         init: function ( gl ) {
             if ( !this._textureObject ) {
-                this._textureObject = gl.createTexture();
+                this._textureObject = Texture.textureManager.generateTextureObject( gl,
+                                                                                    this,
+                                                                                    this._textureTarget,
+                                                                                    this._internalFormat,
+                                                                                    this._textureWidth,
+                                                                                    this._textureHeight );
                 this.dirty();
             }
         },
@@ -11041,9 +11440,10 @@ define( 'osg/Texture',[
             return this._textureHeight;
         },
         releaseGLObjects: function ( gl ) {
+
             if ( this._textureObject !== undefined && this._textureObject !== null ) {
-                gl.deleteTexture( this._textureObject );
-                this._textureObject = null;
+                this._textureObject.releaseTextureObject( gl );
+                this._textureObject = undefined;
                 this._image = undefined;
             }
         },
@@ -11115,7 +11515,6 @@ define( 'osg/Texture',[
             } else {
                 this._imageFormat = Texture.RGBA;
             }
-            this.setInternalFormat( this._imageFormat );
         },
         setType: function ( value ) {
             if ( typeof ( value ) === 'string' ) {
@@ -11163,6 +11562,7 @@ define( 'osg/Texture',[
         },
         applyTexImage2D: function ( gl ) {
             var args = Array.prototype.slice.call( arguments, 1 );
+            MACROUTILS.timeStamp( 'osgjs.metrics:Texture.texImage2d' );
             gl.texImage2D.apply( gl, args );
 
             // call a callback when upload is done if there is one
@@ -11173,11 +11573,20 @@ define( 'osg/Texture',[
                 }
             }
         },
+        computeTextureFormat: function() {
+            if ( !this._internalFormat ) {
+                this._internalFormat = this._imageFormat || Texture.RGBA;
+                this._imageFormat = this._internalFormat;
+            } else {
+                this._imageFormat = this._internalFormat;
+            }
 
+        },
         apply: function ( state ) {
             var gl = state.getGraphicContext();
+
             if ( this._textureObject !== undefined && !this.isDirty() ) {
-                gl.bindTexture( this._textureTarget, this._textureObject );
+                this._textureObject.bind( gl );
             } else if ( this.defaultType ) {
                 gl.bindTexture( this._textureTarget, null );
             } else {
@@ -11187,17 +11596,21 @@ define( 'osg/Texture',[
                     // when data is ready we will upload it to the gpu
                     if ( image.isReady() ) {
 
-                        if ( !this._textureObject ) {
-                            this.init( gl );
-                        }
-
-                        this.setDirty( false );
-                        gl.bindTexture( this._textureTarget, this._textureObject );
+                        // must be called before init
+                        this.computeTextureFormat();
 
                         var imgWidth = image.getWidth() || this._textureWidth;
                         var imgHeight = image.getHeight() || this._textureHeight;
 
                         this.setTextureSize( imgWidth, imgHeight );
+
+                        if ( !this._textureObject ) {
+                            this.init( gl );
+                        }
+
+                        this.setDirty( false );
+                        this._textureObject.bind( gl );
+
                         if ( image.isTypedArray() ) {
                             this.applyTexImage2D( gl,
                                                   this._textureTarget,
@@ -11214,7 +11627,7 @@ define( 'osg/Texture',[
                                                   this._textureTarget,
                                                   0,
                                                   this._internalFormat,
-                                                  this._imageFormat,
+                                                  this._internalFormat,
                                                   this._type,
                                                   image.getImage() );
                         }
@@ -11231,10 +11644,14 @@ define( 'osg/Texture',[
                     }
 
                 } else if ( this._textureHeight !== 0 && this._textureWidth !== 0 ) {
+
+                    // must be called before init
+                    this.computeTextureFormat();
+
                     if ( !this._textureObject ) {
                         this.init( gl );
                     }
-                    gl.bindTexture( this._textureTarget, this._textureObject );
+                    this._textureObject.bind( gl );
                     this.applyTexImage2D( gl, this._textureTarget, 0, this._internalFormat, this._textureWidth, this._textureHeight, 0, this._internalFormat, this._type, null );
 
                     this.applyFilterParameter( gl, this._textureTarget );
@@ -11324,7 +11741,8 @@ define( 'osg/Texture',[
 define( 'osg/TextureCubeMap',[
     'osg/Utils',
     'osg/Texture',
-    'osg/Image'
+    'osg/Image',
+    'osg/Utils'
 
 ], function ( MACROUTILS, Texture, Image ) {
     /**
@@ -11391,6 +11809,7 @@ define( 'osg/TextureCubeMap',[
 
             this.setTextureSize( image.getWidth(), image.getHeight() );
 
+            MACROUTILS.timeStamp( 'osgjs.metrics:texImage2d' );
             gl.texImage2D( target, 0, internalFormat, format, type, image.getImage() );
             return true;
         },
@@ -11425,7 +11844,7 @@ define( 'osg/TextureCubeMap',[
             var gl = state.getGraphicContext();
 
             if ( this._textureObject !== undefined && !this.isDirty() ) {
-                gl.bindTexture( this._textureTarget, this._textureObject );
+                this._textureObject.bind( gl );
 
             } else if ( this.defaultType ) {
                 gl.bindTexture( this._textureTarget, null );
@@ -11434,7 +11853,7 @@ define( 'osg/TextureCubeMap',[
                 if ( !this._textureObject ) {
                     this.init( gl );
                 }
-                gl.bindTexture( this._textureTarget, this._textureObject );
+                this._textureObject.bind( gl );
 
                 var internalFormat = this._internalFormat;
 
@@ -11689,6 +12108,7 @@ define( 'osg/osg',[
     'osg/Light',
     'osg/LightSource',
     'osg/LineWidth',
+    'osg/Lod',
     'osg/Material',
     'osg/Math',
     'osg/Matrix',
@@ -11724,7 +12144,7 @@ define( 'osg/osg',[
     'osg/Viewport',
     'osgUtil/osgPool',
     'osg/TransformEnums'
-], function( BlendColor, BlendFunc, BoundingBox, BoundingSphere, BufferArray, Camera, ComputeMatrixFromNodePath, CullFace, CullSettings, CullStack, CullVisitor, Depth, DrawArrayLengths, DrawArrays, DrawElements, EllipsoidModel, FrameBufferObject, FrameStamp, Geometry, Image, KdTree, KdTreeBuilder, Light, LightSource, LineWidth, Material, Math, Matrix, MatrixTransform, Node, NodeVisitor, Notify, Object, PrimitiveSet, Program, Projection, Quat, RenderBin, RenderStage, Shader, ShaderGenerator, Shape, Stack, State, StateAttribute, StateGraph, StateSet, Texture, TextureCubeMap, Transform, TriangleIndexFunctor, Uniform, UpdateVisitor, MACROUTILS, Vec2, Vec3, Vec4, Viewport, osgPool, TransformEnums ) {
+], function( BlendColor, BlendFunc, BoundingBox, BoundingSphere, BufferArray, Camera, ComputeMatrixFromNodePath, CullFace, CullSettings, CullStack, CullVisitor, Depth, DrawArrayLengths, DrawArrays, DrawElements, EllipsoidModel, FrameBufferObject, FrameStamp, Geometry, Image, KdTree, KdTreeBuilder, Light, LightSource, LineWidth, Lod, Material, Math, Matrix, MatrixTransform, Node, NodeVisitor, Notify, Object, PrimitiveSet, Program, Projection, Quat, RenderBin, RenderStage, Shader, ShaderGenerator, Shape, Stack, State, StateAttribute, StateGraph, StateSet, Texture, TextureCubeMap, Transform, TriangleIndexFunctor, Uniform, UpdateVisitor, MACROUTILS, Vec2, Vec3, Vec4, Viewport, osgPool, TransformEnums ) {
 
     var osg = {};
 
@@ -11755,6 +12175,7 @@ define( 'osg/osg',[
     osg.Light = Light;
     osg.LightSource = LightSource;
     osg.LineWidth = LineWidth;
+    osg.Lod = Lod;
     osg.Material = Material;
     MACROUTILS.objectMix( osg, Math );
     osg.Matrix = Matrix;
@@ -14162,6 +14583,7 @@ define( 'osgGA/OrbitManipulatorMouseKeyboardController',[
         keydown: function ( ev ) {
             if ( ev.keyCode === 32 ) {
                 this._manipulator.computeHomePosition();
+                ev.preventDefault();
 
             } else if ( ev.keyCode === this._panKey &&
                 this.getMode() !== OrbitManipulatorEnums.PAN ) {
@@ -17198,6 +17620,127 @@ define( 'osgUtil/osgUtil',[
     return osgUtil;
 } );
 
+define( 'osg/WebGLCaps',[
+], function () {
+
+    var WebGLCaps = function() {
+        this._webGLExtensions = {};
+        this._webGLParameters = {};
+        this._webGLShaderMaxInt = 'NONE';
+        this._webGLShaderMaxFloat = 'NONE';
+    };
+
+    WebGLCaps.prototype = {
+
+        init: function( gl ) {
+            this.initWebGLParameters( gl );
+            this.initWebGLExtensions( gl );
+        },
+
+        getWebGLParameter: function ( str ) {
+            return this._webGLParameters[ str ];
+        },
+        getWebGLParameters: function () {
+            return this._webGLParameters;
+        },
+        getShaderMaxPrecisionFloat: function () {
+            return this._webGLParameters.MAX_SHADER_PRECISION_FLOAT;
+        },
+        getShaderMaxPrecisionInt: function () {
+            return this._webGLParameters.MAX_SHADER_PRECISION_INT;
+        },
+        initWebGLParameters: function ( gl ) {
+            if ( gl === undefined )
+                return;
+
+            var limits = [
+                'MAX_COMBINED_TEXTURE_IMAGE_UNITS',
+                'MAX_CUBE_MAP_TEXTURE_SIZE',
+                'MAX_FRAGMENT_UNIFORM_VECTORS',
+                'MAX_RENDERBUFFER_SIZE',
+                'MAX_TEXTURE_IMAGE_UNITS',
+                'MAX_TEXTURE_SIZE',
+                'MAX_VARYING_VECTORS',
+                'MAX_VERTEX_ATTRIBS',
+                'MAX_VERTEX_TEXTURE_IMAGE_UNITS',
+                'MAX_VERTEX_UNIFORM_VECTORS',
+                'MAX_VIEWPORT_DIMS',
+                'SHADING_LANGUAGE_VERSION',
+                'VERSION',
+                'VENDOR',
+                'RENDERER',
+                'ALIASED_LINE_WIDTH_RANGE',
+                'ALIASED_POINT_SIZE_RANGE',
+                'RED_BITS',
+                'GREEN_BITS',
+                'BLUE_BITS',
+                'ALPHA_BITS',
+                'DEPTH_BITS',
+                'STENCIL_BITS'
+            ];
+            var params = this._webGLParameters;
+            for ( var i = 0, len = limits.length; i < len; ++i ) {
+                var par = limits[ i ];
+                params[ par ] = gl.getParameter( gl[ par ] );
+            }
+
+            //shader precisions for float
+            if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_FLOAT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_FLOAT = 'high';
+            }
+            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_FLOAT = 'medium';
+            }
+            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.LOW_FLOAT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_FLOAT = 'low';
+            }
+            else {
+                params.MAX_SHADER_PRECISION_FLOAT = 'none';
+            }
+
+            //shader precisions for float
+            if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_INT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_INT = 'high';
+            }
+            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_INT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_INT = 'medium';
+            }
+            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.LOW_INT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_INT = 'low';
+            }
+            else {
+                params.MAX_SHADER_PRECISION_INT = 'none';
+            }
+
+            // TODO ?
+            // try to compile a small shader to test the spec is respected
+        },
+        getWebGLExtension: function ( str ) {
+            return this._webGLExtensions[ str ];
+        },
+        getWebGLExtensions: function () {
+            return this._webGLExtensions;
+        },
+        initWebGLExtensions: function ( gl ) {
+            if ( gl === undefined )
+                return;
+            var supported = gl.getSupportedExtensions();
+            var ext = this._webGLExtensions;
+            // we load all the extensions
+            for ( var i = 0, len = supported.length; i < len; ++i ) {
+                var sup = supported[ i ];
+                ext[ sup ] = gl.getExtension( sup );
+            }
+            // TODO ?
+            // check if the extensions are REALLY supported ?
+            // cf http://codeflow.org/entries/2013/feb/22/how-to-write-portable-webgl/#how-can-i-detect-if-i-can-render-to-floating-point-textures
+        }
+    };
+
+
+    return WebGLCaps;
+});
+
 define( 'osgViewer/View',[
     'osg/Camera',
     'osg/Node',
@@ -17209,8 +17752,9 @@ define( 'osgViewer/View',[
     'osg/Viewport',
     'osg/Matrix',
     'osg/Light',
+    'osg/WebGLCaps',
     'osgUtil/IntersectVisitor'
-], function ( Camera, Node, FrameStamp, Material, Depth, BlendFunc, CullFace, Viewport, Matrix, Light, IntersectVisitor ) {
+], function ( Camera, Node, FrameStamp, Material, Depth, BlendFunc, CullFace, Viewport, Matrix, Light, WebGLCaps, IntersectVisitor ) {
 
     var View = function () {
         this._graphicContext = undefined;
@@ -17220,6 +17764,8 @@ define( 'osgViewer/View',[
         this._frameStamp = new FrameStamp();
         this._lightingMode = undefined;
         this._manipulator = undefined;
+        this._webGLCaps = undefined;
+
 
         this.setLightingMode( View.LightingMode.HEADLIGHT );
 
@@ -17242,17 +17788,33 @@ define( 'osgViewer/View',[
         getGraphicContext: function () {
             return this._graphicContext;
         },
+        getWebGLCaps: function () {
+            return this._webGLCaps;
+        },
+        initWebGLCaps: function( gl ) {
+            this._webGLCaps = new WebGLCaps();
+            this._webGLCaps.init( gl );
+        },
         setUpView: function ( canvas ) {
-            var width = canvas.width !== 0 ? canvas.width : 800;
-            var height = canvas.height !== 0 ? canvas.height : 600;
+
+            var width = canvas.clientWidth !== 0 ? canvas.clientWidth : 800;
+            var height = canvas.clientHeight !== 0 ? canvas.clientHeight : 600;
+
+            var devicePixelRatio = window.devicePixelRatio || 1;
+            width *= devicePixelRatio;
+            height *= devicePixelRatio;
+
+            canvas.width = width;
+            canvas.height = height;
+
             var ratio = width / height;
             this._camera.setViewport( new Viewport( 0, 0, width, height ) );
             Matrix.makeLookAt( [ 0, 0, -10 ], [ 0, 0, 0 ], [ 0, 1, 0 ], this._camera.getViewMatrix() );
             Matrix.makePerspective( 55, ratio, 1.0, 1000.0, this._camera.getProjectionMatrix() );
         },
-        /** 
+        /**
          * X = 0 at the left
-         * Y = 0 at the BOTTOM 
+         * Y = 0 at the BOTTOM
          */
         computeIntersections: function ( x, y, traversalMask ) {
             /*jshint bitwise: false */
@@ -17333,6 +17895,7 @@ define( 'osgViewer/View',[
 
     return View;
 } );
+
 define( 'osgViewer/eventProxy/GamePad',[
     'osg/Notify'
 ], function ( Notify ) {
@@ -17503,7 +18066,8 @@ define( 'osgViewer/eventProxy/LeapMotion',[
             var self = this;
             this._controller = new Leap.Controller( {
                 enableGestures: args.gestures || true,
-                tryReconnectOnDisconnect: false
+                tryReconnectOnDisconnect: true,
+                connectAttempts: 3
             } );
             this._controller.on( 'ready', function () {
                 if ( args.readyCallback )
@@ -17512,7 +18076,6 @@ define( 'osgViewer/eventProxy/LeapMotion',[
                 Notify.info( 'leapmotion ready' );
             } );
             this._controller.loop( this._update.bind( this ) );
-
         },
 
         isValid: function () {
@@ -19196,6 +19759,9 @@ define( 'osgViewer/Viewer',[
         }
         this._options = options;
 
+        if ( this._options.fullscreen === undefined )
+            this._options.fullscreen = true;
+
         // #FIXME see tojiro's blog for webgl lost context stuffs
         if ( options.SimulateWebGLLostContext ) {
             canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas( canvas );
@@ -19221,6 +19787,9 @@ define( 'osgViewer/Viewer',[
 
         if ( gl ) {
             this.setGraphicContext( gl );
+            this.initWebGLCaps( gl );
+
+
             MACROUTILS.init();
             this._canvas = canvas;
             this._frameRate = 60.0;
@@ -19610,19 +20179,31 @@ define( 'osgViewer/Viewer',[
 
             var self = this;
             var resize = function ( /*ev*/ ) {
-                var w = window.innerWidth;
-                var h = window.innerHeight;
+                var w, h;
+                if ( self._options.fullscreen === true ) {
+                    w = window.innerWidth;
+                    h = window.innerHeight;
+                } else {
+                    w = self._canvas.clientWidth;
+                    h = self._canvas.clientHeight;
+                }
+                if ( w < 1 )
+                    w = 1;
+                if ( h < 1 )
+                    h = 1;
 
                 var camera = self.getCamera();
                 var vp = camera.getViewport();
 
                 var prevWidth = vp.width();
                 var prevHeight = vp.height();
-                self._canvas.width = w;
-                self._canvas.height = h;
-                self._canvas.style.width = w;
-                self._canvas.style.height = h;
-                Notify.debug( 'window resize ' + prevWidth + 'x' + prevHeight + ' to ' + w + 'x' + h );
+                if ( self._options.fullscreen === true ) {
+                    self._canvas.width = w;
+                    self._canvas.height = h;
+                    self._canvas.style.width = w;
+                    self._canvas.style.height = h;
+                }
+                Notify.debug( 'canvas resize ' + prevWidth + 'x' + prevHeight + ' to ' + w + 'x' + h );
                 var widthChangeRatio = w / prevWidth;
                 var heightChangeRatio = h / prevHeight;
                 var aspectRatioChange = widthChangeRatio / heightChangeRatio;
@@ -19632,7 +20213,7 @@ define( 'osgViewer/Viewer',[
                     Matrix.preMult( camera.getProjectionMatrix(), Matrix.makeScale( 1.0 / aspectRatioChange, 1.0, 1.0, [] ) );
                 }
             };
-            window.onresize = resize;
+            window.addEventListener( 'resize', resize, true );
         },
 
         // intialize all input devices

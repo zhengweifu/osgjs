@@ -2,12 +2,13 @@ define( [
     'Q',
     'osg/Notify',
     'osg/Utils',
+    'osg/TextureManager',
     'osg/StateAttribute',
     'osg/Uniform',
     'osg/Image',
     'osg/ShaderGenerator',
     'osgDB/ReaderParser'
-], function ( Q, Notify, MACROUTILS, StateAttribute, Uniform, Image, ShaderGenerator, ReaderParser ) {
+], function ( Q, Notify, MACROUTILS, TextureManager, StateAttribute, Uniform, Image, ShaderGenerator, ReaderParser ) {
 
     // helper
     var isPowerOf2 = function ( x ) {
@@ -62,6 +63,7 @@ define( [
     Texture.UNSIGNED_BYTE = 0x1401;
     Texture.FLOAT = 0x1406;
 
+    Texture.textureManager = new TextureManager();
 
     /** @lends Texture.prototype */
     Texture.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( StateAttribute.prototype, {
@@ -100,7 +102,7 @@ define( [
             this._textureWidth = 0;
             this._textureHeight = 0;
             this._unrefImageDataAfterApply = false;
-            this.setInternalFormat( Texture.RGBA );
+            this._internalFormat = undefined;
             this._textureTarget = Texture.TEXTURE_2D;
             this._type = Texture.UNSIGNED_BYTE;
         },
@@ -116,7 +118,12 @@ define( [
         },
         init: function ( gl ) {
             if ( !this._textureObject ) {
-                this._textureObject = gl.createTexture();
+                this._textureObject = Texture.textureManager.generateTextureObject( gl,
+                                                                                    this,
+                                                                                    this._textureTarget,
+                                                                                    this._internalFormat,
+                                                                                    this._textureWidth,
+                                                                                    this._textureHeight );
                 this.dirty();
             }
         },
@@ -139,9 +146,10 @@ define( [
             return this._textureHeight;
         },
         releaseGLObjects: function ( gl ) {
+
             if ( this._textureObject !== undefined && this._textureObject !== null ) {
-                gl.deleteTexture( this._textureObject );
-                this._textureObject = null;
+                this._textureObject.releaseTextureObject( gl );
+                this._textureObject = undefined;
                 this._image = undefined;
             }
         },
@@ -213,7 +221,6 @@ define( [
             } else {
                 this._imageFormat = Texture.RGBA;
             }
-            this.setInternalFormat( this._imageFormat );
         },
         setType: function ( value ) {
             if ( typeof ( value ) === 'string' ) {
@@ -261,6 +268,7 @@ define( [
         },
         applyTexImage2D: function ( gl ) {
             var args = Array.prototype.slice.call( arguments, 1 );
+            MACROUTILS.timeStamp( 'osgjs.metrics:Texture.texImage2d' );
             gl.texImage2D.apply( gl, args );
 
             // call a callback when upload is done if there is one
@@ -271,11 +279,20 @@ define( [
                 }
             }
         },
+        computeTextureFormat: function() {
+            if ( !this._internalFormat ) {
+                this._internalFormat = this._imageFormat || Texture.RGBA;
+                this._imageFormat = this._internalFormat;
+            } else {
+                this._imageFormat = this._internalFormat;
+            }
 
+        },
         apply: function ( state ) {
             var gl = state.getGraphicContext();
+
             if ( this._textureObject !== undefined && !this.isDirty() ) {
-                gl.bindTexture( this._textureTarget, this._textureObject );
+                this._textureObject.bind( gl );
             } else if ( this.defaultType ) {
                 gl.bindTexture( this._textureTarget, null );
             } else {
@@ -285,17 +302,21 @@ define( [
                     // when data is ready we will upload it to the gpu
                     if ( image.isReady() ) {
 
-                        if ( !this._textureObject ) {
-                            this.init( gl );
-                        }
-
-                        this.setDirty( false );
-                        gl.bindTexture( this._textureTarget, this._textureObject );
+                        // must be called before init
+                        this.computeTextureFormat();
 
                         var imgWidth = image.getWidth() || this._textureWidth;
                         var imgHeight = image.getHeight() || this._textureHeight;
 
                         this.setTextureSize( imgWidth, imgHeight );
+
+                        if ( !this._textureObject ) {
+                            this.init( gl );
+                        }
+
+                        this.setDirty( false );
+                        this._textureObject.bind( gl );
+
                         if ( image.isTypedArray() ) {
                             this.applyTexImage2D( gl,
                                                   this._textureTarget,
@@ -312,7 +333,7 @@ define( [
                                                   this._textureTarget,
                                                   0,
                                                   this._internalFormat,
-                                                  this._imageFormat,
+                                                  this._internalFormat,
                                                   this._type,
                                                   image.getImage() );
                         }
@@ -329,10 +350,14 @@ define( [
                     }
 
                 } else if ( this._textureHeight !== 0 && this._textureWidth !== 0 ) {
+
+                    // must be called before init
+                    this.computeTextureFormat();
+
                     if ( !this._textureObject ) {
                         this.init( gl );
                     }
-                    gl.bindTexture( this._textureTarget, this._textureObject );
+                    this._textureObject.bind( gl );
                     this.applyTexImage2D( gl, this._textureTarget, 0, this._internalFormat, this._textureWidth, this._textureHeight, 0, this._internalFormat, this._type, null );
 
                     this.applyFilterParameter( gl, this._textureTarget );

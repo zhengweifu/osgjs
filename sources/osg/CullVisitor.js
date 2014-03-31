@@ -11,16 +11,17 @@ define( [
     'osg/Geometry',
     'osg/RenderStage',
     'osg/Node',
+    'osg/Lod',
     'osg/Camera',
     'osg/TransformEnums'
-], function ( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Camera, TransformEnums ) {
+], function ( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Lod, Camera, TransformEnums ) {
 
     /**
      * CullVisitor traverse the tree and collect Matrix/State for the rendering traverse
      * @class CullVisitor
      */
     var CullVisitor = function () {
-        NodeVisitor.call( this );
+        NodeVisitor.call( this, NodeVisitor.TRAVERSE_ACTIVE_CHILDREN);
         CullSettings.call( this );
         CullStack.call( this );
 
@@ -449,6 +450,10 @@ define( [
             this.popStateSet();
         }
     };
+
+    // same code like Node
+    CullVisitor.prototype[ Lod.typeID ] = CullVisitor.prototype[ Node.typeID ];
+
     CullVisitor.prototype[ LightSource.typeID ] = function ( node ) {
 
         var stateset = node.getStateSet();
