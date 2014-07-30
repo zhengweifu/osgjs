@@ -16,6 +16,7 @@ define( [
         CullSettings.call( this );
 
         this.viewport = undefined;
+        this._graphicContext = undefined;
         this.setClearColor( [ 0, 0, 0, 1.0 ] );
         this.setClearDepth( 1.0 );
 
@@ -23,8 +24,8 @@ define( [
         this.setClearMask( Camera.COLOR_BUFFER_BIT | Camera.DEPTH_BUFFER_BIT );
         /*jshint bitwise: true */
 
-        this.setViewMatrix( Matrix.makeIdentity( [] ) );
-        this.setProjectionMatrix( Matrix.makeIdentity( [] ) );
+        this.setViewMatrix( Matrix.create() );
+        this.setProjectionMatrix( Matrix.create() );
         this.renderOrder = Camera.NESTED_RENDER;
         this.renderOrderNum = 0;
     };
@@ -42,6 +43,12 @@ define( [
         CullSettings.prototype,
         MACROUTILS.objectInehrit( Transform.prototype, {
 
+            setGraphicContext: function ( gc ) {
+                this._graphicContext = gc;
+            },
+            getGraphicContext: function () {
+                return this._graphicContext;
+            },
             setClearDepth: function ( depth ) {
                 this.clearDepth = depth;
             },
@@ -138,16 +145,17 @@ define( [
                 return true;
             },
 
-            computeWorldToLocalMatrix: function ( matrix /*, nodeVisitor */ ) {
-                var inverse = [];
-                Matrix.inverse( this.modelviewMatrix, inverse );
-                if ( this.referenceFrame === TransformEnums.RELATIVE_RF ) {
-                    Matrix.postMult( inverse, matrix );
-                } else {
-                    matrix = inverse;
-                }
-                return true;
-            }
+            computeWorldToLocalMatrix: ( function ( matrix /*, nodeVisitor */ ) {
+                var inverse = Matrix.create();
+                return function () {
+                    if ( this.referenceFrame === TransformEnums.RELATIVE_RF ) {
+                        Matrix.postMult( Matrix.inverse( this.modelviewMatrix, inverse ), matrix );
+                    } else {
+                        Matrix.inverse( this.modelviewMatrix, matrix );
+                    }
+                    return true;
+                };
+            } )()
 
         } ) ), 'osg', 'Camera' );
 

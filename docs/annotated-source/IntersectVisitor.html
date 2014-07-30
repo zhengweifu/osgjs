@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -631,11 +666,6 @@
               
               <a class="source" href="Q.html">
                 Q.js
-              </a>
-            
-              
-              <a class="source" href="vr.html">
-                vr.js
               </a>
             
           </div>
@@ -782,7 +812,7 @@
         } )(),
         pushModelMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( matrix )</span> {</span>
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.matrix.length &gt; <span class="hljs-number">0</span> ) {
-                <span class="hljs-keyword">var</span> m = Matrix.copy( <span class="hljs-keyword">this</span>.matrix[ <span class="hljs-keyword">this</span>.matrix.length - <span class="hljs-number">1</span> ] );
+                <span class="hljs-keyword">var</span> m = Matrix.copy( <span class="hljs-keyword">this</span>.matrix[ <span class="hljs-keyword">this</span>.matrix.length - <span class="hljs-number">1</span> ], Matrix.create() );
                 Matrix.preMult( m, matrix );
                 <span class="hljs-keyword">this</span>.matrix.push( m );
             } <span class="hljs-keyword">else</span> {
@@ -791,7 +821,7 @@
         },
         getModelMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.matrix.length === <span class="hljs-number">0</span> ) {
-                <span class="hljs-keyword">return</span> Matrix.makeIdentity( [] );
+                <span class="hljs-keyword">return</span> Matrix.create();
             }
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.matrix[ <span class="hljs-keyword">this</span>.matrix.length - <span class="hljs-number">1</span> ];
         },
@@ -892,15 +922,15 @@ camera</p>
             }
         },
 
-        transformRay: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( tStart, tEnd )</span> {</span>
-            <span class="hljs-keyword">var</span> matrix = [];
-            Matrix.copy( <span class="hljs-keyword">this</span>.getWindowMatrix(), matrix );
-            Matrix.preMult( matrix, <span class="hljs-keyword">this</span>.getProjectionMatrix() );
-            Matrix.preMult( matrix, <span class="hljs-keyword">this</span>.getViewMatrix() );
-            Matrix.preMult( matrix, <span class="hljs-keyword">this</span>.getModelMatrix() );
+        transformRay: (<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> inv = Matrix.create();
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(tStart, tEnd)</span> {</span>
+                Matrix.copy(<span class="hljs-keyword">this</span>.getWindowMatrix(), inv);
+                Matrix.preMult(inv, <span class="hljs-keyword">this</span>.getProjectionMatrix());
+                Matrix.preMult(inv, <span class="hljs-keyword">this</span>.getViewMatrix());
+                Matrix.preMult(inv, <span class="hljs-keyword">this</span>.getModelMatrix());
 
-            <span class="hljs-keyword">var</span> inv = [];
-            <span class="hljs-keyword">var</span> valid = Matrix.inverse( matrix, inv );</pre></div></div>
+                <span class="hljs-keyword">var</span> valid = Matrix.inverse(inv, inv);</pre></div></div>
             
         </li>
         
@@ -915,16 +945,16 @@ camera</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">if</span> ( !valid ) {
-                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
-            }
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> (!valid) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+                }
 
-            Matrix.transformVec3( inv, <span class="hljs-keyword">this</span>.start, tStart );
-            Matrix.transformVec3( inv, <span class="hljs-keyword">this</span>.end, tEnd );
+                Matrix.transformVec3(inv, <span class="hljs-keyword">this</span>.start, tStart);
+                Matrix.transformVec3(inv, <span class="hljs-keyword">this</span>.end, tEnd);
 
-            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
-        },
-
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+            };
+        })(),
         apply: ( <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">var</span> ns = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
             <span class="hljs-keyword">var</span> ne = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];

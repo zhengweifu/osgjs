@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -712,6 +742,9 @@
         mouseup: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*ev */</span> )</span> {</span>
             <span class="hljs-keyword">this</span>.releaseButton();
         },
+        mouseout: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*ev */</span> )</span> {</span>
+            <span class="hljs-keyword">this</span>.releaseButton();
+        },
         mousemove: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( ev )</span> {</span>
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._buttonup === <span class="hljs-literal">true</span> ) {
                 <span class="hljs-keyword">return</span>;
@@ -731,21 +764,26 @@
             <span class="hljs-keyword">var</span> manipulator = <span class="hljs-keyword">this</span>._manipulator;
             <span class="hljs-keyword">if</span> ( event.keyCode === <span class="hljs-number">32</span> ) {
                 manipulator.computeHomePosition();
+                event.preventDefault();
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( event.keyCode === <span class="hljs-number">87</span> || event.keyCode === <span class="hljs-number">90</span> || event.keyCode === <span class="hljs-number">38</span> ) { <span class="hljs-comment">// w/z/up</span>
                 manipulator.getFowardInterpolator().setDelay( <span class="hljs-keyword">this</span>._delay );
                 manipulator.getFowardInterpolator().setTarget( <span class="hljs-number">1</span> );
+                event.preventDefault();
                 <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( event.keyCode === <span class="hljs-number">83</span> || event.keyCode === <span class="hljs-number">40</span> ) { <span class="hljs-comment">// S/down</span>
                 manipulator.getFowardInterpolator().setDelay( <span class="hljs-keyword">this</span>._delay );
                 manipulator.getFowardInterpolator().setTarget( -<span class="hljs-number">1</span> );
+                event.preventDefault();
                 <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( event.keyCode === <span class="hljs-number">68</span> || event.keyCode === <span class="hljs-number">39</span> ) { <span class="hljs-comment">// D/right</span>
                 manipulator.getSideInterpolator().setDelay( <span class="hljs-keyword">this</span>._delay );
                 manipulator.getSideInterpolator().setTarget( <span class="hljs-number">1</span> );
+                event.preventDefault();
                 <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( event.keyCode === <span class="hljs-number">65</span> || event.keyCode === <span class="hljs-number">81</span> || event.keyCode === <span class="hljs-number">37</span> ) { <span class="hljs-comment">// a/q/left</span>
                 manipulator.getSideInterpolator().setDelay( <span class="hljs-keyword">this</span>._delay );
                 manipulator.getSideInterpolator().setTarget( -<span class="hljs-number">1</span> );
+                event.preventDefault();
                 <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
             }
             <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;

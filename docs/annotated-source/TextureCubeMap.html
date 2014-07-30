@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -664,7 +694,8 @@
             <div class="content"><div class='highlight'><pre>define( [
     <span class="hljs-string">'osg/Utils'</span>,
     <span class="hljs-string">'osg/Texture'</span>,
-    <span class="hljs-string">'osg/Image'</span>
+    <span class="hljs-string">'osg/Image'</span>,
+    <span class="hljs-string">'osg/Utils'</span>
 
 ], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Texture, Image )</span> {</span>
     <span class="hljs-comment">/**
@@ -731,7 +762,8 @@
 
             <span class="hljs-keyword">this</span>.setTextureSize( image.getWidth(), image.getHeight() );
 
-            gl.texImage2D( target, <span class="hljs-number">0</span>, internalFormat, format, type, image.getImage() );
+            MACROUTILS.timeStamp( <span class="hljs-string">'osgjs.metrics:texImage2d'</span> );
+            gl.texImage2D( target, <span class="hljs-number">0</span>, internalFormat, internalFormat, type, image.getImage() );
             <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
         },
 
@@ -749,7 +781,7 @@
                 target,
                 <span class="hljs-number">0</span>,
                 internalFormat,
-                imgObject.format,
+                internalFormat,
                 gl.UNSIGNED_BYTE,
                 imgObject.image ) ) {
                 imgObject.dirty = <span class="hljs-literal">false</span>;
@@ -765,16 +797,32 @@
             <span class="hljs-keyword">var</span> gl = state.getGraphicContext();
 
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._textureObject !== <span class="hljs-literal">undefined</span> &amp;&amp; !<span class="hljs-keyword">this</span>.isDirty() ) {
-                gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-keyword">this</span>._textureObject );
+                <span class="hljs-keyword">this</span>._textureObject.bind( gl );
 
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.defaultType ) {
                 gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-literal">null</span> );
 
             } <span class="hljs-keyword">else</span> {
-                <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._textureObject ) {
+                <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._textureObject ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>must be called before init</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">this</span>.computeTextureFormat();
+
                     <span class="hljs-keyword">this</span>.init( gl );
                 }
-                gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-keyword">this</span>._textureObject );
+                <span class="hljs-keyword">this</span>._textureObject.bind( gl );
 
                 <span class="hljs-keyword">var</span> internalFormat = <span class="hljs-keyword">this</span>._internalFormat;
 

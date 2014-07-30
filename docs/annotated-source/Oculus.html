@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -661,22 +691,81 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre>define( [
-    <span class="hljs-string">'vr'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( vr )</span> {</span>
+            <div class="content"><div class='highlight'><pre>define( [ 
+    <span class="hljs-string">'osg/Notify'</span>,
+    <span class="hljs-string">'osg/Quat'</span> ], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, Quat )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
 
     <span class="hljs-keyword">var</span> Oculus = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( viewer )</span> {</span>
         <span class="hljs-keyword">this</span>._viewer = viewer;
         <span class="hljs-keyword">this</span>._type = <span class="hljs-string">'Oculus'</span>;
         <span class="hljs-keyword">this</span>._enable = <span class="hljs-literal">true</span>;
-        <span class="hljs-keyword">this</span>._vrstate = <span class="hljs-literal">null</span>;
+        <span class="hljs-keyword">this</span>._hmd = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._sensor = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._quat = Quat.create();
     };
 
     Oculus.prototype = {
+
         init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            <span class="hljs-keyword">if</span> ( !vr )
-                <span class="hljs-keyword">return</span>;
-            <span class="hljs-keyword">this</span>._vrstate = <span class="hljs-keyword">new</span> vr.State();
+
+            <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+
+            <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">vrDeviceCallback</span><span class="hljs-params">( vrDevices )</span> {</span>
+
+                <span class="hljs-keyword">var</span> i;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>First, find a HMD — just use the first one we find</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">for</span> ( i = <span class="hljs-number">0</span>; i &lt; vrDevices.length; ++i ) {
+                    <span class="hljs-keyword">if</span> ( vrDevices[ i ] <span class="hljs-keyword">instanceof</span> window.HMDVRDevice ) {
+                        self._hmd = vrDevices[ i ];
+                        <span class="hljs-keyword">break</span>;
+                    }
+                }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Then, find a sensor corresponding to the same hardwareUnitId</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">for</span> ( i = <span class="hljs-number">0</span>; i &lt; vrDevices.length; ++i ) {
+                    <span class="hljs-keyword">if</span> ( vrDevices[ i ] <span class="hljs-keyword">instanceof</span> window.PositionSensorVRDevice &amp;&amp; vrDevices[ i ].hardwareUnitId === self._hmd.hardwareUnitId ) {
+                        self._sensor = vrDevices[ i ];
+                        <span class="hljs-keyword">break</span>;
+                    }
+                }
+
+                <span class="hljs-keyword">if</span> ( self._hmd &amp;&amp; self._sensor )
+                    Notify.log( <span class="hljs-string">'Found a HMD and Sensor'</span> );
+            }
+
+            <span class="hljs-keyword">if</span> ( navigator.getVRDevices ) {
+                navigator.getVRDevices().then( vrDeviceCallback );
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( navigator.mozGetVRDevices ) {
+                navigator.mozGetVRDevices( vrDeviceCallback );
+            }
+
         },
 
         getManipulatorController: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
@@ -694,23 +783,74 @@
             <span class="hljs-keyword">if</span> ( !manipulator.getControllerList()[ <span class="hljs-keyword">this</span>._type ] )
                 <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
 
+            <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._hmd || !<span class="hljs-keyword">this</span>._sensor )
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+
             <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
         },
 
         update: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
             <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>.isValid() )
                 <span class="hljs-keyword">return</span>;
 
-            <span class="hljs-keyword">var</span> vrstate = <span class="hljs-keyword">this</span>._vrstate;
-            <span class="hljs-keyword">if</span> ( !vr || !vrstate )
-                <span class="hljs-keyword">return</span>;
+            <span class="hljs-keyword">var</span> manipulatorAdapter = <span class="hljs-keyword">this</span>.getManipulatorController();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>update the manipulator with the rotation of the device</p>
 
-            <span class="hljs-keyword">if</span> ( !vr.pollState( vrstate ) || !vrstate.hmd.present )
-                <span class="hljs-keyword">return</span>;
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">if</span> ( manipulatorAdapter.update ) {
 
-            <span class="hljs-keyword">var</span> manipulatorAdapter = <span class="hljs-keyword">this</span>.getManipulatorController();
-            <span class="hljs-keyword">if</span> ( manipulatorAdapter.update ) {
-                manipulatorAdapter.update( vrstate.hmd.rotation );
+                <span class="hljs-keyword">var</span> quat = <span class="hljs-keyword">this</span>._sensor.getState().orientation;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>If no real oculus is detected, navigators (vr builds of FF and Chrome) simulate a fake oculus
+On firefox, this fake oculus returns a wrong quaternion: [0, 0, 0, 0]
+So we detect and set this quaternion to a neutral value: [0, 0, 0, 1]</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> ( quat.x === <span class="hljs-number">0.0</span> &amp;&amp; quat.y === <span class="hljs-number">0.0</span> &amp;&amp; quat.y === <span class="hljs-number">0.0</span> &amp;&amp; quat.w === <span class="hljs-number">0.0</span> )
+                    quat.w = <span class="hljs-number">1.0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>On oculus the up vector is [0,1,0]
+On osgjs the up vector is [0,0,1]</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">this</span>._quat[ <span class="hljs-number">0</span> ] = quat.x;
+                <span class="hljs-keyword">this</span>._quat[ <span class="hljs-number">1</span> ] = -quat.z;
+                <span class="hljs-keyword">this</span>._quat[ <span class="hljs-number">2</span> ] = quat.y;
+                <span class="hljs-keyword">this</span>._quat[ <span class="hljs-number">3</span> ] = quat.w;
+
+                manipulatorAdapter.update( <span class="hljs-keyword">this</span>._quat );
             }
         }
     };

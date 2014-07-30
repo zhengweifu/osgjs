@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -664,8 +694,11 @@
             <div class="content"><div class='highlight'><pre>define( [
     <span class="hljs-string">'osg/Utils'</span>,
     <span class="hljs-string">'osg/StateAttribute'</span>,
-    <span class="hljs-string">'osg/Object'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, StateAttribute, Object )</span> {</span>
+    <span class="hljs-string">'osg/Object'</span>,
+    <span class="hljs-string">'osg/Map'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, StateAttribute, Object, Map )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
 
     <span class="hljs-comment">/**
      * StateSet encapsulate StateAttribute
@@ -674,8 +707,8 @@
     <span class="hljs-keyword">var</span> StateSet = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
         <span class="hljs-built_in">Object</span>.call( <span class="hljs-keyword">this</span> );
         <span class="hljs-keyword">this</span>.id = StateSet.instance++;
-        <span class="hljs-keyword">this</span>.attributeMap = {};
-        <span class="hljs-keyword">this</span>.attributeMap.attributeKeys = [];
+
+        <span class="hljs-keyword">this</span>.attributeMap = <span class="hljs-keyword">new</span> Map();
 
         <span class="hljs-keyword">this</span>.textureAttributeMapList = [];
 
@@ -683,6 +716,10 @@
         <span class="hljs-keyword">this</span>._binNumber = <span class="hljs-number">0</span>;
 
         <span class="hljs-keyword">this</span>._shaderGenerator = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._updateCallbackList = [];
+
+        <span class="hljs-keyword">this</span>.uniforms = <span class="hljs-keyword">new</span> Map();
+
     };
     StateSet.instance = <span class="hljs-number">0</span>;
 
@@ -711,20 +748,15 @@
             <span class="hljs-keyword">if</span> ( mode === <span class="hljs-literal">undefined</span> ) {
                 mode = StateAttribute.ON;
             }
-            <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>.uniforms ) {
-                <span class="hljs-keyword">this</span>.uniforms = {};
-                <span class="hljs-keyword">this</span>.uniforms.uniformKeys = [];
-            }
+
             <span class="hljs-keyword">var</span> name = uniform.name;
             <span class="hljs-keyword">this</span>.uniforms[ name ] = <span class="hljs-keyword">this</span>.getAttributePair( uniform, mode );
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.uniforms.uniformKeys.indexOf( name ) === -<span class="hljs-number">1</span> ) {
-                <span class="hljs-keyword">this</span>.uniforms.uniformKeys.push( name );
-            }
+            <span class="hljs-keyword">this</span>.uniforms.dirty();
         },
         getUniform: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( uniform )</span> {</span>
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.uniforms &amp;&amp; <span class="hljs-keyword">this</span>.uniforms[ uniform ] ) {
-                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.uniforms[ uniform ].getAttribute();
-            }
+            <span class="hljs-keyword">var</span> uniformMap = <span class="hljs-keyword">this</span>.uniforms;
+            <span class="hljs-keyword">if</span> ( uniformMap[ uniform ] ) <span class="hljs-keyword">return</span> uniformMap[ uniform ].getAttribute();
+
             <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
         },
         getUniformList: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
@@ -741,20 +773,23 @@
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.textureAttributeMapList.length;
         },
         getTextureAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( unit, attribute )</span> {</span>
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ] === <span class="hljs-literal">undefined</span> || <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ][ attribute ] === <span class="hljs-literal">undefined</span> ) {
-                <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
-            }
-            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ][ attribute ].getAttribute();
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ] === <span class="hljs-literal">undefined</span> ) <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+
+            <span class="hljs-keyword">var</span> textureMap = <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ];
+            <span class="hljs-keyword">if</span> ( textureMap[ attribute ] === <span class="hljs-literal">undefined</span> ) <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+
+            <span class="hljs-keyword">return</span> textureMap[ attribute ].getAttribute();
         },
 
         removeTextureAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( unit, attributeName )</span> {</span>
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ] === <span class="hljs-literal">undefined</span> || <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ][ attributeName ] === <span class="hljs-literal">undefined</span> ) {
-                <span class="hljs-keyword">return</span>;
-            }
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ] === <span class="hljs-literal">undefined</span> ) <span class="hljs-keyword">return</span>;
 
-            <span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ][ attributeName ];
-            <span class="hljs-keyword">var</span> idx = <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ].attributeKeys.indexOf( attributeName );
-            <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ].attributeKeys.splice( idx, <span class="hljs-number">1</span> );
+            <span class="hljs-keyword">var</span> textureAttributeMap = <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ];
+            <span class="hljs-keyword">if</span> ( textureAttributeMap[ attributeName ] === <span class="hljs-literal">undefined</span> ) <span class="hljs-keyword">return</span>;
+
+
+            <span class="hljs-keyword">delete</span> textureAttributeMap[ attributeName ];
+            <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ].dirty();
         },
 
         getAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attributeType )</span> {</span>
@@ -763,6 +798,7 @@
             }
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.attributeMap[ attributeType ].getAttribute();
         },
+
         setAttributeAndMode: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attribute, mode )</span> {</span>
             <span class="hljs-keyword">if</span> ( mode === <span class="hljs-literal">undefined</span> ) {
                 mode = StateAttribute.ON;
@@ -774,13 +810,26 @@
                 mode = StateAttribute.ON;
             }
             <span class="hljs-keyword">this</span>._setAttribute( <span class="hljs-keyword">this</span>.getAttributePair( attribute, mode ) );
-        },
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>TODO: check if it’s an attribute type or a attribute to remove it</p>
 
-        removeAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attributeName )</span> {</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        removeAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attributeName )</span> {</span>
+
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.attributeMap[ attributeName ] !== <span class="hljs-literal">undefined</span> ) {
                 <span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>.attributeMap[ attributeName ];
-                <span class="hljs-keyword">var</span> idx = <span class="hljs-keyword">this</span>.attributeMap.attributeKeys.indexOf( attributeName );
-                <span class="hljs-keyword">this</span>.attributeMap.attributeKeys.splice( idx, <span class="hljs-number">1</span> );
+                <span class="hljs-keyword">this</span>.attributeMap.dirty();
             }
         },
 
@@ -792,6 +841,21 @@
             } <span class="hljs-keyword">else</span> {
                 <span class="hljs-keyword">this</span>.setRenderBinDetails( <span class="hljs-number">0</span>, <span class="hljs-string">''</span> );
             }
+        },
+
+        getUpdateCallbackList: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._updateCallbackList;
+        },
+        removeUpdateCallback: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( cb )</span> {</span>
+            <span class="hljs-keyword">var</span> arrayIdx = <span class="hljs-keyword">this</span>._updateCallbackList.indexOf( cb );
+            <span class="hljs-keyword">if</span> ( arrayIdx !== -<span class="hljs-number">1</span> )
+                <span class="hljs-keyword">this</span>._updateCallbackList.splice( arrayIdx, <span class="hljs-number">1</span> );
+        },
+        addUpdateCallback: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( cb )</span> {</span>
+            <span class="hljs-keyword">this</span>._updateCallbackList.push( cb );
+        },
+        hasUpdateCallback: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( cb )</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._updateCallbackList.indexOf( cb ) !== -<span class="hljs-number">1</span>;
         },
 
         setRenderBinDetails: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( num, binName )</span> {</span>
@@ -814,12 +878,13 @@
             <span class="hljs-keyword">this</span>._binName = binName;
         },
         getAttributeList: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            <span class="hljs-keyword">var</span> attributes = <span class="hljs-keyword">this</span>.attributeMap;
-            <span class="hljs-keyword">var</span> keys = attributes.attributeKeys;
-            <span class="hljs-keyword">var</span> l = keys.length;
-            <span class="hljs-keyword">var</span> list = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( l );
+            <span class="hljs-keyword">var</span> attributeMap = <span class="hljs-keyword">this</span>.attributeMap;
+            <span class="hljs-keyword">var</span> attributeMapKeys = attributeMap.getKeys();
+
+            <span class="hljs-keyword">var</span> l = attributeMapKeys.length;
+            <span class="hljs-keyword">var</span> list = [];
             <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; l; i++ ) {
-                list[ i ] = attributes[ keys[ i ] ];
+                list.push( attributeMap[ attributeMapKeys[ i ] ] );
             }
             <span class="hljs-keyword">return</span> list;
         },
@@ -836,31 +901,6 @@
         </li>
         
         
-        <li id="section-2">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-2">&#182;</a>
-              </div>
-              <p>for internal use, you should not call it directly</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>        _setTextureAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( unit, attributePair )</span> {</span>
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ] === <span class="hljs-literal">undefined</span> ) {
-                <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ] = {};
-                <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ].attributeKeys = [];
-            }
-            <span class="hljs-keyword">var</span> name = attributePair.getAttribute().getTypeMember();
-            <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ][ name ] = attributePair;
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ].attributeKeys.indexOf( name ) === -<span class="hljs-number">1</span> ) {
-                <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ].attributeKeys.push( name );
-            }
-        },</pre></div></div>
-            
-        </li>
-        
-        
         <li id="section-3">
             <div class="annotation">
               
@@ -871,12 +911,39 @@
 
             </div>
             
+            <div class="content"><div class='highlight'><pre>        _setTextureAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( unit, attributePair )</span> {</span>
+
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ] === <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ] = <span class="hljs-keyword">new</span> Map();
+            }
+
+            <span class="hljs-keyword">var</span> name = attributePair.getAttribute().getTypeMember();
+            <span class="hljs-keyword">var</span> textureUnitAttributeMap = <span class="hljs-keyword">this</span>.textureAttributeMapList[ unit ];
+
+            textureUnitAttributeMap[ name ] = attributePair;
+            textureUnitAttributeMap.dirty();
+
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>for internal use, you should not call it directly</p>
+
+            </div>
+            
             <div class="content"><div class='highlight'><pre>        _setAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attributePair )</span> {</span>
+
             <span class="hljs-keyword">var</span> name = attributePair.getAttribute().getTypeMember();
             <span class="hljs-keyword">this</span>.attributeMap[ name ] = attributePair;
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.attributeMap.attributeKeys.indexOf( name ) === -<span class="hljs-number">1</span> ) {
-                <span class="hljs-keyword">this</span>.attributeMap.attributeKeys.push( name );
-            }
+            <span class="hljs-keyword">this</span>.attributeMap.dirty();
+
         }
 
     } ), <span class="hljs-string">'osg'</span>, <span class="hljs-string">'StateSet'</span> );

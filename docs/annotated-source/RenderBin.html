@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -631,11 +666,6 @@
               
               <a class="source" href="Q.html">
                 Q.js
-              </a>
-            
-              
-              <a class="source" href="vr.html">
-                vr.js
               </a>
             
           </div>
@@ -821,7 +851,7 @@
             <span class="hljs-keyword">this</span>._leafs.length = <span class="hljs-number">0</span>;
             <span class="hljs-keyword">this</span>._sorted = <span class="hljs-literal">false</span>;
         },
-        applyPositionedAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state, positionedAttibutes )</span> {</span></pre></div></div>
+        applyPositionedAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state, positionedAttributes )</span> {</span></pre></div></div>
             
         </li>
         
@@ -836,8 +866,8 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> index = <span class="hljs-number">0</span>, l = positionedAttibutes.length; index &lt; l; index++ ) {
-                <span class="hljs-keyword">var</span> element = positionedAttibutes[ index ];</pre></div></div>
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> index = <span class="hljs-number">0</span>, l = positionedAttributes.length; index &lt; l; index++ ) {
+                <span class="hljs-keyword">var</span> element = positionedAttributes[ index ];</pre></div></div>
             
         </li>
         
@@ -936,16 +966,61 @@
             <span class="hljs-keyword">return</span> previous;
         },
 
+        drawGeometry: ( <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> normal = Matrix.create();
+            <span class="hljs-keyword">var</span> modelViewUniform, projectionUniform, normalUniform, program;
+
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( state, leaf, push )</span> {</span>
+
+                <span class="hljs-keyword">var</span> gl = state.getGraphicContext();
+
+                <span class="hljs-keyword">if</span> ( push === <span class="hljs-literal">true</span> ) {
+
+                    state.apply();
+                    program = state.getLastProgramApplied();
+
+                    modelViewUniform = program.uniformsCache[ state.modelViewMatrix.name ];
+                    projectionUniform = program.uniformsCache[ state.projectionMatrix.name ];
+                    normalUniform = program.uniformsCache[ state.normalMatrix.name ];
+                }
+
+
+                <span class="hljs-keyword">if</span> ( modelViewUniform !== <span class="hljs-literal">undefined</span> ) {
+                    state.modelViewMatrix.set( leaf.modelview );
+                    state.modelViewMatrix.apply( gl, modelViewUniform );
+                }
+
+                <span class="hljs-keyword">if</span> ( projectionUniform !== <span class="hljs-literal">undefined</span> ) {
+                    state.projectionMatrix.set( leaf.projection );
+                    state.projectionMatrix.apply( gl, projectionUniform );
+                }
+
+                <span class="hljs-keyword">if</span> ( normalUniform !== <span class="hljs-literal">undefined</span> ) {
+                    Matrix.copy( leaf.modelview, normal );
+                    normal[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0.0</span>;
+                    normal[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0.0</span>;
+                    normal[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0.0</span>;
+
+                    Matrix.inverse( normal, normal );
+                    Matrix.transpose( normal, normal );
+                    state.normalMatrix.set( normal );
+                    state.normalMatrix.apply( gl, normalUniform );
+                }
+
+                leaf.geometry.drawImplementation( state );
+
+                <span class="hljs-keyword">if</span> ( push === <span class="hljs-literal">true</span> ) {
+                    state.popGeneratedProgram();
+                    state.popStateSet();
+                }
+
+            };
+        })(),
+
         drawLeafs: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state, previousRenderLeaf )</span> {</span>
-            <span class="hljs-keyword">var</span> gl = state.getGraphicContext();
             <span class="hljs-keyword">var</span> stateList = <span class="hljs-keyword">this</span>.stateGraphList;
             <span class="hljs-keyword">var</span> leafs = <span class="hljs-keyword">this</span>._leafs;
-            <span class="hljs-keyword">var</span> normalUniform;
-            <span class="hljs-keyword">var</span> modelViewUniform;
-            <span class="hljs-keyword">var</span> projectionUniform;
-            <span class="hljs-keyword">var</span> program;
             <span class="hljs-keyword">var</span> previousLeaf = previousRenderLeaf;
-            <span class="hljs-keyword">var</span> normal = [];
 
             <span class="hljs-keyword">if</span> ( previousLeaf ) {
                 StateGraph.prototype.moveToRootStateGraph( state, previousRenderLeaf.parent );
@@ -1031,7 +1106,10 @@
                     push = <span class="hljs-literal">true</span>;
                 }
 
-                <span class="hljs-keyword">if</span> ( push === <span class="hljs-literal">true</span> ) {</pre></div></div>
+                <span class="hljs-keyword">this</span>.drawGeometry( state, leaf, push );
+
+                previousLeaf = leaf;
+            }</pre></div></div>
             
         </li>
         
@@ -1041,72 +1119,6 @@
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-13">&#182;</a>
-              </div>
-              <p>state.pushGeneratedProgram();</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>                    state.apply();
-                    program = state.getLastProgramApplied();
-
-                    modelViewUniform = program.uniformsCache[ state.modelViewMatrix.name ];
-                    projectionUniform = program.uniformsCache[ state.projectionMatrix.name ];
-                    normalUniform = program.uniformsCache[ state.normalMatrix.name ];
-                }
-
-
-                <span class="hljs-keyword">if</span> ( modelViewUniform !== <span class="hljs-literal">undefined</span> ) {
-                    state.modelViewMatrix.set( leaf.modelview );
-                    state.modelViewMatrix.apply( gl, modelViewUniform );
-                }
-                <span class="hljs-keyword">if</span> ( projectionUniform !== <span class="hljs-literal">undefined</span> ) {
-                    state.projectionMatrix.set( leaf.projection );
-                    state.projectionMatrix.apply( gl, projectionUniform );
-                }
-                <span class="hljs-keyword">if</span> ( normalUniform !== <span class="hljs-literal">undefined</span> ) {
-                    Matrix.copy( leaf.modelview, normal );</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-14">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
-              </div>
-              <p>Matrix.setTrans(normal, 0, 0, 0);</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>                    normal[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0</span>;
-                    normal[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0</span>;
-                    normal[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0</span>;
-
-                    Matrix.inverse( normal, normal );
-                    Matrix.transpose( normal, normal );
-                    state.normalMatrix.set( normal );
-                    state.normalMatrix.apply( gl, normalUniform );
-                }
-
-                leaf.geometry.drawImplementation( state );
-
-                <span class="hljs-keyword">if</span> ( push === <span class="hljs-literal">true</span> ) {
-                    state.popGeneratedProgram();
-                    state.popStateSet();
-                }
-
-                previousLeaf = leaf;
-            }</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-15">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>draw coarse grained ordering.</p>
 
@@ -1123,11 +1135,11 @@
         </li>
         
         
-        <li id="section-16">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <p>apply state if required.</p>
 
@@ -1142,11 +1154,11 @@
         </li>
         
         
-        <li id="section-17">
+        <li id="section-15">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>send state changes and matrix changes to OpenGL.</p>
 
@@ -1159,11 +1171,11 @@
         </li>
         
         
-        <li id="section-18">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <p>send state changes and matrix changes to OpenGL.</p>
 
@@ -1179,70 +1191,7 @@
                         push = <span class="hljs-literal">true</span>;
                     }
 
-                    <span class="hljs-keyword">if</span> ( push === <span class="hljs-literal">true</span> ) {</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-19">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
-              </div>
-              <p>state.pushGeneratedProgram();</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>                        state.apply();
-                        program = state.getLastProgramApplied();
-
-                        modelViewUniform = program.uniformsCache[ state.modelViewMatrix.name ];
-                        projectionUniform = program.uniformsCache[ state.projectionMatrix.name ];
-                        normalUniform = program.uniformsCache[ state.normalMatrix.name ];
-                    }
-
-
-                    <span class="hljs-keyword">if</span> ( modelViewUniform !== <span class="hljs-literal">undefined</span> ) {
-                        state.modelViewMatrix.set( leaf.modelview );
-                        state.modelViewMatrix.apply( gl, modelViewUniform );
-                    }
-                    <span class="hljs-keyword">if</span> ( projectionUniform !== <span class="hljs-literal">undefined</span> ) {
-                        state.projectionMatrix.set( leaf.projection );
-                        state.projectionMatrix.apply( gl, projectionUniform );
-                    }
-                    <span class="hljs-keyword">if</span> ( normalUniform !== <span class="hljs-literal">undefined</span> ) {
-                        Matrix.copy( leaf.modelview, normal );</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-20">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
-              </div>
-              <p>Matrix.setTrans(normal, 0, 0, 0);</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>                        normal[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0</span>;
-                        normal[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0</span>;
-                        normal[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0</span>;
-
-                        Matrix.inverse( normal, normal );
-                        Matrix.transpose( normal, normal );
-                        state.normalMatrix.set( normal );
-                        state.normalMatrix.apply( gl, normalUniform );
-                    }
-
-                    leaf.geometry.drawImplementation( state );
-
-                    <span class="hljs-keyword">if</span> ( push === <span class="hljs-literal">true</span> ) {
-                        state.popGeneratedProgram();
-                        state.popStateSet();
-                    }
+                    <span class="hljs-keyword">this</span>.drawGeometry( state, leaf, push );
 
                     previousLeaf = leaf;
                 }

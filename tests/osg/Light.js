@@ -49,7 +49,9 @@ define( [
 
 
             ( function () {
-
+                var canvas = mockup.createCanvas();
+                var viewer = new Viewer( canvas );
+                viewer.init();
                 var root = new Node();
                 var node0 = new Node();
                 var node1 = new Node();
@@ -84,16 +86,18 @@ define( [
 
                 node1.addChild( q );
                 node1.getOrCreateStateSet().setAttributeAndMode( ld0 );
-
-                var cull = new CullVisitor();
+                viewer.frame();
+               
+                var cull = viewer._cullVisitor;
                 var rs = new RenderStage();
                 var sg = new StateGraph();
-                cull.pushProjectionMatrix( Matrix.makeIdentity( [] ) );
-                cull.pushModelviewMatrix( Matrix.makeIdentity( [] ) );
+                cull.pushProjectionMatrix( Matrix.create() );
+                cull.pushModelviewMatrix( Matrix.create() );
                 cull.setRenderStage( rs );
                 cull.setStateGraph( sg );
 
                 root.accept( cull );
+                mockup.removeCanvas( canvas );
             } )();
 
             ok( true, 'check no exception' );

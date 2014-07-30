@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -677,8 +707,9 @@
     <span class="hljs-string">'osg/Shader'</span>,
     <span class="hljs-string">'osg/Shape'</span>,
     <span class="hljs-string">'osg/TransformEnums'</span>,
+    <span class="hljs-string">'osg/Vec2'</span>,
     <span class="hljs-string">'osg/Vec3'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, MACROUTILS, Node, Depth, Texture, Camera, FrameBufferObject, Viewport, Matrix,  Uniform, StateSet, Program, Shader, Shape, TransformEnums, Vec3 )</span> {</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, MACROUTILS, Node, Depth, Texture, Camera, FrameBufferObject, Viewport, Matrix,  Uniform, StateSet, Program, Shader, Shape, TransformEnums, Vec2, Vec3 )</span> {</span>
 
     <span class="hljs-comment">/*
      Composer is an helper to create post fx. The idea is to push one or more textures into a pipe of shader filter.
@@ -902,7 +933,7 @@ this part exist to manage the Composer.Filter.InputTexture that setup the first 
             </div>
             
             <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">var</span> camera = <span class="hljs-keyword">new</span> Camera();
-                camera.setClearMask( <span class="hljs-number">0</span> );
+                camera.setStateSet( element.filter.getStateSet() );
 
                 <span class="hljs-keyword">var</span> texture;
                 <span class="hljs-keyword">var</span> quad;
@@ -920,11 +951,9 @@ this part exist to manage the Composer.Filter.InputTexture that setup the first 
                 }
 
                 <span class="hljs-keyword">var</span> vp = <span class="hljs-keyword">new</span> Viewport( <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, w, h );
-                <span class="hljs-keyword">var</span> projection = Matrix.makeOrtho( -w / <span class="hljs-number">2</span>, w / <span class="hljs-number">2</span>, -h / <span class="hljs-number">2</span>, h / <span class="hljs-number">2</span>, -<span class="hljs-number">5</span>, <span class="hljs-number">5</span>, [] );
                 camera.setReferenceFrame( TransformEnums.ABSOLUTE_RF );
                 camera.setViewport( vp );
-                camera.setProjectionMatrix( projection );
-                camera.setStateSet( element.filter.getStateSet() );
+                Matrix.makeOrtho( -w / <span class="hljs-number">2</span>, w / <span class="hljs-number">2</span>, -h / <span class="hljs-number">2</span>, h / <span class="hljs-number">2</span>, -<span class="hljs-number">5</span>, <span class="hljs-number">5</span>, camera.getProjectionMatrix() );
 
                 quad = Shape.createTexturedQuadGeometry( -w / <span class="hljs-number">2</span>, -h / <span class="hljs-number">2</span>, <span class="hljs-number">0</span>,
                     w, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>,
@@ -1158,7 +1187,7 @@ this part exist to manage the Composer.Filter.InputTexture that setup the first 
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
-              <p>console.log(str);</p>
+              <p>Notify.log(str);</p>
 
             </div>
             
@@ -1700,7 +1729,7 @@ in the composer pipeline</p>
         stateSet.addUniform( <span class="hljs-keyword">this</span>._mixValueUniform );
     };
 
-    Composer.Filter.BlendMix = MACROUTILS.objectInehrit( Composer.Filter.prototype, {
+    Composer.Filter.BlendMix.prototype = MACROUTILS.objectInehrit( Composer.Filter.prototype, {
         getBlendFactorUniform: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._mixValueUniform;
         },
@@ -1821,16 +1850,15 @@ in the composer pipeline</p>
             <span class="hljs-keyword">var</span> sizeNoise = <span class="hljs-keyword">this</span>._noiseTextureSize;
             <span class="hljs-keyword">var</span> noise = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( sizeNoise * sizeNoise * <span class="hljs-number">3</span> );
             ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( array )</span> {</span>
+                <span class="hljs-keyword">var</span> n = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
                 <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; sizeNoise * sizeNoise; i++ ) {
-                    <span class="hljs-keyword">var</span> x, y, z;
-                    x = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
-                    y = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
-                    z = <span class="hljs-number">0.0</span>;
+                    n[ <span class="hljs-number">0</span> ] = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
+                    n[ <span class="hljs-number">1</span> ] = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
 
-                    <span class="hljs-keyword">var</span> n = Vec3.normalize( [ x, y, z ], [] );
+                    Vec2.normalize( n, n );
                     array[ i * <span class="hljs-number">3</span> + <span class="hljs-number">0</span> ] = <span class="hljs-number">255</span> * ( n[ <span class="hljs-number">0</span> ] * <span class="hljs-number">0.5</span> + <span class="hljs-number">0.5</span> );
                     array[ i * <span class="hljs-number">3</span> + <span class="hljs-number">1</span> ] = <span class="hljs-number">255</span> * ( n[ <span class="hljs-number">1</span> ] * <span class="hljs-number">0.5</span> + <span class="hljs-number">0.5</span> );
-                    array[ i * <span class="hljs-number">3</span> + <span class="hljs-number">2</span> ] = <span class="hljs-number">255</span> * ( n[ <span class="hljs-number">2</span> ] * <span class="hljs-number">0.5</span> + <span class="hljs-number">0.5</span> );
+                    array[ i * <span class="hljs-number">3</span> + <span class="hljs-number">2</span> ] = <span class="hljs-number">255</span> * <span class="hljs-number">0.5</span>;
                 }
             } )( noise );
 
@@ -1875,13 +1903,13 @@ in the composer pipeline</p>
             <span class="hljs-keyword">var</span> nbSamples = <span class="hljs-keyword">this</span>._nbSamples;
             <span class="hljs-keyword">var</span> kernel = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( nbSamples * <span class="hljs-number">4</span> );
             ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( array )</span> {</span>
+                <span class="hljs-keyword">var</span> v = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
                 <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; nbSamples; i++ ) {
-                    <span class="hljs-keyword">var</span> x, y, z;
-                    x = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
-                    y = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
-                    z = <span class="hljs-built_in">Math</span>.random();
+                    v[ <span class="hljs-number">0</span> ] = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
+                    v[ <span class="hljs-number">1</span> ] = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
+                    v[ <span class="hljs-number">2</span> ] = <span class="hljs-built_in">Math</span>.random();
 
-                    <span class="hljs-keyword">var</span> v = Vec3.normalize( [ x, y, z ], [] );
+                    Vec3.normalize( v, v );
                     <span class="hljs-keyword">var</span> scale = <span class="hljs-built_in">Math</span>.max( i / nbSamples, <span class="hljs-number">0.1</span> );
                     scale = <span class="hljs-number">0.1</span> + ( <span class="hljs-number">1.0</span> - <span class="hljs-number">0.1</span> ) * ( scale * scale );
                     array[ i * <span class="hljs-number">3</span> + <span class="hljs-number">0</span> ] = v[ <span class="hljs-number">0</span> ];
@@ -2045,13 +2073,13 @@ var ssaoRadiusStep = ( ssaoRadiusMax - ssaoRadiusMin ) / 200.0;</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>            ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( array )</span> {</span>
+                <span class="hljs-keyword">var</span> v = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
                 <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; nbSamples; i++ ) {
-                    <span class="hljs-keyword">var</span> x, y, z;
-                    x = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
-                    y = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
-                    z = <span class="hljs-built_in">Math</span>.random();
+                    v[ <span class="hljs-number">0</span> ] = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
+                    v[ <span class="hljs-number">1</span> ] = <span class="hljs-number">2.0</span> * ( <span class="hljs-built_in">Math</span>.random() - <span class="hljs-number">0.5</span> );
+                    v[ <span class="hljs-number">2</span> ] = <span class="hljs-built_in">Math</span>.random();
 
-                    <span class="hljs-keyword">var</span> v = Vec3.normalize( [ x, y, z ], [] );
+                    Vec3.normalize( v, v );
                     <span class="hljs-keyword">var</span> scale = <span class="hljs-built_in">Math</span>.max( i / nbSamples, <span class="hljs-number">0.1</span> );
                     scale = <span class="hljs-number">0.1</span> + ( <span class="hljs-number">1.0</span> - <span class="hljs-number">0.1</span> ) * ( scale * scale );
                     array[ i * <span class="hljs-number">3</span> + <span class="hljs-number">0</span> ] = v[ <span class="hljs-number">0</span> ];

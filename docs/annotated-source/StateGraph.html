@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -631,11 +666,6 @@
               
               <a class="source" href="Q.html">
                 Q.js
-              </a>
-            
-              
-              <a class="source" href="vr.html">
-                vr.js
               </a>
             
           </div>
@@ -745,14 +775,13 @@
             }
         },
         moveStateGraph: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state, sgCurrent, sgNew )</span> {</span>
-            <span class="hljs-keyword">var</span> stack;
-            <span class="hljs-keyword">var</span> i,l;
+            <span class="hljs-keyword">var</span> stack = [];
+            <span class="hljs-keyword">var</span> i, l;
             <span class="hljs-keyword">if</span> ( sgNew === sgCurrent || sgNew === <span class="hljs-literal">undefined</span> ) {
                 <span class="hljs-keyword">return</span>;
             }
 
-            <span class="hljs-keyword">if</span> ( sgCurrent === <span class="hljs-literal">undefined</span> ) {
-                stack = [];</pre></div></div>
+            <span class="hljs-keyword">if</span> ( sgCurrent === <span class="hljs-literal">undefined</span> ) {</pre></div></div>
             
         </li>
         
@@ -775,8 +804,7 @@ stateset from root to sgNew</p>
                     sgNew = sgNew.parent;
                 } <span class="hljs-keyword">while</span> ( sgNew );
 
-                stack.reverse();
-                <span class="hljs-keyword">for</span> ( i = <span class="hljs-number">0</span>, l = stack.length; i &lt; l; ++i ) {
+                <span class="hljs-keyword">for</span> ( i = stack.length - <span class="hljs-number">1</span>, l = <span class="hljs-number">0</span>; i &gt;= l; --i ) {
                     state.pushStateSet( stack[ i ] );
                 }
                 <span class="hljs-keyword">return</span>;
@@ -927,9 +955,7 @@ nodes have the same parent</p>
                 sgNew = sgNew.parent;
             }
 
-            stack.reverse();
-            <span class="hljs-keyword">var</span> stackLength = stack.length;
-            <span class="hljs-keyword">for</span> ( i = <span class="hljs-number">0</span>; i &lt; stackLength; ++i ) {
+            <span class="hljs-keyword">for</span> ( i = stack.length - <span class="hljs-number">1</span>, l = <span class="hljs-number">0</span>; i &gt;= l; --i ) {
                 state.pushStateSet( stack[ i ] );
             }
         }

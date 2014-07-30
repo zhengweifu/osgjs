@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -664,27 +694,76 @@
             <div class="content"><div class='highlight'><pre>define( [
     <span class="hljs-string">'osg/Utils'</span>,
     <span class="hljs-string">'osg/NodeVisitor'</span>,
-    <span class="hljs-string">'osg/FrameStamp'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, NodeVisitor, FrameStamp )</span> {</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, NodeVisitor )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
 
     <span class="hljs-keyword">var</span> UpdateVisitor = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
         NodeVisitor.call( <span class="hljs-keyword">this</span> );
-        <span class="hljs-keyword">var</span> framestamp = <span class="hljs-keyword">new</span> FrameStamp();
-        <span class="hljs-keyword">this</span>.getFrameStamp = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            <span class="hljs-keyword">return</span> framestamp;
-        };
-        <span class="hljs-keyword">this</span>.setFrameStamp = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( s )</span> {</span>
-            framestamp = s;
-        };
+        <span class="hljs-keyword">this</span>.visitorType = NodeVisitor.UPDATE_VISITOR;
     };
+
     UpdateVisitor.prototype = MACROUTILS.objectInehrit( NodeVisitor.prototype, {
-        apply: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
-            <span class="hljs-keyword">var</span> ncs = node.getUpdateCallbackList();
-            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; ncs.length; i++ ) {
-                <span class="hljs-keyword">if</span> ( !ncs[ i ].update( node, <span class="hljs-keyword">this</span> ) ) {
-                    <span class="hljs-keyword">return</span>;
+
+        apply: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>a way to avoid extra call is to implement getNumChildrenRequiringUpdateTraversal
+and stateset.requiresUpdateTraversal()</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>handle callback in stateset</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> stateSet = node.getStateSet();
+            <span class="hljs-keyword">if</span> ( stateSet ) {
+                <span class="hljs-keyword">var</span> updateCallbackList = stateSet.getUpdateCallbackList();
+
+                <span class="hljs-keyword">if</span> ( updateCallbackList.length )
+                    <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = updateCallbackList.length; i &lt; l; i++ )
+                        updateCallbackList[ i ].update( stateSet, <span class="hljs-keyword">this</span> );
+            }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>handle callback in nodes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> ncs = node.getUpdateCallbackList();
+            <span class="hljs-keyword">if</span> ( ncs.length )
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>, m = ncs.length; j &lt; m; j++ ) {
+                    <span class="hljs-keyword">if</span> ( !ncs[ j ].update( node, <span class="hljs-keyword">this</span> ) ) {
+                        <span class="hljs-keyword">return</span>;
+                    }
                 }
-            }
+
             <span class="hljs-keyword">this</span>.traverse( node );
         }
     } );

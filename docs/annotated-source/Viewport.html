@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -725,7 +755,10 @@
         height: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._height;
         },
-        computeWindowMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span></pre></div></div>
+        computeWindowMatrix: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> translate = Matrix.create();
+            <span class="hljs-keyword">var</span> scale = Matrix.create();
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span></pre></div></div>
             
         </li>
         
@@ -740,9 +773,9 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> translate = Matrix.makeTranslate( <span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span> );
-            <span class="hljs-keyword">var</span> scale = Matrix.makeScale( <span class="hljs-number">0.5</span> * <span class="hljs-keyword">this</span>._width, <span class="hljs-number">0.5</span> * <span class="hljs-keyword">this</span>._height, <span class="hljs-number">0.5</span> );
-            <span class="hljs-keyword">var</span> offset = Matrix.makeTranslate( <span class="hljs-keyword">this</span>._x, <span class="hljs-keyword">this</span>._y, <span class="hljs-number">0.0</span> );</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                Matrix.makeTranslate( <span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>, translate );
+                Matrix.makeScale( <span class="hljs-number">0.5</span> * <span class="hljs-keyword">this</span>._width, <span class="hljs-number">0.5</span> * <span class="hljs-keyword">this</span>._height, <span class="hljs-number">0.5</span>, scale );
+                <span class="hljs-keyword">var</span> offset = Matrix.makeTranslate( <span class="hljs-keyword">this</span>._x, <span class="hljs-keyword">this</span>._y, <span class="hljs-number">0.0</span>, Matrix.create() );</pre></div></div>
             
         </li>
         
@@ -757,8 +790,9 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">return</span> Matrix.preMult( offset, Matrix.preMult( scale, translate ) );
-        }
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">return</span> Matrix.preMult( offset, Matrix.preMult( scale, translate ) );
+            };
+        } )()
     } ), <span class="hljs-string">'osg'</span>, <span class="hljs-string">'Viewport'</span> );
 
     <span class="hljs-keyword">return</span> Viewport;

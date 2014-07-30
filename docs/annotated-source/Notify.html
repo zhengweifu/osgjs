@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -669,7 +699,9 @@
     Notify.INFO = <span class="hljs-number">1</span>;
     Notify.NOTICE = <span class="hljs-number">2</span>;
     Notify.WARN = <span class="hljs-number">3</span>;
-    Notify.ERROR = <span class="hljs-number">4</span>;</pre></div></div>
+    Notify.ERROR = <span class="hljs-number">4</span>;
+
+    Notify.console = window.console;</pre></div></div>
             
         </li>
         
@@ -687,6 +719,10 @@
             <div class="content"><div class='highlight'><pre>    <span class="hljs-comment">/** Obtain a stacktrace from the current stack http://eriwen.com/javascript/js-stack-trace/
      */</span>
     <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getStackTrace</span><span class="hljs-params">( err )</span> {</span>
+		<span class="hljs-keyword">if</span> (Notify.console &amp;&amp; Notify.console.trace){
+			Notify.console.trace();
+			<span class="hljs-keyword">return</span> <span class="hljs-string">''</span>;
+        }
         <span class="hljs-keyword">var</span> callstack = [];
         <span class="hljs-keyword">try</span> {
             <span class="hljs-keyword">if</span> ( <span class="hljs-built_in">arguments</span>.length === <span class="hljs-number">1</span> ) {
@@ -745,32 +781,32 @@
     Notify.setNotifyLevel = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( level )</span> {</span>
 
         <span class="hljs-keyword">var</span> log = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( str )</span> {</span>
-            <span class="hljs-keyword">if</span> ( window.console !== <span class="hljs-literal">undefined</span> ) {
-                window.console.log( str, getStackTrace() );
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.console !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>.console.log( str, getStackTrace() );
             }
         };
 
         <span class="hljs-keyword">var</span> info = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( str )</span> {</span>
-            <span class="hljs-keyword">if</span> ( window.console !== <span class="hljs-literal">undefined</span> ) {
-                window.console.info( str, getStackTrace() );
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.console !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>.console.info( str, getStackTrace() );
             }
         };
 
         <span class="hljs-keyword">var</span> warn = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( str )</span> {</span>
-            <span class="hljs-keyword">if</span> ( window.console !== <span class="hljs-literal">undefined</span> ) {
-                window.console.warn( str, getStackTrace() );
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.console !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>.console.warn( str, getStackTrace() );
             }
         };
 
         <span class="hljs-keyword">var</span> error = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( str )</span> {</span>
-            <span class="hljs-keyword">if</span> ( window.console !== <span class="hljs-literal">undefined</span> ) {
-                window.console.error( str, getStackTrace() );
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.console !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>.console.error( str, getStackTrace() );
             }
         };
 
         <span class="hljs-keyword">var</span> debug = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( str )</span> {</span>
-            <span class="hljs-keyword">if</span> ( window.console !== <span class="hljs-literal">undefined</span> ) {
-                window.console.debug( str, getStackTrace() );
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.console !== <span class="hljs-literal">undefined</span> ) {
+                <span class="hljs-keyword">this</span>.console.debug( str, getStackTrace() );
             }
         };
 
@@ -778,7 +814,7 @@
 
         Notify.debug = dummy;
         Notify.info = dummy;
-        Notify.log = dummy;
+        Notify.log = Notify.notice = dummy;
         Notify.warn = dummy;
         Notify.error = dummy;
 
@@ -789,7 +825,7 @@
             Notify.info = info;
         }
         <span class="hljs-keyword">if</span> ( level &lt;= Notify.NOTICE ) {
-            Notify.log = log;
+            Notify.log = Notify.notice = log;
         }
         <span class="hljs-keyword">if</span> ( level &lt;= Notify.WARN ) {
             Notify.warn = warn;
@@ -802,6 +838,10 @@
     Notify.setNotifyLevel( Notify.NOTICE );
 
     Notify.reportWebGLError = <span class="hljs-literal">false</span>;
+
+    Notify.setConsole = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( replacement )</span> {</span>
+        Notify.console = replacement;
+    };
 
     <span class="hljs-keyword">return</span> Notify;
 } );</pre></div></div>

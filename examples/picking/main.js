@@ -84,7 +84,7 @@ function getShader() {
         new osg.Shader( osg.Shader.FRAGMENT_SHADER, fragmentshader ) );
 
     return program;
-}
+};
 
 function loadUrl( url, viewer, node, unifs ) {
     osg.log( 'loading ' + url );
@@ -126,7 +126,6 @@ function loadModel( data, viewer, node, unifs ) {
 };
 
 function createScene( viewer, unifs ) {
-    var canvas = document.getElementById( '3DView' );
 
     var root = new osg.Node();
 
@@ -147,8 +146,8 @@ function createScene( viewer, unifs ) {
 };
 
 function projectToScreen( cam, hit ) {
-    var mat = osg.Matrix.makeIdentity( [] );
-    osg.Matrix.preMult( mat, cam.getViewport() ? cam.getViewport().computeWindowMatrix() : osg.Matrix.makeIdentity( [] ) );
+    var mat = osg.Matrix.create();
+    osg.Matrix.preMult( mat, cam.getViewport() ? cam.getViewport().computeWindowMatrix() : osg.Matrix.create() );
     osg.Matrix.preMult( mat, cam.getProjectionMatrix() );
     osg.Matrix.preMult( mat, cam.getViewMatrix() );
     osg.Matrix.preMult( mat, osg.computeLocalToWorld( hit.nodepath ) );
@@ -162,9 +161,7 @@ window.addEventListener( 'load',
     function() {
         OSG.globalify();
 
-        var canvas = document.getElementById( '3DView' );
-        canvas.style.width = canvas.width = window.innerWidth;
-        canvas.style.height = canvas.height = window.innerHeight;
+        var canvas = document.getElementById( 'View' );
 
         var unifs = {
             center: osg.Uniform.createFloat3( new Float32Array( 3 ), 'uCenterPicking' ),
@@ -182,7 +179,12 @@ window.addEventListener( 'load',
             // TODO maybe doing some benchmark with a lot of geometry,
             // since there's one kdtree per geometry ...
             // console.time( 'pick' );
-            var hits = viewer.computeIntersections( ev.clientX, canvas.height - ev.clientY );
+
+            // take care of retina display canvas size
+            var ratioX = canvas.width / canvas.clientWidth;
+            var ratioY = canvas.height / canvas.clientHeight;
+
+            var hits = viewer.computeIntersections( ev.clientX * ratioX, (canvas.clientHeight - ev.clientY) * ratioY );
             // console.timeEnd( 'pick' );
             // console.log( hits.length );
 
@@ -199,8 +201,8 @@ window.addEventListener( 'load',
 
                 var pt = projectToScreen( viewer.getCamera(), hits[ 0 ] );
 
-                var ptx = parseInt( pt[ 0 ], 10 );
-                var pty = parseInt( canvas.height - pt[ 1 ], 10 );
+                var ptx = parseInt( pt[ 0 ], 10 ) / ratioX;
+                var pty = parseInt( canvas.height - pt[ 1 ], 10 ) / ratioY;
                 var d = document.getElementById( 'picking' );
                 d.innerText = 'x: ' + ptx + ' ' + 'y: ' + pty + '\n' + ptFixed;
                 d.style.webkitTransform = 'translate3d(' + ptx + 'px,' + pty + 'px,0)';

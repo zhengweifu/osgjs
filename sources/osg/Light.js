@@ -4,10 +4,11 @@ define( [
     'osg/Uniform',
     'osg/Matrix',
     'osg/Vec4',
-    'osg/ShaderGenerator'
-], function ( MACROUTILS, StateAttribute, Uniform, Matrix, Vec4, ShaderGenerator ) {
+    'osg/ShaderGenerator',
+    'osg/Map'
+], function ( MACROUTILS, StateAttribute, Uniform, Matrix, Vec4, ShaderGenerator, Map ) {
 
-        /**
+    /**
      *  Light
      *  @class Light
      */
@@ -51,8 +52,12 @@ define( [
             var uniforms = Light.uniforms;
             var typeMember = this.getTypeMember();
             if ( uniforms[ typeMember ] === undefined ) {
+
+                var map = new Map();
+                uniforms[ typeMember ] = map;
+
                 var uFact = Uniform;
-                uniforms[ typeMember ] = {
+                map.setMap( {
                     'ambient': uFact.createFloat4( [ 0.2, 0.2, 0.2, 1 ], this.getUniformName( 'ambient' ) ),
                     'diffuse': uFact.createFloat4( [ 0.8, 0.8, 0.8, 1 ], this.getUniformName( 'diffuse' ) ),
                     'specular': uFact.createFloat4( [ 0.2, 0.2, 0.2, 1 ], this.getUniformName( 'specular' ) ),
@@ -64,11 +69,10 @@ define( [
                     'linearAttenuation': uFact.createFloat1( 0, this.getUniformName( 'linearAttenuation' ) ),
                     'quadraticAttenuation': uFact.createFloat1( 0, this.getUniformName( 'quadraticAttenuation' ) ),
                     'enable': uFact.createInt1( 0, this.getUniformName( 'enable' ) ),
-                    'matrix': uFact.createMatrix4( Matrix.makeIdentity( [] ), this.getUniformName( 'matrix' ) ),
-                    'invMatrix': uFact.createMatrix4( Matrix.makeIdentity( [] ), this.getUniformName( 'invMatrix' ) )
-                };
 
-                uniforms[ typeMember ].uniformKeys = window.Object.keys( uniforms[ typeMember ] );
+                    'matrix': uFact.createMatrix4( Matrix.create(), this.getUniformName( 'matrix' ) ),
+                    'invMatrix': uFact.createMatrix4( Matrix.create(), this.getUniformName( 'invMatrix' ) )
+                });
             }
             return uniforms[ typeMember ];
         },
@@ -149,43 +153,43 @@ define( [
         },
 
         applyPositionedUniform: function ( matrix /*, state */ ) {
-            var uniform = this.getOrCreateUniforms();
-            Matrix.copy( matrix, uniform.matrix.get() );
-            uniform.matrix.dirty();
+            var uniformMap = this.getOrCreateUniforms();
+            Matrix.copy( matrix, uniformMap.matrix.get() );
+            uniformMap.matrix.dirty();
 
-            Matrix.copy( matrix, uniform.invMatrix.get() );
-            uniform.invMatrix.get()[ 12 ] = 0;
-            uniform.invMatrix.get()[ 13 ] = 0;
-            uniform.invMatrix.get()[ 14 ] = 0;
-            Matrix.inverse( uniform.invMatrix.get(), uniform.invMatrix.get() );
-            Matrix.transpose( uniform.invMatrix.get(), uniform.invMatrix.get() );
-            uniform.invMatrix.dirty();
+            Matrix.copy( matrix, uniformMap.invMatrix.get() );
+            uniformMap.invMatrix.get()[ 12 ] = 0;
+            uniformMap.invMatrix.get()[ 13 ] = 0;
+            uniformMap.invMatrix.get()[ 14 ] = 0;
+            Matrix.inverse( uniformMap.invMatrix.get(), uniformMap.invMatrix.get() );
+            Matrix.transpose( uniformMap.invMatrix.get(), uniformMap.invMatrix.get() );
+            uniformMap.invMatrix.dirty();
         },
 
         apply: function ( /*state*/ ) {
-            var light = this.getOrCreateUniforms();
+            var uniformMap = this.getOrCreateUniforms();
 
-            light.ambient.set( this._ambient );
-            light.diffuse.set( this._diffuse );
-            light.specular.set( this._specular );
-            light.position.set( this._position );
-            light.direction.set( this._direction );
+            uniformMap.ambient.set( this._ambient );
+            uniformMap.diffuse.set( this._diffuse );
+            uniformMap.specular.set( this._specular );
+            uniformMap.position.set( this._position );
+            uniformMap.direction.set( this._direction );
 
             var spotsize = Math.cos( this._spotCutoff * Math.PI / 180.0 );
-            light.spotCutoff.get()[ 0 ] = spotsize;
-            light.spotCutoff.dirty();
+            uniformMap.spotCutoff.get()[ 0 ] = spotsize;
+            uniformMap.spotCutoff.dirty();
 
-            light.spotBlend.get()[ 0 ] = ( 1.0 - spotsize ) * this._spotBlend;
-            light.spotBlend.dirty();
+            uniformMap.spotBlend.get()[ 0 ] = ( 1.0 - spotsize ) * this._spotBlend;
+            uniformMap.spotBlend.dirty();
 
-            light.constantAttenuation.get()[ 0 ] = this._constantAttenuation;
-            light.constantAttenuation.dirty();
+            uniformMap.constantAttenuation.get()[ 0 ] = this._constantAttenuation;
+            uniformMap.constantAttenuation.dirty();
 
-            light.linearAttenuation.get()[ 0 ] = this._linearAttenuation;
-            light.linearAttenuation.dirty();
+            uniformMap.linearAttenuation.get()[ 0 ] = this._linearAttenuation;
+            uniformMap.linearAttenuation.dirty();
 
-            light.quadraticAttenuation.get()[ 0 ] = this._quadraticAttenuation;
-            light.quadraticAttenuation.dirty();
+            uniformMap.quadraticAttenuation.get()[ 0 ] = this._quadraticAttenuation;
+            uniformMap.quadraticAttenuation.dirty();
 
             //light._enable.set([this.enable]);
 
@@ -394,8 +398,8 @@ define( [
         ].join( '\n' );
 
         // replace Light_xxxx by instance variable of 'this' light
-        var uniforms = window.Object.keys( this.getOrCreateUniforms() );
-        str = this._replace( 'Light_', uniforms, str, this.getUniformName );
+        var uniformMapKeys = this.getOrCreateUniforms().getKeys();
+        str = this._replace( 'Light_', uniformMapKeys, str, this.getUniformName );
         return str;
     };
 
@@ -434,8 +438,8 @@ define( [
             'attenuation'
         ];
         str = this._replace( '', fields, str, this.getParameterName );
-        var uniforms = window.Object.keys( this.getOrCreateUniforms() );
-        str = this._replace( 'Light_', uniforms, str, this.getUniformName );
+        var uniformMapKeys = this.getOrCreateUniforms().getKeys();
+        str = this._replace( 'Light_', uniformMapKeys, str, this.getUniformName );
         return str;
     };
 

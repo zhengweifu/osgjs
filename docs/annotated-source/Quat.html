@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -661,10 +691,16 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre>define( [], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <div class="content"><div class='highlight'><pre>define( [
+    <span class="hljs-string">'osg/Vec3'</span>,
+    <span class="hljs-string">'osg/Notify'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Vec3, Notify )</span> {</span>
 
     <span class="hljs-comment">/** @class Quaternion Operations */</span>
     <span class="hljs-keyword">var</span> Quat = {
+        create: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> ];
+        },
         copy: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( s, d )</span> {</span>
             d[ <span class="hljs-number">0</span> ] = s[ <span class="hljs-number">0</span> ];
             d[ <span class="hljs-number">1</span> ] = s[ <span class="hljs-number">1</span> ];
@@ -680,10 +716,10 @@
         },
 
         init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( element )</span> {</span>
-            element[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0</span>;
-            element[ <span class="hljs-number">1</span> ] = <span class="hljs-number">0</span>;
-            element[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0</span>;
-            element[ <span class="hljs-number">3</span> ] = <span class="hljs-number">1</span>;
+            element[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0.0</span>;
+            element[ <span class="hljs-number">1</span> ] = <span class="hljs-number">0.0</span>;
+            element[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0.0</span>;
+            element[ <span class="hljs-number">3</span> ] = <span class="hljs-number">1.0</span>;
             <span class="hljs-keyword">return</span> element;
         },
 
@@ -720,19 +756,20 @@
         },
 
         makeRotate: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( angle, x, y, z, result )</span> {</span>
+            <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
+                result = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            }
+
             <span class="hljs-keyword">var</span> epsilon = <span class="hljs-number">0.0000001</span>;
             <span class="hljs-keyword">var</span> length = <span class="hljs-built_in">Math</span>.sqrt( x * x + y * y + z * z );
             <span class="hljs-keyword">if</span> ( length &lt; epsilon ) {
-                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.init();
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.init( result );
             }
 
             <span class="hljs-keyword">var</span> inversenorm = <span class="hljs-number">1.0</span> / length;
             <span class="hljs-keyword">var</span> coshalfangle = <span class="hljs-built_in">Math</span>.cos( <span class="hljs-number">0.5</span> * angle );
             <span class="hljs-keyword">var</span> sinhalfangle = <span class="hljs-built_in">Math</span>.sin( <span class="hljs-number">0.5</span> * angle );
 
-            <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
-            }
             result[ <span class="hljs-number">0</span> ] = x * sinhalfangle * inversenorm;
             result[ <span class="hljs-number">1</span> ] = y * sinhalfangle * inversenorm;
             result[ <span class="hljs-number">2</span> ] = z * sinhalfangle * inversenorm;
@@ -796,7 +833,11 @@
             result[ <span class="hljs-number">2</span> ] = from[ <span class="hljs-number">2</span> ] * scaleFrom + quatTo[ <span class="hljs-number">2</span> ] * scaleTo;
             result[ <span class="hljs-number">3</span> ] = from[ <span class="hljs-number">3</span> ] * scaleFrom + quatTo[ <span class="hljs-number">3</span> ] * scaleTo;
             <span class="hljs-keyword">return</span> result;
-        },</pre></div></div>
+        },
+
+        transformVec3: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> uv = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( q, vec, result )</span> {</span></pre></div></div>
             
         </li>
         
@@ -807,22 +848,20 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>transformVec3: function (q, vec, result) {
-    // nVidia SDK implementation
-    var uv = new Array(3);
-    var uuv = new Array(3);
-    Vec3.cross(q, vec, uv);
-    Vec3.cross(q, uv, result);
-    Vec3.mult(uv, 2.0 * q[3], uv);
-    Vec3.mult(result, 2.0, result);
-    Vec3.add(result, uv, result);
-    Vec3.add(result, vec, result);
-    return result;
-},</p>
+              <p>nVidia SDK implementation</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>
+            <div class="content"><div class='highlight'><pre>                Vec3.cross( q, vec, uv );
+                Vec3.cross( q, uv, result );
+                Vec3.mult( uv, <span class="hljs-number">2.0</span> * q[ <span class="hljs-number">3</span> ], uv );
+                Vec3.mult( result, <span class="hljs-number">2.0</span>, result );
+                Vec3.add( result, uv, result );
+                Vec3.add( result, vec, result );
+                <span class="hljs-keyword">return</span> result;
+            };
+        } )(),
+
         normalize: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( q, qr )</span> {</span>
             <span class="hljs-keyword">var</span> div = <span class="hljs-number">1.0</span> / <span class="hljs-keyword">this</span>.length2( q );
             qr[ <span class="hljs-number">0</span> ] = q[ <span class="hljs-number">0</span> ] * div;
@@ -900,7 +939,8 @@ multiply 2 quaternions</p>
                 s = et * <span class="hljs-built_in">Math</span>.sin( r ) / r;
             }
             <span class="hljs-keyword">if</span> ( res === <span class="hljs-literal">undefined</span> ) {
-                res = [];
+                Notify.warn( <span class="hljs-string">'no quat destination !'</span> );
+                res = Quat.create();
             }
             res[ <span class="hljs-number">0</span> ] = s * a[ <span class="hljs-number">0</span> ];
             res[ <span class="hljs-number">1</span> ] = s * a[ <span class="hljs-number">1</span> ];
@@ -917,7 +957,8 @@ multiply 2 quaternions</p>
                 t = <span class="hljs-built_in">Math</span>.atan2( r, a[ <span class="hljs-number">3</span> ] ) / r;
             }
             <span class="hljs-keyword">if</span> ( res === <span class="hljs-literal">undefined</span> ) {
-                res = [];
+                Notify.warn( <span class="hljs-string">'no quat destination !'</span> );
+                res = Quat.create();
             }
             n += a[ <span class="hljs-number">3</span> ] * a[ <span class="hljs-number">3</span> ];
             res[ <span class="hljs-number">0</span> ] = t * a[ <span class="hljs-number">0</span> ];

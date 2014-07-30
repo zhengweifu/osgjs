@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -665,12 +695,14 @@
     <span class="hljs-string">'Q'</span>,
     <span class="hljs-string">'osg/Notify'</span>,
     <span class="hljs-string">'osg/Utils'</span>,
+    <span class="hljs-string">'osg/TextureManager'</span>,
     <span class="hljs-string">'osg/StateAttribute'</span>,
     <span class="hljs-string">'osg/Uniform'</span>,
     <span class="hljs-string">'osg/Image'</span>,
     <span class="hljs-string">'osg/ShaderGenerator'</span>,
-    <span class="hljs-string">'osgDB/ReaderParser'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Q, Notify, MACROUTILS, StateAttribute, Uniform, Image, ShaderGenerator, ReaderParser )</span> {</span></pre></div></div>
+    <span class="hljs-string">'osgDB/ReaderParser'</span>,
+    <span class="hljs-string">'osg/Map'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Q, Notify, MACROUTILS, TextureManager, StateAttribute, Uniform, Image, ShaderGenerator, ReaderParser, Map )</span> {</span></pre></div></div>
             
         </li>
         
@@ -773,6 +805,7 @@
     Texture.UNSIGNED_BYTE = <span class="hljs-number">0x1401</span>;
     Texture.FLOAT = <span class="hljs-number">0x1406</span>;
 
+    Texture.textureManager = <span class="hljs-keyword">new</span> TextureManager();
 
     <span class="hljs-comment">/** @lends Texture.prototype */</span>
     Texture.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( StateAttribute.prototype, {
@@ -794,10 +827,13 @@
             }
             <span class="hljs-keyword">if</span> ( Texture.uniforms[ unit ] === <span class="hljs-literal">undefined</span> ) {
                 <span class="hljs-keyword">var</span> name = <span class="hljs-keyword">this</span>.getType() + unit;
-                <span class="hljs-keyword">var</span> uniforms = {};
-                uniforms.texture = Uniform.createInt1( unit, name );
-                uniforms.uniformKeys = window.Object.keys( uniforms );
-                Texture.uniforms[ unit ] = uniforms;
+                <span class="hljs-keyword">var</span> uniformMap = <span class="hljs-keyword">new</span> Map();
+                <span class="hljs-keyword">var</span> uniform = Uniform.createInt1( unit, name );
+                uniformMap.setMap( {
+                    texture: uniform
+                } );
+                uniform.dirty();
+                Texture.uniforms[ unit ] = uniformMap;
             }</pre></div></div>
             
         </li>
@@ -824,7 +860,7 @@
             <span class="hljs-keyword">this</span>._textureWidth = <span class="hljs-number">0</span>;
             <span class="hljs-keyword">this</span>._textureHeight = <span class="hljs-number">0</span>;
             <span class="hljs-keyword">this</span>._unrefImageDataAfterApply = <span class="hljs-literal">false</span>;
-            <span class="hljs-keyword">this</span>.setInternalFormat( Texture.RGBA );
+            <span class="hljs-keyword">this</span>._internalFormat = <span class="hljs-literal">undefined</span>;
             <span class="hljs-keyword">this</span>._textureTarget = Texture.TEXTURE_2D;
             <span class="hljs-keyword">this</span>._type = Texture.UNSIGNED_BYTE;
         },
@@ -840,7 +876,12 @@
         },
         init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( gl )</span> {</span>
             <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._textureObject ) {
-                <span class="hljs-keyword">this</span>._textureObject = gl.createTexture();
+                <span class="hljs-keyword">this</span>._textureObject = Texture.textureManager.generateTextureObject( gl,
+                                                                                    <span class="hljs-keyword">this</span>,
+                                                                                    <span class="hljs-keyword">this</span>._textureTarget,
+                                                                                    <span class="hljs-keyword">this</span>._internalFormat,
+                                                                                    <span class="hljs-keyword">this</span>._textureWidth,
+                                                                                    <span class="hljs-keyword">this</span>._textureHeight );
                 <span class="hljs-keyword">this</span>.dirty();
             }
         },
@@ -863,9 +904,10 @@
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._textureHeight;
         },
         releaseGLObjects: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( gl )</span> {</span>
+
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._textureObject !== <span class="hljs-literal">undefined</span> &amp;&amp; <span class="hljs-keyword">this</span>._textureObject !== <span class="hljs-literal">null</span> ) {
-                gl.deleteTexture( <span class="hljs-keyword">this</span>._textureObject );
-                <span class="hljs-keyword">this</span>._textureObject = <span class="hljs-literal">null</span>;
+                <span class="hljs-keyword">this</span>._textureObject.releaseTextureObject( gl );
+                <span class="hljs-keyword">this</span>._textureObject = <span class="hljs-literal">undefined</span>;
                 <span class="hljs-keyword">this</span>._image = <span class="hljs-literal">undefined</span>;
             }
         },
@@ -937,7 +979,6 @@
             } <span class="hljs-keyword">else</span> {
                 <span class="hljs-keyword">this</span>._imageFormat = Texture.RGBA;
             }
-            <span class="hljs-keyword">this</span>.setInternalFormat( <span class="hljs-keyword">this</span>._imageFormat );
         },
         setType: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( value )</span> {</span>
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">typeof</span> ( value ) === <span class="hljs-string">'string'</span> ) {
@@ -985,6 +1026,7 @@
         },
         applyTexImage2D: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( gl )</span> {</span>
             <span class="hljs-keyword">var</span> args = <span class="hljs-built_in">Array</span>.prototype.slice.call( <span class="hljs-built_in">arguments</span>, <span class="hljs-number">1</span> );
+            MACROUTILS.timeStamp( <span class="hljs-string">'osgjs.metrics:Texture.texImage2d'</span> );
             gl.texImage2D.apply( gl, args );</pre></div></div>
             
         </li>
@@ -1007,11 +1049,20 @@
                 }
             }
         },
+        computeTextureFormat: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._internalFormat ) {
+                <span class="hljs-keyword">this</span>._internalFormat = <span class="hljs-keyword">this</span>._imageFormat || Texture.RGBA;
+                <span class="hljs-keyword">this</span>._imageFormat = <span class="hljs-keyword">this</span>._internalFormat;
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">this</span>._imageFormat = <span class="hljs-keyword">this</span>._internalFormat;
+            }
 
+        },
         apply: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( state )</span> {</span>
             <span class="hljs-keyword">var</span> gl = state.getGraphicContext();
+
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._textureObject !== <span class="hljs-literal">undefined</span> &amp;&amp; !<span class="hljs-keyword">this</span>.isDirty() ) {
-                gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-keyword">this</span>._textureObject );
+                <span class="hljs-keyword">this</span>._textureObject.bind( gl );
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.defaultType ) {
                 gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-literal">null</span> );
             } <span class="hljs-keyword">else</span> {
@@ -1031,19 +1082,35 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">if</span> ( image.isReady() ) {
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">if</span> ( image.isReady() ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>must be called before init</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                        <span class="hljs-keyword">this</span>.computeTextureFormat();
+
+                        <span class="hljs-keyword">var</span> imgWidth = image.getWidth() || <span class="hljs-keyword">this</span>._textureWidth;
+                        <span class="hljs-keyword">var</span> imgHeight = image.getHeight() || <span class="hljs-keyword">this</span>._textureHeight;
+
+                        <span class="hljs-keyword">this</span>.setTextureSize( imgWidth, imgHeight );
 
                         <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._textureObject ) {
                             <span class="hljs-keyword">this</span>.init( gl );
                         }
 
                         <span class="hljs-keyword">this</span>.setDirty( <span class="hljs-literal">false</span> );
-                        gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-keyword">this</span>._textureObject );
+                        <span class="hljs-keyword">this</span>._textureObject.bind( gl );
 
-                        <span class="hljs-keyword">var</span> imgWidth = image.getWidth() || <span class="hljs-keyword">this</span>._textureWidth;
-                        <span class="hljs-keyword">var</span> imgHeight = image.getHeight() || <span class="hljs-keyword">this</span>._textureHeight;
-
-                        <span class="hljs-keyword">this</span>.setTextureSize( imgWidth, imgHeight );
                         <span class="hljs-keyword">if</span> ( image.isTypedArray() ) {
                             <span class="hljs-keyword">this</span>.applyTexImage2D( gl,
                                                   <span class="hljs-keyword">this</span>._textureTarget,
@@ -1060,7 +1127,7 @@
                                                   <span class="hljs-keyword">this</span>._textureTarget,
                                                   <span class="hljs-number">0</span>,
                                                   <span class="hljs-keyword">this</span>._internalFormat,
-                                                  <span class="hljs-keyword">this</span>._imageFormat,
+                                                  <span class="hljs-keyword">this</span>._internalFormat,
                                                   <span class="hljs-keyword">this</span>._type,
                                                   image.getImage() );
                         }
@@ -1076,11 +1143,27 @@
                         gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-literal">null</span> );
                     }
 
-                } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._textureHeight !== <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-keyword">this</span>._textureWidth !== <span class="hljs-number">0</span> ) {
+                } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._textureHeight !== <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-keyword">this</span>._textureWidth !== <span class="hljs-number">0</span> ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>must be called before init</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">this</span>.computeTextureFormat();
+
                     <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._textureObject ) {
                         <span class="hljs-keyword">this</span>.init( gl );
                     }
-                    gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-keyword">this</span>._textureObject );
+                    <span class="hljs-keyword">this</span>._textureObject.bind( gl );
                     <span class="hljs-keyword">this</span>.applyTexImage2D( gl, <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>._internalFormat, <span class="hljs-keyword">this</span>._textureWidth, <span class="hljs-keyword">this</span>._textureHeight, <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>._internalFormat, <span class="hljs-keyword">this</span>._type, <span class="hljs-literal">null</span> );
 
                     <span class="hljs-keyword">this</span>.applyFilterParameter( gl, <span class="hljs-keyword">this</span>._textureTarget );

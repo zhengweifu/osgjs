@@ -13,6 +13,8 @@ define( [
     'osgUtil/IntersectVisitor'
 ], function ( Camera, Node, FrameStamp, Material, Depth, BlendFunc, CullFace, Viewport, Matrix, Light, WebGLCaps, IntersectVisitor ) {
 
+    'use strict';
+
     var View = function () {
         this._graphicContext = undefined;
         this._camera = new Camera();
@@ -48,27 +50,59 @@ define( [
         getWebGLCaps: function () {
             return this._webGLCaps;
         },
-        initWebGLCaps: function( gl ) {
+        initWebGLCaps: function ( gl ) {
             this._webGLCaps = new WebGLCaps();
             this._webGLCaps.init( gl );
         },
+
+        computeCanvasSize: ( function() {
+            var canvasWidth = 0;
+            var canvasHeight = 0;
+
+            return function ( canvas ) {
+
+                var clientWidth, clientHeight;
+                clientWidth = canvas.clientWidth;
+                clientHeight = canvas.clientHeight;
+
+                if ( clientWidth < 1 ) clientWidth = 1;
+                if ( clientHeight < 1 ) clientHeight = 1;
+
+                var devicePixelRatio = 1;
+                if ( this._options.getBoolean( 'useDevicePixelRatio' ) ) {
+                    devicePixelRatio = window.devicePixelRatio || 1;
+                }
+
+                var widthPixel = clientWidth * devicePixelRatio;
+                var heightPixel = clientHeight * devicePixelRatio;
+
+                if ( canvasWidth !== widthPixel ) {
+                    canvas.width = widthPixel;
+                    canvasWidth = widthPixel;
+                }
+
+                if ( canvasHeight !== heightPixel ) {
+                    canvas.height = heightPixel;
+                    canvasHeight = heightPixel;
+                }
+
+            }; })(),
+
         setUpView: function ( canvas ) {
+            this.computeCanvasSize( canvas );
 
-            var width = canvas.clientWidth !== 0 ? canvas.clientWidth : 800;
-            var height = canvas.clientHeight !== 0 ? canvas.clientHeight : 600;
+            var ratio = canvas.clientWidth / canvas.clientHeight;
 
-            var devicePixelRatio = window.devicePixelRatio || 1;
-            width *= devicePixelRatio;
-            height *= devicePixelRatio;
+            var width  = canvas.width;
+            var height = canvas.height;
 
-            canvas.width = width;
-            canvas.height = height;
-
-            var ratio = width / height;
             this._camera.setViewport( new Viewport( 0, 0, width, height ) );
+
+            this._camera.setGraphicContext( this._graphicContext );
             Matrix.makeLookAt( [ 0, 0, -10 ], [ 0, 0, 0 ], [ 0, 1, 0 ], this._camera.getViewMatrix() );
             Matrix.makePerspective( 55, ratio, 1.0, 1000.0, this._camera.getProjectionMatrix() );
         },
+
         /**
          * X = 0 at the left
          * Y = 0 at the BOTTOM

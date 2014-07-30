@@ -1,7 +1,13 @@
-define( [], function () {
+define( [
+    'osg/Vec3',
+    'osg/Notify'
+], function ( Vec3, Notify ) {
 
     /** @class Quaternion Operations */
     var Quat = {
+        create: function () {
+            return [ 0.0, 0.0, 0.0, 1.0 ];
+        },
         copy: function ( s, d ) {
             d[ 0 ] = s[ 0 ];
             d[ 1 ] = s[ 1 ];
@@ -123,18 +129,19 @@ define( [], function () {
             return result;
         },
 
-        // transformVec3: function (q, vec, result) {
-        //     // nVidia SDK implementation
-        //     var uv = new Array(3);
-        //     var uuv = new Array(3);
-        //     Vec3.cross(q, vec, uv);
-        //     Vec3.cross(q, uv, result);
-        //     Vec3.mult(uv, 2.0 * q[3], uv);
-        //     Vec3.mult(result, 2.0, result);
-        //     Vec3.add(result, uv, result);
-        //     Vec3.add(result, vec, result);
-        //     return result;
-        // },
+        transformVec3: ( function () {
+            var uv = [ 0.0, 0.0, 0.0 ];
+            return function ( q, vec, result ) {
+                // nVidia SDK implementation
+                Vec3.cross( q, vec, uv );
+                Vec3.cross( q, uv, result );
+                Vec3.mult( uv, 2.0 * q[ 3 ], uv );
+                Vec3.mult( result, 2.0, result );
+                Vec3.add( result, uv, result );
+                Vec3.add( result, vec, result );
+                return result;
+            };
+        } )(),
 
         normalize: function ( q, qr ) {
             var div = 1.0 / this.length2( q );
@@ -189,7 +196,8 @@ define( [], function () {
                 s = et * Math.sin( r ) / r;
             }
             if ( res === undefined ) {
-                res = [];
+                Notify.warn( 'no quat destination !' );
+                res = Quat.create();
             }
             res[ 0 ] = s * a[ 0 ];
             res[ 1 ] = s * a[ 1 ];
@@ -206,7 +214,8 @@ define( [], function () {
                 t = Math.atan2( r, a[ 3 ] ) / r;
             }
             if ( res === undefined ) {
-                res = [];
+                Notify.warn( 'no quat destination !' );
+                res = Quat.create();
             }
             n += a[ 3 ] * a[ 3 ];
             res[ 0 ] = t * a[ 0 ];

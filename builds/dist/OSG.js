@@ -7,7 +7,6 @@
         root.OSG = factory( root.Q, root.Hammer, root.Leap );
     }
 }(this, function ( Q, Hammer, Leap ) {
-
 /**
  * almond 0.2.7 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -419,7 +418,7 @@ var requirejs, require, define;
     };
 }());
 
-define("../tools/build/almond", function(){});
+define("..\tools\build\almond", function(){});
 
 define( 'osgNameSpace',[
 ], function ( ) {
@@ -565,14 +564,13 @@ define( 'osg/StateGraph',[
             }
         },
         moveStateGraph: function ( state, sgCurrent, sgNew ) {
-            var stack;
-            var i,l;
+            var stack = [];
+            var i, l;
             if ( sgNew === sgCurrent || sgNew === undefined ) {
                 return;
             }
 
             if ( sgCurrent === undefined ) {
-                stack = [];
                 // push stateset from sgNew to root, and apply
                 // stateset from root to sgNew
                 do {
@@ -582,8 +580,7 @@ define( 'osg/StateGraph',[
                     sgNew = sgNew.parent;
                 } while ( sgNew );
 
-                stack.reverse();
-                for ( i = 0, l = stack.length; i < l; ++i ) {
+                for ( i = stack.length - 1, l = 0; i >= l; --i ) {
                     state.pushStateSet( stack[ i ] );
                 }
                 return;
@@ -638,9 +635,7 @@ define( 'osg/StateGraph',[
                 sgNew = sgNew.parent;
             }
 
-            stack.reverse();
-            var stackLength = stack.length;
-            for ( i = 0; i < stackLength; ++i ) {
+            for ( i = stack.length - 1, l = 0; i >= l; --i ) {
                 state.pushStateSet( stack[ i ] );
             }
         }
@@ -659,12 +654,14 @@ define( 'osg/Notify',[], function () {
     Notify.WARN = 3;
     Notify.ERROR = 4;
 
+    Notify.console = window.console;
+
     // #FIXME getStackTrace was initially in webgl-utils (as a global function) but only used in this file
     /** Obtain a stacktrace from the current stack http://eriwen.com/javascript/js-stack-trace/
      */
     function getStackTrace( err ) {
-		if (window.console && window.console.trace){
-			window.console.trace();
+		if (Notify.console && Notify.console.trace){
+			Notify.console.trace();
 			return '';
         }
         var callstack = [];
@@ -699,32 +696,32 @@ define( 'osg/Notify',[], function () {
     Notify.setNotifyLevel = function ( level ) {
 
         var log = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.log( str, getStackTrace() );
+            if ( this.console !== undefined ) {
+                this.console.log( str, getStackTrace() );
             }
         };
 
         var info = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.info( str, getStackTrace() );
+            if ( this.console !== undefined ) {
+                this.console.info( str, getStackTrace() );
             }
         };
 
         var warn = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.warn( str, getStackTrace() );
+            if ( this.console !== undefined ) {
+                this.console.warn( str, getStackTrace() );
             }
         };
 
         var error = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.error( str, getStackTrace() );
+            if ( this.console !== undefined ) {
+                this.console.error( str, getStackTrace() );
             }
         };
 
         var debug = function ( str ) {
-            if ( window.console !== undefined ) {
-                window.console.debug( str, getStackTrace() );
+            if ( this.console !== undefined ) {
+                this.console.debug( str, getStackTrace() );
             }
         };
 
@@ -756,6 +753,10 @@ define( 'osg/Notify',[], function () {
     Notify.setNotifyLevel( Notify.NOTICE );
 
     Notify.reportWebGLError = false;
+
+    Notify.setConsole = function( replacement ) {
+        Notify.console = replacement;
+    };
 
     return Notify;
 } );
@@ -942,70 +943,59 @@ define( 'osg/Utils',[
         };
     } )();
 
-    Utils.timeStamp = ( function () {
+    Utils.timeStamp = function () {
 
-        var fn = console.timeStamp || console.markTimeline || function () {};
-        return function () {
-            return fn.apply( console, arguments );
+        var fn = Notify.console.timeStamp || Notify.console.markTimeline || function () {};
+        return fn.apply( Notify.console, arguments );
+
+    };
+
+    var times = {};
+
+    Utils.time = function () {
+
+        var fn = Notify.console.time || function ( name ) {
+            times[ name ] = Utils.performance.now();
         };
+        return fn.apply( Notify.console, arguments );
 
-    } )();
+    };
 
-    ( function () {
+    Utils.timeEnd = function () {
 
-        var times = {};
+        var fn = Notify.console.timeEnd || function ( name ) {
 
-        Utils.time = ( function () {
+            if ( times[ name ] === undefined )
+                return;
 
-            var fn = console.time || function ( name ) {
-                times[ name ] = Utils.performance.now();
-            };
-            return function ( /*name*/ ) {
-                return fn.apply( console, arguments );
-            };
+            var now = Utils.performance.now();
+            var duration = now - times[ name ];
 
-        } )();
+            Notify.debug( name + ': ' + duration + 'ms');
+            times[ name ] = undefined;
 
-        Utils.timeEnd = ( function () {
+        };
+        return fn.apply( Notify.console, arguments );
 
-            var fn = console.timeEnd || function ( name ) {
-
-                if ( times[ name ] === undefined )
-                    return;
-
-                var now = Utils.performance.now();
-                var duration = now - times[ name ];
-
-                Notify.debug( name + ': ' + duration + 'ms');
-                times[ name ] = undefined;
-
-            };
-            return function () {
-                return fn.apply( console, arguments );
-            };
-
-        } )();
-
-    } )();
+    };
 
     Utils.profile = ( function () {
 
-        var fn = console.profile || function () {};
+        var fn = Notify.console.profile || function () {};
         return function () {
-            return fn.apply( console, arguments );
+            return fn.apply( Notify.console, arguments );
         };
 
     } )();
 
     Utils.profileEnd = ( function () {
 
-        var fn = console.profileEnd || function () {};
+        var fn = Notify.console.profileEnd || function () {};
         return function () {
-            return fn.apply( console, arguments );
+            return fn.apply( Notify.console, arguments );
         };
 
     } )();
-
 
     return Utils;
 } );
@@ -1097,6 +1087,18 @@ define( 'osg/Vec4',[], function () {
 
     /** @class Vec4 Operations */
     var Vec4 = {
+
+        create: function () {
+            return [ 0.0, 0.0, 0.0, 0.0 ];
+        },
+
+        init: function ( a ) {
+            a[ 0 ] = 0.0;
+            a[ 1 ] = 0.0;
+            a[ 2 ] = 0.0;
+            a[ 3 ] = 0.0;
+            return a;
+        },
 
         dot: function ( a, b ) {
             return a[ 0 ] * b[ 0 ] + a[ 1 ] * b[ 1 ] + a[ 2 ] * b[ 2 ] + a[ 3 ] * b[ 3 ];
@@ -1472,10 +1474,16 @@ define( 'osg/BoundingBox',[
 
     return BoundingBox;
 } );
+
 define( 'osg/Vec3',[], function () {
 
     /** @class Vec3 Operations */
     var Vec3 = {
+
+        create: function () {
+            return [ 0.0, 0.0, 0.0 ];
+        },
+
         init: function ( a ) {
             a[ 0 ] = 0.0;
             a[ 1 ] = 0.0;
@@ -1526,6 +1534,13 @@ define( 'osg/Vec3',[], function () {
 
         length: function ( a ) {
             return Math.sqrt( a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ] );
+        },
+
+        distance2: function ( a, b ) {
+            var x = a[ 0 ] - b[ 0 ];
+            var y = a[ 1 ] - b[ 1 ];
+            var z = a[ 2 ] - b[ 2 ];
+            return x * x + y * y + z * z;
         },
 
         distance: function ( a, b ) {
@@ -1599,7 +1614,7 @@ define( 'osg/BoundingSphere',[
 
     BoundingSphere.prototype = {
         init: function () {
-            this._center = [ 0.0, 0.0, 0.0 ];
+            Vec3.init( this._center );
             this._radius = -1;
         },
         valid: function () {
@@ -1619,79 +1634,81 @@ define( 'osg/BoundingSphere',[
             return this._radius * this._radius;
         },
 
-        expandByBox: function ( bb ) {
-            if ( !bb.valid() )
-                return;
+        expandByBox: ( function () {
+            var v = [ 0.0, 0.0, 0.0 ];
+            var newbb = new BoundingBox();
+            return function ( bb ) {
+                if ( !bb.valid() )
+                    return;
 
-            var c;
-            var v = [0.0, 0.0, 0.0];
-            if ( this.valid() ) {
-                var newbb = new BoundingBox();
-                newbb._min[ 0 ] = bb._min[ 0 ];
-                newbb._min[ 1 ] = bb._min[ 1 ];
-                newbb._min[ 2 ] = bb._min[ 2 ];
-                newbb._max[ 0 ] = bb._max[ 0 ];
-                newbb._max[ 1 ] = bb._max[ 1 ];
-                newbb._max[ 2 ] = bb._max[ 2 ];
+                var c;
+                if ( this.valid() ) {
+                    newbb._min[ 0 ] = bb._min[ 0 ];
+                    newbb._min[ 1 ] = bb._min[ 1 ];
+                    newbb._min[ 2 ] = bb._min[ 2 ];
+                    newbb._max[ 0 ] = bb._max[ 0 ];
+                    newbb._max[ 1 ] = bb._max[ 1 ];
+                    newbb._max[ 2 ] = bb._max[ 2 ];
 
-                for ( var i = 0; i < 8; i++ ) {
-                    Vec3.sub( bb.corner( c ), this._center, v ); // get the direction vector from corner
-                    Vec3.normalize( v, v ); // normalise it.
-                    v[ 0 ] *= -this._radius; // move the vector in the opposite direction distance radius.
-                    v[ 1 ] *= -this._radius; // move the vector in the opposite direction distance radius.
-                    v[ 2 ] *= -this._radius; // move the vector in the opposite direction distance radius.
-                    v[ 0 ] += this._center[ 0 ]; // move to absolute position.
-                    v[ 1 ] += this._center[ 1 ]; // move to absolute position.
-                    v[ 2 ] += this._center[ 2 ]; // move to absolute position.
-                    newbb.expandBy( v ); // add it into the new bounding box.
+                    for ( var i = 0; i < 8; i++ ) {
+                        Vec3.sub( bb.corner( c ), this._center, v ); // get the direction vector from corner
+                        Vec3.normalize( v, v ); // normalise it.
+                        v[ 0 ] *= -this._radius; // move the vector in the opposite direction distance radius.
+                        v[ 1 ] *= -this._radius; // move the vector in the opposite direction distance radius.
+                        v[ 2 ] *= -this._radius; // move the vector in the opposite direction distance radius.
+                        v[ 0 ] += this._center[ 0 ]; // move to absolute position.
+                        v[ 1 ] += this._center[ 1 ]; // move to absolute position.
+                        v[ 2 ] += this._center[ 2 ]; // move to absolute position.
+                        newbb.expandBy( v ); // add it into the new bounding box.
+                    }
+
+                    c = newbb.center();
+                    this._center[ 0 ] = c[ 0 ];
+                    this._center[ 1 ] = c[ 1 ];
+                    this._center[ 2 ] = c[ 2 ];
+                    this._radius = newbb.radius();
+                } else {
+                    c = bb.center();
+                    this._center[ 0 ] = c[ 0 ];
+                    this._center[ 1 ] = c[ 1 ];
+                    this._center[ 2 ] = c[ 2 ];
+                    this._radius = bb.radius();
                 }
+            };
+        } )(),
 
-                c = newbb.center();
-                this._center[ 0 ] = c[ 0 ];
-                this._center[ 1 ] = c[ 1 ];
-                this._center[ 2 ] = c[ 2 ];
-                this._radius = newbb.radius();
-            } else {
-                c = bb.center();
-                this._center[ 0 ] = c[ 0 ];
-                this._center[ 1 ] = c[ 1 ];
-                this._center[ 2 ] = c[ 2 ];
-                this._radius = bb.radius();
-            }
-        },
-
-        expandByVec3: function ( v ) {
-            if ( this.valid() ) {
-                var dv = Vec3.sub( v, this.center(), [] );
-                var r = Vec3.length( dv );
-                if ( r > this.radius() ) {
-                    var dr = ( r - this.radius() ) * 0.5;
-                    this._center[ 0 ] += dv[ 0 ] * ( dr / r );
-                    this._center[ 1 ] += dv[ 1 ] * ( dr / r );
-                    this._center[ 2 ] += dv[ 2 ] * ( dr / r );
-                    this._radius += dr;
+        expandByVec3: ( function () {
+            var dv = [ 0.0, 0.0, 0.0 ];
+            return function ( v ) {
+                if ( this.valid() ) {
+                    Vec3.sub( v, this.center(), dv );
+                    var r = Vec3.length( dv );
+                    if ( r > this.radius() ) {
+                        var dr = ( r - this.radius() ) * 0.5;
+                        this._center[ 0 ] += dv[ 0 ] * ( dr / r );
+                        this._center[ 1 ] += dv[ 1 ] * ( dr / r );
+                        this._center[ 2 ] += dv[ 2 ] * ( dr / r );
+                        this._radius += dr;
+                    }
+                } else {
+                    this._center[ 0 ] = v[ 0 ];
+                    this._center[ 1 ] = v[ 1 ];
+                    this._center[ 2 ] = v[ 2 ];
+                    this._radius = 0.0;
                 }
-            } else {
-                this._center[ 0 ] = v[ 0 ];
-                this._center[ 1 ] = v[ 1 ];
-                this._center[ 2 ] = v[ 2 ];
-                this._radius = 0.0;
-            }
-        },
+            };
+        } )(),
 
         expandRadiusBySphere: function ( sh ) {
             if ( sh.valid() ) {
                 if ( this.valid() ) {
-                    var sub = Vec3.sub;
-                    var length = Vec3.length;
-                    var r = length( sub( sh._center,
-                        this._center, [] ) ) + sh._radius;
+                    var r = Vec3.distance( sh._center, this._center ) + sh._radius;
                     if ( r > this._radius ) {
                         this._radius = r;
                     }
                     // else do nothing as vertex is within sphere.
                 } else {
-                    this._center = Vec3.copy( sh._center, [] );
+                    Vec3.copy( sh._center, this._center );
                     this._radius = sh._radius;
                 }
             }
@@ -1712,10 +1729,8 @@ define( 'osg/BoundingSphere',[
                 return;
             }
 
-
             // Calculate d == The distance between the sphere centers
-            var tmp = Vec3.sub( this.center(), sh.center(), [] );
-            var d = Vec3.length( tmp );
+            var d = Vec3.distance( this.center(), sh.center() );
 
             // New sphere is already inside this one
             if ( d + sh.radius() <= this.radius() ) {
@@ -1746,17 +1761,20 @@ define( 'osg/BoundingSphere',[
             this._center[ 2 ] += ( sh._center[ 2 ] - this._center[ 2 ] ) * ratio;
 
             this._radius = newRadius;
-
         },
         contains: function ( v ) {
-            var vc = Vec3.sub( v, this.center(), [] );
-            return this.valid() && ( Vec3.length2( vc ) <= this.radius2() );
+            if ( !this.valid() )
+                return false;
+            return Vec3.distance2( v, this.center() ) <= this.radius2();
         },
         intersects: function ( bs ) {
-            var lc = Vec3.length2( Vec3.sub( this.center(),
-                bs.center(), [] ) );
-            return this.valid() && bs.valid() &&
-                ( lc <= ( this.radius() + bs.radius() ) * ( this.radius() + bs.radius() ) );
+            if ( !this.valid() )
+                return false;
+            if ( !bs.valid() )
+                return false;
+            var lc = Vec3.distance2( this.center(), bs.center() );
+            var r = this.radius() + bs.radius();
+            return lc <= r;
         }
     };
 
@@ -1869,11 +1887,81 @@ define( 'osg/BufferArray',[
     return BufferArray;
 } );
 
+define( 'osg/Map',[
+
+], function () {
+    
+
+    var Map = function( obj ) {
+
+        Object.defineProperty ( this, '_dirty', {
+            configurable: true,
+            enumerable: false,
+            writable: true,
+            value: true
+        });
+
+        Object.defineProperty ( this, '_keys', {
+            configurable: true,
+            enumerable: false,
+            writable: true,
+            value: undefined
+        });
+
+        if ( obj ) this.setMap( obj );
+    };
+
+    Map.prototype = {
+
+        getKeys: function() {
+            if ( this._dirty ) {
+                this._keys = Object.keys( this );
+                this._dirty = false;
+            }
+            return this._keys;
+        },
+
+        dirty: function() {
+            this._dirty = true;
+        },
+
+
+        setMap: function( map ) {
+
+            var i,l;
+            // remove all
+            var keys = Object.keys( this );
+            if ( keys.length > 0) {
+                for ( i = 0, l = keys.length; i < l; i++)
+                    delete this[ keys[i] ];
+            }
+
+            // add new
+            keys = Object.keys( map );
+            if ( keys.length > 0) {
+                for ( i = 0, l = keys.length; i < l; i++ ) {
+                    var key = keys[ i ];
+                    this[ key ] = map[ key ];
+                }
+            }
+
+            this.dirty();
+        }
+
+    };
+
+    return Map;
+
+});
+
 define( 'osg/StateSet',[
     'osg/Utils',
     'osg/StateAttribute',
-    'osg/Object'
-], function ( MACROUTILS, StateAttribute, Object ) {
+    'osg/Object',
+    'osg/Map'
+], function ( MACROUTILS, StateAttribute, Object, Map ) {
+
+    
 
     /**
      * StateSet encapsulate StateAttribute
@@ -1882,8 +1970,8 @@ define( 'osg/StateSet',[
     var StateSet = function () {
         Object.call( this );
         this.id = StateSet.instance++;
-        this.attributeMap = {};
-        this.attributeMap.attributeKeys = [];
+
+        this.attributeMap = new Map();
 
         this.textureAttributeMapList = [];
 
@@ -1891,6 +1979,10 @@ define( 'osg/StateSet',[
         this._binNumber = 0;
 
         this._shaderGenerator = undefined;
+        this._updateCallbackList = [];
+
+        this.uniforms = new Map();
+
     };
     StateSet.instance = 0;
 
@@ -1919,20 +2011,15 @@ define( 'osg/StateSet',[
             if ( mode === undefined ) {
                 mode = StateAttribute.ON;
             }
-            if ( !this.uniforms ) {
-                this.uniforms = {};
-                this.uniforms.uniformKeys = [];
-            }
+
             var name = uniform.name;
             this.uniforms[ name ] = this.getAttributePair( uniform, mode );
-            if ( this.uniforms.uniformKeys.indexOf( name ) === -1 ) {
-                this.uniforms.uniformKeys.push( name );
-            }
+            this.uniforms.dirty();
         },
         getUniform: function ( uniform ) {
-            if ( this.uniforms && this.uniforms[ uniform ] ) {
-                return this.uniforms[ uniform ].getAttribute();
-            }
+            var uniformMap = this.uniforms;
+            if ( uniformMap[ uniform ] ) return uniformMap[ uniform ].getAttribute();
+
             return undefined;
         },
         getUniformList: function () {
@@ -1949,20 +2036,23 @@ define( 'osg/StateSet',[
             return this.textureAttributeMapList.length;
         },
         getTextureAttribute: function ( unit, attribute ) {
-            if ( this.textureAttributeMapList[ unit ] === undefined || this.textureAttributeMapList[ unit ][ attribute ] === undefined ) {
-                return undefined;
-            }
-            return this.textureAttributeMapList[ unit ][ attribute ].getAttribute();
+            if ( this.textureAttributeMapList[ unit ] === undefined ) return undefined;
+
+            var textureMap = this.textureAttributeMapList[ unit ];
+            if ( textureMap[ attribute ] === undefined ) return undefined;
+
+            return textureMap[ attribute ].getAttribute();
         },
 
         removeTextureAttribute: function ( unit, attributeName ) {
-            if ( this.textureAttributeMapList[ unit ] === undefined || this.textureAttributeMapList[ unit ][ attributeName ] === undefined ) {
-                return;
-            }
+            if ( this.textureAttributeMapList[ unit ] === undefined ) return;
 
-            delete this.textureAttributeMapList[ unit ][ attributeName ];
-            var idx = this.textureAttributeMapList[ unit ].attributeKeys.indexOf( attributeName );
-            this.textureAttributeMapList[ unit ].attributeKeys.splice( idx, 1 );
+            var textureAttributeMap = this.textureAttributeMapList[ unit ];
+            if ( textureAttributeMap[ attributeName ] === undefined ) return;
+
+
+            delete textureAttributeMap[ attributeName ];
+            this.textureAttributeMapList[ unit ].dirty();
         },
 
         getAttribute: function ( attributeType ) {
@@ -1971,6 +2061,7 @@ define( 'osg/StateSet',[
             }
             return this.attributeMap[ attributeType ].getAttribute();
         },
+
         setAttributeAndMode: function ( attribute, mode ) {
             if ( mode === undefined ) {
                 mode = StateAttribute.ON;
@@ -1986,10 +2077,10 @@ define( 'osg/StateSet',[
 
         // TODO: check if it's an attribute type or a attribute to remove it
         removeAttribute: function ( attributeName ) {
+
             if ( this.attributeMap[ attributeName ] !== undefined ) {
                 delete this.attributeMap[ attributeName ];
-                var idx = this.attributeMap.attributeKeys.indexOf( attributeName );
-                this.attributeMap.attributeKeys.splice( idx, 1 );
+                this.attributeMap.dirty();
             }
         },
 
@@ -2001,6 +2092,21 @@ define( 'osg/StateSet',[
             } else {
                 this.setRenderBinDetails( 0, '' );
             }
+        },
+
+        getUpdateCallbackList: function () {
+            return this._updateCallbackList;
+        },
+        removeUpdateCallback: function ( cb ) {
+            var arrayIdx = this._updateCallbackList.indexOf( cb );
+            if ( arrayIdx !== -1 )
+                this._updateCallbackList.splice( arrayIdx, 1 );
+        },
+        addUpdateCallback: function ( cb ) {
+            this._updateCallbackList.push( cb );
+        },
+        hasUpdateCallback: function ( cb ) {
+            return this._updateCallbackList.indexOf( cb ) !== -1;
         },
 
         setRenderBinDetails: function ( num, binName ) {
@@ -2023,12 +2129,13 @@ define( 'osg/StateSet',[
             this._binName = binName;
         },
         getAttributeList: function () {
-            var attributes = this.attributeMap;
-            var keys = attributes.attributeKeys;
-            var l = keys.length;
-            var list = new Array( l );
+            var attributeMap = this.attributeMap;
+            var attributeMapKeys = attributeMap.getKeys();
+
+            var l = attributeMapKeys.length;
+            var list = [];
             for ( var i = 0; i < l; i++ ) {
-                list[ i ] = attributes[ keys[ i ] ];
+                list.push( attributeMap[ attributeMapKeys[ i ] ] );
             }
             return list;
         },
@@ -2044,23 +2151,26 @@ define( 'osg/StateSet',[
 
         // for internal use, you should not call it directly
         _setTextureAttribute: function ( unit, attributePair ) {
+
             if ( this.textureAttributeMapList[ unit ] === undefined ) {
-                this.textureAttributeMapList[ unit ] = {};
-                this.textureAttributeMapList[ unit ].attributeKeys = [];
+                this.textureAttributeMapList[ unit ] = new Map();
             }
+
             var name = attributePair.getAttribute().getTypeMember();
-            this.textureAttributeMapList[ unit ][ name ] = attributePair;
-            if ( this.textureAttributeMapList[ unit ].attributeKeys.indexOf( name ) === -1 ) {
-                this.textureAttributeMapList[ unit ].attributeKeys.push( name );
-            }
+            var textureUnitAttributeMap = this.textureAttributeMapList[ unit ];
+
+            textureUnitAttributeMap[ name ] = attributePair;
+            textureUnitAttributeMap.dirty();
+
         },
+
         // for internal use, you should not call it directly
         _setAttribute: function ( attributePair ) {
+
             var name = attributePair.getAttribute().getTypeMember();
             this.attributeMap[ name ] = attributePair;
-            if ( this.attributeMap.attributeKeys.indexOf( name ) === -1 ) {
-                this.attributeMap.attributeKeys.push( name );
-            }
+            this.attributeMap.dirty();
+
         }
 
     } ), 'osg', 'StateSet' );
@@ -2070,7 +2180,38 @@ define( 'osg/StateSet',[
     return StateSet;
 } );
 
-define( 'osg/NodeVisitor',[], function () {
+define( 'osg/FrameStamp',[
+], function () {
+
+    var FrameStamp = function () {
+        var frame = 0;
+        var startSimulation = 0.0;
+        var currentSimulation = 0.0;
+
+        this.setReferenceTime = function ( s ) {
+            startSimulation = s;
+        };
+        this.setSimulationTime = function ( s ) {
+            currentSimulation = s;
+        };
+        this.getReferenceTime = function () {
+            return startSimulation;
+        };
+        this.getSimulationTime = function () {
+            return currentSimulation;
+        };
+        this.setFrameNumber = function ( n ) {
+            frame = n;
+        };
+        this.getFrameNumber = function () {
+            return frame;
+        };
+    };
+
+    return FrameStamp;
+} );
+
+define( 'osg/NodeVisitor',[ 'osg/FrameStamp' ], function ( FrameStamp ) {
 
     var NodeVisitor = function ( traversalMode ) {
         /*jshint bitwise: false */
@@ -2082,11 +2223,25 @@ define( 'osg/NodeVisitor',[], function () {
             this.traversalMode = NodeVisitor.TRAVERSE_ALL_CHILDREN;
         }
         this.nodePath = [];
+        this.visitorType = NodeVisitor.NODE_VISITOR;
+
+        var framestamp = new FrameStamp();
+        this.getFrameStamp = function () {
+            return framestamp;
+        };
+        this.setFrameStamp = function ( s ) {
+            framestamp = s;
+        };
     };
     //NodeVisitor.TRAVERSE_NONE = 0;
     NodeVisitor.TRAVERSE_PARENTS = 1;
     NodeVisitor.TRAVERSE_ALL_CHILDREN = 2;
     NodeVisitor.TRAVERSE_ACTIVE_CHILDREN = 3;
+    NodeVisitor.NODE_VISITOR = 0;
+    NodeVisitor.UPDATE_VISITOR = 1;
+    NodeVisitor.CULL_VISITOR = 2;
+
+    
     NodeVisitor._traversalFunctions = {};
     NodeVisitor._traversalFunctions[ NodeVisitor.TRAVERSE_PARENTS ] = function ( node ) {
         node.ascend( this );
@@ -2152,16 +2307,25 @@ define( 'osg/NodeVisitor',[], function () {
         },
         traverse: function ( node ) {
             NodeVisitor._traversalFunctions[ this.traversalMode ].call( this, node );
+        },
+        getVisitorType: function ( ) {
+            return this.visitorType;
         }
     };
 
     return NodeVisitor;
 } );
 
-define( 'osg/Quat',[], function () {
+define( 'osg/Quat',[
+    'osg/Vec3',
+    'osg/Notify'
+], function ( Vec3, Notify ) {
 
     /** @class Quaternion Operations */
     var Quat = {
+        create: function () {
+            return [ 0.0, 0.0, 0.0, 1.0 ];
+        },
         copy: function ( s, d ) {
             d[ 0 ] = s[ 0 ];
             d[ 1 ] = s[ 1 ];
@@ -2283,18 +2447,19 @@ define( 'osg/Quat',[], function () {
             return result;
         },
 
-        // transformVec3: function (q, vec, result) {
-        //     // nVidia SDK implementation
-        //     var uv = new Array(3);
-        //     var uuv = new Array(3);
-        //     Vec3.cross(q, vec, uv);
-        //     Vec3.cross(q, uv, result);
-        //     Vec3.mult(uv, 2.0 * q[3], uv);
-        //     Vec3.mult(result, 2.0, result);
-        //     Vec3.add(result, uv, result);
-        //     Vec3.add(result, vec, result);
-        //     return result;
-        // },
+        transformVec3: ( function () {
+            var uv = [ 0.0, 0.0, 0.0 ];
+            return function ( q, vec, result ) {
+                // nVidia SDK implementation
+                Vec3.cross( q, vec, uv );
+                Vec3.cross( q, uv, result );
+                Vec3.mult( uv, 2.0 * q[ 3 ], uv );
+                Vec3.mult( result, 2.0, result );
+                Vec3.add( result, uv, result );
+                Vec3.add( result, vec, result );
+                return result;
+            };
+        } )(),
 
         normalize: function ( q, qr ) {
             var div = 1.0 / this.length2( q );
@@ -2349,7 +2514,8 @@ define( 'osg/Quat',[], function () {
                 s = et * Math.sin( r ) / r;
             }
             if ( res === undefined ) {
-                res = [];
+                Notify.warn( 'no quat destination !' );
+                res = Quat.create();
             }
             res[ 0 ] = s * a[ 0 ];
             res[ 1 ] = s * a[ 1 ];
@@ -2366,7 +2532,8 @@ define( 'osg/Quat',[], function () {
                 t = Math.atan2( r, a[ 3 ] ) / r;
             }
             if ( res === undefined ) {
-                res = [];
+                Notify.warn( 'no quat destination !' );
+                res = Quat.create();
             }
             n += a[ 3 ] * a[ 3 ];
             res[ 0 ] = t * a[ 0 ];
@@ -2425,8 +2592,10 @@ define( 'osg/Matrix',[
 
     /** @class Matrix Operations */
     var Matrix = {
-        _tmp0: [],
-        _tmp1: [],
+
+        create: function () {
+            return [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ];
+        },
 
         valid: function ( matrix ) {
             for ( var i = 0; i < 16; i++ ) {
@@ -2459,8 +2628,8 @@ define( 'osg/Matrix',[
 
         makeIdentity: function ( matrix ) {
             if ( matrix === undefined ) {
-                matrix = [];
-                Notify.log( 'Matrix.makeIdentity without matrix destination is deprecated' );
+                Notify.warn( 'no matrix destination !' );
+                return Matrix.create();
             }
             Matrix.setRow( matrix, 0, 1.0, 0.0, 0.0, 0.0 );
             Matrix.setRow( matrix, 1, 0.0, 1.0, 0.0, 0.0 );
@@ -2477,7 +2646,10 @@ define( 'osg/Matrix',[
          */
         makeTranslate: function ( x, y, z, matrix ) {
             if ( matrix === undefined ) {
-                matrix = [];
+                Notify.warn( 'no matrix destination !' );
+                matrix = Matrix.create();
+                Matrix.setRow( matrix, 3, x, y, z, 1.0 );
+                return matrix;
             }
             Matrix.setRow( matrix, 0, 1.0, 0.0, 0.0, 0.0 );
             Matrix.setRow( matrix, 1, 0.0, 1.0, 0.0, 0.0 );
@@ -2587,12 +2759,13 @@ define( 'osg/Matrix',[
         },
         multa: function ( a, b, r ) {
             if ( r === a ) {
-                return this.preMult( a, b );
+                return Matrix.preMult( a, b );
             } else if ( r === b ) {
-                return this.postMult( a, b );
+                return Matrix.postMult( a, b );
             } else {
                 if ( r === undefined ) {
-                    r = [];
+                    Notify.warn( 'no matrix destination !' );
+                    r = Matrix.create();
                 }
                 r[ 0 ] = b[ 0 ] * a[ 0 ] + b[ 1 ] * a[ 4 ] + b[ 2 ] * a[ 8 ] + b[ 3 ] * a[ 12 ];
                 r[ 1 ] = b[ 0 ] * a[ 1 ] + b[ 1 ] * a[ 5 ] + b[ 2 ] * a[ 9 ] + b[ 3 ] * a[ 13 ];
@@ -2676,37 +2849,39 @@ define( 'osg/Matrix',[
             return r;
         },
         multOrig: function ( a, b, r ) {
-            var t;
+            var inner1 = 0.0,
+                inner2 = 0.0,
+                inner3 = 0.0,
+                inner4 = 0.0;
             if ( r === a ) {
                 // pre mult
-                t = [];
                 for ( var col = 0; col < 4; col++ ) {
-                    t[ 0 ] = Matrix.innerProduct( b, a, 0, col );
-                    t[ 1 ] = Matrix.innerProduct( b, a, 1, col );
-                    t[ 2 ] = Matrix.innerProduct( b, a, 2, col );
-                    t[ 3 ] = Matrix.innerProduct( b, a, 3, col );
-                    a[ 0 + col ] = t[ 0 ];
-                    a[ 4 + col ] = t[ 1 ];
-                    a[ 8 + col ] = t[ 2 ];
-                    a[ 12 + col ] = t[ 3 ];
+                    inner1 = Matrix.innerProduct( b, a, 0, col );
+                    inner2 = Matrix.innerProduct( b, a, 1, col );
+                    inner3 = Matrix.innerProduct( b, a, 2, col );
+                    inner4 = Matrix.innerProduct( b, a, 3, col );
+                    a[ 0 + col ] = inner1;
+                    a[ 4 + col ] = inner2;
+                    a[ 8 + col ] = inner3;
+                    a[ 12 + col ] = inner4;
                 }
                 return a;
-                //return this.preMult(r, b);
+                //return Matrix.preMult(r, b);
             } else if ( r === b ) {
                 // post mult
-                t = [];
                 for ( var row = 0; row < 4; row++ ) {
-                    t[ 0 ] = Matrix.innerProduct( b, a, row, 0 );
-                    t[ 1 ] = Matrix.innerProduct( b, a, row, 1 );
-                    t[ 2 ] = Matrix.innerProduct( b, a, row, 2 );
-                    t[ 3 ] = Matrix.innerProduct( b, a, row, 3 );
-                    this.setRow( b, row, t[ 0 ], t[ 1 ], t[ 2 ], t[ 3 ] );
+                    inner1 = Matrix.innerProduct( b, a, row, 0 );
+                    inner2 = Matrix.innerProduct( b, a, row, 1 );
+                    inner3 = Matrix.innerProduct( b, a, row, 2 );
+                    inner4 = Matrix.innerProduct( b, a, row, 3 );
+                    Matrix.setRow( b, row, inner1, inner2, inner3, inner4 );
                 }
                 return b;
-                //return this.postMult(r, a);
+                //return Matrix.postMult(r, a);
             }
             if ( r === undefined ) {
-                r = [];
+                Notify.warn( 'no matrix destination !' );
+                r = Matrix.create();
             }
 
             var s00 = b[ 0 ];
@@ -2766,51 +2941,57 @@ define( 'osg/Matrix',[
             return r;
         },
 
-        makeLookAt: function ( eye, center, up, result ) {
+        makeLookAt: ( function () {
+            var f = [ 0.0, 0.0, 0.0 ];
+            var s = [ 0.0, 0.0, 0.0 ];
+            var u = [ 0.0, 0.0, 0.0 ];
+            var neg = [ 0.0, 0.0, 0.0 ];
 
+            return function ( eye, center, up, result ) {
+                if ( result === undefined ) {
+                    Notify.warn( 'no matrix destination !' );
+                    result = Matrix.create();
+                }
+
+                Vec3.sub( center, eye, f );
+                Vec3.normalize( f, f );
+
+                Vec3.cross( f, up, s );
+                Vec3.normalize( s, s );
+
+                Vec3.cross( s, f, u );
+                Vec3.normalize( u, u );
+
+                // s[0], u[0], -f[0], 0.0,
+                // s[1], u[1], -f[1], 0.0,
+                // s[2], u[2], -f[2], 0.0,
+                // 0,    0,    0,     1.0
+
+                result[ 0 ] = s[ 0 ];
+                result[ 1 ] = u[ 0 ];
+                result[ 2 ] = -f[ 0 ];
+                result[ 3 ] = 0.0;
+                result[ 4 ] = s[ 1 ];
+                result[ 5 ] = u[ 1 ];
+                result[ 6 ] = -f[ 1 ];
+                result[ 7 ] = 0.0;
+                result[ 8 ] = s[ 2 ];
+                result[ 9 ] = u[ 2 ];
+                result[ 10 ] = -f[ 2 ];
+                result[ 11 ] = 0.0;
+                result[ 12 ] = 0;
+                result[ 13 ] = 0;
+                result[ 14 ] = 0;
+                result[ 15 ] = 1.0;
+
+                Matrix.multTranslate( result, Vec3.neg( eye, neg ), result );
+                return result;
+            };
+        } )(),
+        makeOrtho: function ( left, right, bottom, top, zNear, zFar, result ) {
             if ( result === undefined ) {
-                result = [];
-            }
-
-            var f = Vec3.sub( center, eye, [] );
-            Vec3.normalize( f, f );
-
-            var s = Vec3.cross( f, up, [] );
-            Vec3.normalize( s, s );
-
-            var u = Vec3.cross( s, f, [] );
-            Vec3.normalize( u, u );
-
-            // s[0], u[0], -f[0], 0.0,
-            // s[1], u[1], -f[1], 0.0,
-            // s[2], u[2], -f[2], 0.0,
-            // 0,    0,    0,     1.0
-
-            result[ 0 ] = s[ 0 ];
-            result[ 1 ] = u[ 0 ];
-            result[ 2 ] = -f[ 0 ];
-            result[ 3 ] = 0.0;
-            result[ 4 ] = s[ 1 ];
-            result[ 5 ] = u[ 1 ];
-            result[ 6 ] = -f[ 1 ];
-            result[ 7 ] = 0.0;
-            result[ 8 ] = s[ 2 ];
-            result[ 9 ] = u[ 2 ];
-            result[ 10 ] = -f[ 2 ];
-            result[ 11 ] = 0.0;
-            result[ 12 ] = 0;
-            result[ 13 ] = 0;
-            result[ 14 ] = 0;
-            result[ 15 ] = 1.0;
-
-            Matrix.multTranslate( result, Vec3.neg( eye, [] ), result );
-            return result;
-        },
-        makeOrtho: function ( left, right,
-            bottom, top,
-            zNear, zFar, result ) {
-            if ( result === undefined ) {
-                result = [];
+                Notify.warn( 'no matrix destination !' );
+                result = Matrix.create();
             }
             // note transpose of Matrix_implementation wr.t OpenGL documentation, since the OSG use post multiplication rather than pre.
             // we will change this convention later
@@ -2825,83 +3006,93 @@ define( 'osg/Matrix',[
             return result;
         },
 
-        getLookAt: function ( matrix, eye, center, up, distance ) {
-            if ( distance === undefined ) {
-                distance = 1.0;
-            }
-            var inv = [];
-            var result = Matrix.inverse( matrix, inv );
-            if ( !result ) {
-                Matrix.makeIdentity( inv );
-            }
-            Matrix.transformVec3( inv, [ 0, 0, 0 ], eye );
-            Matrix.transform3x3( matrix, [ 0, 1, 0 ], up );
-            Matrix.transform3x3( matrix, [ 0, 0, -1 ], center );
-            Vec3.normalize( center, center );
-            Vec3.add( Vec3.mult( center, distance, [] ), eye, center );
-        },
+        getLookAt: ( function () {
+            var inv = [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ];
+            var v1 = [ 0.0, 0.0, 0.0 ];
+            var v2 = [ 0.0, 1.0, 0.0 ];
+            var v3 = [ 0.0, 0.0, -1.0 ];
+
+            return function ( matrix, eye, center, up, distance ) {
+                if ( distance === undefined ) {
+                    distance = 1.0;
+                }
+                var result = Matrix.inverse( matrix, inv );
+                if ( !result ) {
+                    Matrix.makeIdentity( inv );
+                }
+                Matrix.transformVec3( inv, v1, eye );
+                Matrix.transform3x3( matrix, v2, up );
+                Matrix.transform3x3( matrix, v3, center );
+                Vec3.normalize( center, center );
+                Vec3.add( Vec3.mult( center, distance, v1 ), eye, center );
+            };
+        } )(),
 
         //getRotate_David_Spillings_Mk1
-        getRotate: function ( mat, quatResult ) {
-            if ( quatResult === undefined ) {
-                quatResult = [];
-            }
+        getRotate: ( function () {
+            var tq = [ 0.0, 0.0, 0.0, 0.0 ];
 
-            var s;
-            var tq = [];
-            var i, j;
-
-            // Use tq to store the largest trace
-            var mat00 = mat[ 4 * 0 + 0 ];
-            var mat11 = mat[ 4 * 1 + 1 ];
-            var mat22 = mat[ 4 * 2 + 2 ];
-            tq[ 0 ] = 1 + mat00 + mat11 + mat22;
-            tq[ 1 ] = 1 + mat00 - mat11 - mat22;
-            tq[ 2 ] = 1 - mat00 + mat11 - mat22;
-            tq[ 3 ] = 1 - mat00 - mat11 + mat22;
-
-            // Find the maximum (could also use stacked if's later)
-            j = 0;
-            for ( i = 1; i < 4; i++ ) {
-                if ( ( tq[ i ] > tq[ j ] ) ) {
-                    j = i;
-                } else {
-                    j = j;
+            return function ( mat, quatResult ) {
+                if ( quatResult === undefined ) {
+                    Notify.warn( 'no quat destination !' );
+                    quatResult = [ 0.0, 0.0, 0.0, 0.0 ];
                 }
-            }
 
-            // check the diagonal
-            if ( j === 0 ) {
-                /* perform instant calculation */
-                quatResult[ 3 ] = tq[ 0 ];
-                quatResult[ 0 ] = mat[ 1 * 4 + 2 ] - mat[ 2 * 4 + 1 ];
-                quatResult[ 1 ] = mat[ 2 * 4 + 0 ] - mat[ 0 + 2 ];
-                quatResult[ 2 ] = mat[ 0 + 1 ] - mat[ 1 * 4 + 0 ];
-            } else if ( j === 1 ) {
-                quatResult[ 3 ] = mat[ 1 * 4 + 2 ] - mat[ 2 * 4 + 1 ];
-                quatResult[ 0 ] = tq[ 1 ];
-                quatResult[ 1 ] = mat[ 0 + 1 ] + mat[ 1 * 4 + 0 ];
-                quatResult[ 2 ] = mat[ 2 * 4 + 0 ] + mat[ 0 + 2 ];
-            } else if ( j === 2 ) {
-                quatResult[ 3 ] = mat[ 2 * 4 + 0 ] - mat[ 0 + 2 ];
-                quatResult[ 0 ] = mat[ 0 + 1 ] + mat[ 1 * 4 + 0 ];
-                quatResult[ 1 ] = tq[ 2 ];
-                quatResult[ 2 ] = mat[ 1 * 4 + 2 ] + mat[ 2 * 4 + 1 ];
-            } else /* if (j==3) */ {
-                quatResult[ 3 ] = mat[ 0 + 1 ] - mat[ 1 * 4 + 0 ];
-                quatResult[ 0 ] = mat[ 2 * 4 + 0 ] + mat[ 0 + 2 ];
-                quatResult[ 1 ] = mat[ 1 * 4 + 2 ] + mat[ 2 * 4 + 1 ];
-                quatResult[ 2 ] = tq[ 3 ];
-            }
+                var s;
+                var i, j;
 
-            s = Math.sqrt( 0.25 / tq[ j ] );
-            quatResult[ 3 ] *= s;
-            quatResult[ 0 ] *= s;
-            quatResult[ 1 ] *= s;
-            quatResult[ 2 ] *= s;
+                // Use tq to store the largest trace
+                var mat00 = mat[ 4 * 0 + 0 ];
+                var mat11 = mat[ 4 * 1 + 1 ];
+                var mat22 = mat[ 4 * 2 + 2 ];
+                tq[ 0 ] = 1.0 + mat00 + mat11 + mat22;
+                tq[ 1 ] = 1.0 + mat00 - mat11 - mat22;
+                tq[ 2 ] = 1.0 - mat00 + mat11 - mat22;
+                tq[ 3 ] = 1.0 - mat00 - mat11 + mat22;
 
-            return quatResult;
-        },
+                // Find the maximum (could also use stacked if's later)
+                j = 0;
+                for ( i = 1; i < 4; i++ ) {
+                    if ( ( tq[ i ] > tq[ j ] ) ) {
+                        j = i;
+                    } else {
+                        j = j;
+                    }
+                }
+
+                // check the diagonal
+                if ( j === 0 ) {
+                    /* perform instant calculation */
+                    quatResult[ 3 ] = tq[ 0 ];
+                    quatResult[ 0 ] = mat[ 1 * 4 + 2 ] - mat[ 2 * 4 + 1 ];
+                    quatResult[ 1 ] = mat[ 2 * 4 + 0 ] - mat[ 0 + 2 ];
+                    quatResult[ 2 ] = mat[ 0 + 1 ] - mat[ 1 * 4 + 0 ];
+                } else if ( j === 1 ) {
+                    quatResult[ 3 ] = mat[ 1 * 4 + 2 ] - mat[ 2 * 4 + 1 ];
+                    quatResult[ 0 ] = tq[ 1 ];
+                    quatResult[ 1 ] = mat[ 0 + 1 ] + mat[ 1 * 4 + 0 ];
+                    quatResult[ 2 ] = mat[ 2 * 4 + 0 ] + mat[ 0 + 2 ];
+                } else if ( j === 2 ) {
+                    quatResult[ 3 ] = mat[ 2 * 4 + 0 ] - mat[ 0 + 2 ];
+                    quatResult[ 0 ] = mat[ 0 + 1 ] + mat[ 1 * 4 + 0 ];
+                    quatResult[ 1 ] = tq[ 2 ];
+                    quatResult[ 2 ] = mat[ 1 * 4 + 2 ] + mat[ 2 * 4 + 1 ];
+                } else /* if (j==3) */ {
+                    quatResult[ 3 ] = mat[ 0 + 1 ] - mat[ 1 * 4 + 0 ];
+                    quatResult[ 0 ] = mat[ 2 * 4 + 0 ] + mat[ 0 + 2 ];
+                    quatResult[ 1 ] = mat[ 1 * 4 + 2 ] + mat[ 2 * 4 + 1 ];
+                    quatResult[ 2 ] = tq[ 3 ];
+                }
+
+                s = Math.sqrt( 0.25 / tq[ j ] );
+                quatResult[ 3 ] *= s;
+                quatResult[ 0 ] *= s;
+                quatResult[ 1 ] *= s;
+                quatResult[ 2 ] *= s;
+
+                return quatResult;
+            };
+        } )(),
 
         // Matrix M = Matrix M * Matrix Translate
         preMultTranslate: function ( mat, translate ) {
@@ -2932,11 +3123,11 @@ define( 'osg/Matrix',[
             return mat;
         },
 
-
         // result = Matrix M * Matrix Translate
         multTranslate: function ( mat, translate, result ) {
             if ( result === undefined ) {
-                result = [];
+                Notify.warn( 'no matrix destination !' );
+                result = Matrix.create();
             }
             if ( result !== mat ) {
                 Matrix.copy( mat, result );
@@ -2971,8 +3162,8 @@ define( 'osg/Matrix',[
 
         makeRotate: function ( angle, x, y, z, result ) {
             if ( result === undefined ) {
-                Notify.log( 'makeRotate without given matrix destination is deprecated' );
-                result = [];
+                Notify.warn( 'no matrix destination !' );
+                result = Matrix.create();
             }
 
             var mag = Math.sqrt( x * x + y * y + z * z );
@@ -3030,7 +3221,8 @@ define( 'osg/Matrix',[
 
         transform3x3: function ( m, v, result ) {
             if ( result === undefined ) {
-                result = [];
+                Notify.warn( 'no matrix destination !' );
+                result = Matrix.create();
             }
             result[ 0 ] = m[ 0 ] * v[ 0 ] + m[ 1 ] * v[ 1 ] + m[ 2 ] * v[ 2 ];
             result[ 1 ] = m[ 4 ] * v[ 0 ] + m[ 5 ] * v[ 1 ] + m[ 6 ] * v[ 2 ];
@@ -3038,54 +3230,64 @@ define( 'osg/Matrix',[
             return result;
         },
 
-        transformVec3: function ( matrix, vector, result ) {
-            var d = 1.0 / ( matrix[ 3 ] * vector[ 0 ] + matrix[ 7 ] * vector[ 1 ] + matrix[ 11 ] * vector[ 2 ] + matrix[ 15 ] );
+        transformVec3: ( function () {
+            var tmpVec = [ 0.0, 0.0, 0.0 ];
 
-            if ( result === undefined ) {
-                Notify.warn( 'deprecated, Matrix.transformVec3 needs a third parameter as result' );
-                result = [];
-            }
+            return function ( matrix, vector, result ) {
+                var d = 1.0 / ( matrix[ 3 ] * vector[ 0 ] + matrix[ 7 ] * vector[ 1 ] + matrix[ 11 ] * vector[ 2 ] + matrix[ 15 ] );
 
-            var tmp;
-            if ( result === vector ) {
-                tmp = [];
-            } else {
-                tmp = result;
-            }
-            tmp[ 0 ] = ( matrix[ 0 ] * vector[ 0 ] + matrix[ 4 ] * vector[ 1 ] + matrix[ 8 ] * vector[ 2 ] + matrix[ 12 ] ) * d;
-            tmp[ 1 ] = ( matrix[ 1 ] * vector[ 0 ] + matrix[ 5 ] * vector[ 1 ] + matrix[ 9 ] * vector[ 2 ] + matrix[ 13 ] ) * d;
-            tmp[ 2 ] = ( matrix[ 2 ] * vector[ 0 ] + matrix[ 6 ] * vector[ 1 ] + matrix[ 10 ] * vector[ 2 ] + matrix[ 14 ] ) * d;
+                if ( result === undefined ) {
+                    Notify.warn( 'no matrix destination !' );
+                    result = Matrix.create();
+                }
 
-            if ( result === vector ) {
-                Vec3.copy( tmp, result );
-            }
-            return result;
-        },
+                var tmp;
+                if ( result === vector ) {
+                    tmp = tmpVec;
+                } else {
+                    tmp = result;
+                }
+                tmp[ 0 ] = ( matrix[ 0 ] * vector[ 0 ] + matrix[ 4 ] * vector[ 1 ] + matrix[ 8 ] * vector[ 2 ] + matrix[ 12 ] ) * d;
+                tmp[ 1 ] = ( matrix[ 1 ] * vector[ 0 ] + matrix[ 5 ] * vector[ 1 ] + matrix[ 9 ] * vector[ 2 ] + matrix[ 13 ] ) * d;
+                tmp[ 2 ] = ( matrix[ 2 ] * vector[ 0 ] + matrix[ 6 ] * vector[ 1 ] + matrix[ 10 ] * vector[ 2 ] + matrix[ 14 ] ) * d;
 
-        transformVec4: function ( matrix, vector, result ) {
-            if ( result === undefined ) {
-                result = [];
-            }
-            var tmp;
-            if ( result === vector ) {
-                tmp = [];
-            } else {
-                tmp = result;
-            }
-            tmp[ 0 ] = ( matrix[ 0 ] * vector[ 0 ] + matrix[ 1 ] * vector[ 1 ] + matrix[ 2 ] * vector[ 2 ] + matrix[ 3 ] * vector[ 3 ] );
-            tmp[ 1 ] = ( matrix[ 4 ] * vector[ 0 ] + matrix[ 5 ] * vector[ 1 ] + matrix[ 6 ] * vector[ 2 ] + matrix[ 7 ] * vector[ 3 ] );
-            tmp[ 2 ] = ( matrix[ 8 ] * vector[ 0 ] + matrix[ 9 ] * vector[ 1 ] + matrix[ 10 ] * vector[ 2 ] + matrix[ 11 ] * vector[ 3 ] );
-            tmp[ 3 ] = ( matrix[ 12 ] * vector[ 0 ] + matrix[ 13 ] * vector[ 1 ] + matrix[ 14 ] * vector[ 2 ] + matrix[ 15 ] * vector[ 3 ] );
+                if ( result === vector ) {
+                    Vec3.copy( tmp, result );
+                }
+                return result;
+            };
+        } )(),
 
-            if ( result === vector ) {
-                Vec4.copy( tmp, result );
-            }
-            return result;
-        },
+        transformVec4: ( function () {
+            var tmpVec = [ 0.0, 0.0, 0.0 ];
+
+            return function ( matrix, vector, result ) {
+                if ( result === undefined ) {
+                    Notify.warn( 'no matrix destination !' );
+                    result = Matrix.create();
+                }
+                var tmp;
+                if ( result === vector ) {
+                    tmp = tmpVec;
+                } else {
+                    tmp = result;
+                }
+                tmp[ 0 ] = ( matrix[ 0 ] * vector[ 0 ] + matrix[ 1 ] * vector[ 1 ] + matrix[ 2 ] * vector[ 2 ] + matrix[ 3 ] * vector[ 3 ] );
+                tmp[ 1 ] = ( matrix[ 4 ] * vector[ 0 ] + matrix[ 5 ] * vector[ 1 ] + matrix[ 6 ] * vector[ 2 ] + matrix[ 7 ] * vector[ 3 ] );
+                tmp[ 2 ] = ( matrix[ 8 ] * vector[ 0 ] + matrix[ 9 ] * vector[ 1 ] + matrix[ 10 ] * vector[ 2 ] + matrix[ 11 ] * vector[ 3 ] );
+                tmp[ 3 ] = ( matrix[ 12 ] * vector[ 0 ] + matrix[ 13 ] * vector[ 1 ] + matrix[ 14 ] * vector[ 2 ] + matrix[ 15 ] * vector[ 3 ] );
+
+                if ( result === vector ) {
+                    Vec4.copy( tmp, result );
+                }
+                return result;
+            };
+        } )(),
 
         copy: function ( matrix, result ) {
             if ( result === undefined ) {
-                result = [];
+                Notify.warn( 'no matrix destination !' );
+                result = Matrix.create();
             }
             result[ 0 ] = matrix[ 0 ];
             result[ 1 ] = matrix[ 1 ];
@@ -3106,18 +3308,22 @@ define( 'osg/Matrix',[
             return result;
         },
 
-        inverse: function ( matrix, result ) {
-            if ( result === matrix ) {
-                Matrix.copy( matrix, Matrix._tmp1 );
-                matrix = Matrix._tmp1;
-            }
+        inverse: ( function () {
+            var tmp = [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ];
 
-            if ( matrix[ 3 ] === 0.0 && matrix[ 7 ] === 0.0 && matrix[ 11 ] === 0.0 && matrix[ 15 ] === 1.0 ) {
-                return this.inverse4x3( matrix, result );
-            } else {
-                return this.inverse4x4( matrix, result );
-            }
-        },
+            return function ( matrix, result ) {
+                if ( result === matrix ) {
+                    Matrix.copy( matrix, tmp );
+                    matrix = tmp;
+                }
+
+                if ( matrix[ 3 ] === 0.0 && matrix[ 7 ] === 0.0 && matrix[ 11 ] === 0.0 && matrix[ 15 ] === 1.0 ) {
+                    return Matrix.inverse4x3( matrix, result );
+                } else {
+                    return Matrix.inverse4x4( matrix, result );
+                }
+            };
+        } )(),
 
         /**
          *  if a result argument is given the return of the function is true or false
@@ -3147,15 +3353,15 @@ define( 'osg/Matrix',[
             var tmp19 = matrix[ 12 ] * matrix[ 1 ];
             var tmp20 = matrix[ 0 ] * matrix[ 9 ];
             var tmp21 = matrix[ 8 ] * matrix[ 1 ];
-            var tmp22= matrix[ 0 ] * matrix[ 5 ];
-            var tmp23= matrix[ 4 ] * matrix[ 1 ];
+            var tmp22 = matrix[ 0 ] * matrix[ 5 ];
+            var tmp23 = matrix[ 4 ] * matrix[ 1 ];
 
             var t0 = ( ( tmp0 * matrix[ 5 ] + tmp3 * matrix[ 9 ] + tmp4 * matrix[ 13 ] ) -
                 ( tmp1 * matrix[ 5 ] + tmp2 * matrix[ 9 ] + tmp5 * matrix[ 13 ] ) );
-            var t1 = ( ( tmp1 * matrix[ 1 ] + tmp6  * matrix[ 9 ] + tmp9 * matrix[ 13 ] ) -
+            var t1 = ( ( tmp1 * matrix[ 1 ] + tmp6 * matrix[ 9 ] + tmp9 * matrix[ 13 ] ) -
                 ( tmp0 * matrix[ 1 ] + tmp7 * matrix[ 9 ] + tmp8 * matrix[ 13 ] ) );
             var t2 = ( ( tmp2 * matrix[ 1 ] + tmp7 * matrix[ 5 ] + tmp10 * matrix[ 13 ] ) -
-                ( tmp3 * matrix[ 1 ] + tmp6  * matrix[ 5 ] + tmp11 * matrix[ 13 ] ) );
+                ( tmp3 * matrix[ 1 ] + tmp6 * matrix[ 5 ] + tmp11 * matrix[ 13 ] ) );
             var t3 = ( ( tmp5 * matrix[ 1 ] + tmp8 * matrix[ 5 ] + tmp11 * matrix[ 9 ] ) -
                 ( tmp4 * matrix[ 1 ] + tmp9 * matrix[ 5 ] + tmp10 * matrix[ 9 ] ) );
 
@@ -3174,29 +3380,29 @@ define( 'osg/Matrix',[
             var out10 = d * ( ( tmp1 * matrix[ 4 ] + tmp2 * matrix[ 8 ] + tmp5 * matrix[ 12 ] ) -
                 ( tmp0 * matrix[ 4 ] + tmp3 * matrix[ 8 ] + tmp4 * matrix[ 12 ] ) );
             var out11 = d * ( ( tmp0 * matrix[ 0 ] + tmp7 * matrix[ 8 ] + tmp8 * matrix[ 12 ] ) -
-                ( tmp1 * matrix[ 0 ] + tmp6  * matrix[ 8 ] + tmp9 * matrix[ 12 ] ) );
-            var out12 = d * ( ( tmp3 * matrix[ 0 ] + tmp6  * matrix[ 4 ] + tmp11 * matrix[ 12 ] ) -
+                ( tmp1 * matrix[ 0 ] + tmp6 * matrix[ 8 ] + tmp9 * matrix[ 12 ] ) );
+            var out12 = d * ( ( tmp3 * matrix[ 0 ] + tmp6 * matrix[ 4 ] + tmp11 * matrix[ 12 ] ) -
                 ( tmp2 * matrix[ 0 ] + tmp7 * matrix[ 4 ] + tmp10 * matrix[ 12 ] ) );
             var out13 = d * ( ( tmp4 * matrix[ 0 ] + tmp9 * matrix[ 4 ] + tmp10 * matrix[ 8 ] ) -
                 ( tmp5 * matrix[ 0 ] + tmp8 * matrix[ 4 ] + tmp11 * matrix[ 8 ] ) );
 
             var out20 = d * ( ( tmp12 * matrix[ 7 ] + tmp15 * matrix[ 11 ] + tmp16 * matrix[ 15 ] ) -
-                ( tmp13 * matrix[ 7 ] + tmp14* matrix[ 11 ] + tmp17 * matrix[ 15 ] ) );
+                ( tmp13 * matrix[ 7 ] + tmp14 * matrix[ 11 ] + tmp17 * matrix[ 15 ] ) );
             var out21 = d * ( ( tmp13 * matrix[ 3 ] + tmp18 * matrix[ 11 ] + tmp21 * matrix[ 15 ] ) -
                 ( tmp12 * matrix[ 3 ] + tmp19 * matrix[ 11 ] + tmp20 * matrix[ 15 ] ) );
-            var out22 = d * ( ( tmp14* matrix[ 3 ] + tmp19 * matrix[ 7 ] + tmp22* matrix[ 15 ] ) -
-                ( tmp15 * matrix[ 3 ] + tmp18 * matrix[ 7 ] + tmp23* matrix[ 15 ] ) );
-            var out23 = d * ( ( tmp17 * matrix[ 3 ] + tmp20 * matrix[ 7 ] + tmp23* matrix[ 11 ] ) -
-                ( tmp16 * matrix[ 3 ] + tmp21 * matrix[ 7 ] + tmp22* matrix[ 11 ] ) );
+            var out22 = d * ( ( tmp14 * matrix[ 3 ] + tmp19 * matrix[ 7 ] + tmp22 * matrix[ 15 ] ) -
+                ( tmp15 * matrix[ 3 ] + tmp18 * matrix[ 7 ] + tmp23 * matrix[ 15 ] ) );
+            var out23 = d * ( ( tmp17 * matrix[ 3 ] + tmp20 * matrix[ 7 ] + tmp23 * matrix[ 11 ] ) -
+                ( tmp16 * matrix[ 3 ] + tmp21 * matrix[ 7 ] + tmp22 * matrix[ 11 ] ) );
 
-            var out30 = d * ( ( tmp14* matrix[ 10 ] + tmp17 * matrix[ 14 ] + tmp13 * matrix[ 6 ] ) -
+            var out30 = d * ( ( tmp14 * matrix[ 10 ] + tmp17 * matrix[ 14 ] + tmp13 * matrix[ 6 ] ) -
                 ( tmp16 * matrix[ 14 ] + tmp12 * matrix[ 6 ] + tmp15 * matrix[ 10 ] ) );
             var out31 = d * ( ( tmp20 * matrix[ 14 ] + tmp12 * matrix[ 2 ] + tmp19 * matrix[ 10 ] ) -
                 ( tmp18 * matrix[ 10 ] + tmp21 * matrix[ 14 ] + tmp13 * matrix[ 2 ] ) );
-            var out32 = d * ( ( tmp18 * matrix[ 6 ] + tmp23* matrix[ 14 ] + tmp15 * matrix[ 2 ] ) -
-                ( tmp22* matrix[ 14 ] + tmp14 * matrix[ 2 ] + tmp19 * matrix[ 6 ] ) );
-            var out33 = d * ( ( tmp22* matrix[ 10 ] + tmp16 * matrix[ 2 ] + tmp21 * matrix[ 6 ] ) -
-                ( tmp20 * matrix[ 6 ] + tmp23* matrix[ 10 ] + tmp17 * matrix[ 2 ] ) );
+            var out32 = d * ( ( tmp18 * matrix[ 6 ] + tmp23 * matrix[ 14 ] + tmp15 * matrix[ 2 ] ) -
+                ( tmp22 * matrix[ 14 ] + tmp14 * matrix[ 2 ] + tmp19 * matrix[ 6 ] ) );
+            var out33 = d * ( ( tmp22 * matrix[ 10 ] + tmp16 * matrix[ 2 ] + tmp21 * matrix[ 6 ] ) -
+                ( tmp20 * matrix[ 6 ] + tmp23 * matrix[ 10 ] + tmp17 * matrix[ 2 ] ) );
 
             result[ 0 ] = out00;
             result[ 1 ] = out01;
@@ -3246,106 +3452,108 @@ define( 'osg/Matrix',[
       This problem is simplified if [px py pz s] = [0 0 0 1], which will happen if mat was composed only of rotations, scales, and translations (which is common).  In this case, we can ignore corr entirely which saves on a lot of computations.
     */
 
-        inverse4x3: function ( matrix, result ) {
+        inverse4x3: ( function () {
+            var inv = [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ];
 
-            // Copy rotation components
-            var r00 = matrix[ 0 ];
-            var r01 = matrix[ 1 ];
-            var r02 = matrix[ 2 ];
+            return function ( matrix, result ) {
 
-            var r10 = matrix[ 4 ];
-            var r11 = matrix[ 5 ];
-            var r12 = matrix[ 6 ];
+                // Copy rotation components
+                var r00 = matrix[ 0 ];
+                var r01 = matrix[ 1 ];
+                var r02 = matrix[ 2 ];
 
-            var r20 = matrix[ 8 ];
-            var r21 = matrix[ 9 ];
-            var r22 = matrix[ 10 ];
+                var r10 = matrix[ 4 ];
+                var r11 = matrix[ 5 ];
+                var r12 = matrix[ 6 ];
 
-            // Partially compute inverse of rot
-            result[ 0 ] = r11 * r22 - r12 * r21;
-            result[ 1 ] = r02 * r21 - r01 * r22;
-            result[ 2 ] = r01 * r12 - r02 * r11;
+                var r20 = matrix[ 8 ];
+                var r21 = matrix[ 9 ];
+                var r22 = matrix[ 10 ];
 
-            // Compute determinant of rot from 3 elements just computed
-            var oneOverDet = 1.0 / ( r00 * result[ 0 ] + r10 * result[ 1 ] + r20 * result[ 2 ] );
-            r00 *= oneOverDet;
-            r10 *= oneOverDet;
-            r20 *= oneOverDet; // Saves on later computations
+                // Partially compute inverse of rot
+                result[ 0 ] = r11 * r22 - r12 * r21;
+                result[ 1 ] = r02 * r21 - r01 * r22;
+                result[ 2 ] = r01 * r12 - r02 * r11;
 
-            // Finish computing inverse of rot
-            result[ 0 ] *= oneOverDet;
-            result[ 1 ] *= oneOverDet;
-            result[ 2 ] *= oneOverDet;
-            result[ 3 ] = 0.0;
-            result[ 4 ] = r12 * r20 - r10 * r22; // Have already been divided by det
-            result[ 5 ] = r00 * r22 - r02 * r20; // same
-            result[ 6 ] = r02 * r10 - r00 * r12; // same
-            result[ 7 ] = 0.0;
-            result[ 8 ] = r10 * r21 - r11 * r20; // Have already been divided by det
-            result[ 9 ] = r01 * r20 - r00 * r21; // same
-            result[ 10 ] = r00 * r11 - r01 * r10; // same
-            result[ 11 ] = 0.0;
-            result[ 15 ] = 1.0;
+                // Compute determinant of rot from 3 elements just computed
+                var oneOverDet = 1.0 / ( r00 * result[ 0 ] + r10 * result[ 1 ] + r20 * result[ 2 ] );
+                r00 *= oneOverDet;
+                r10 *= oneOverDet;
+                r20 *= oneOverDet; // Saves on later computations
 
-            var tx, ty, tz;
+                // Finish computing inverse of rot
+                result[ 0 ] *= oneOverDet;
+                result[ 1 ] *= oneOverDet;
+                result[ 2 ] *= oneOverDet;
+                result[ 3 ] = 0.0;
+                result[ 4 ] = r12 * r20 - r10 * r22; // Have already been divided by det
+                result[ 5 ] = r00 * r22 - r02 * r20; // same
+                result[ 6 ] = r02 * r10 - r00 * r12; // same
+                result[ 7 ] = 0.0;
+                result[ 8 ] = r10 * r21 - r11 * r20; // Have already been divided by det
+                result[ 9 ] = r01 * r20 - r00 * r21; // same
+                result[ 10 ] = r00 * r11 - r01 * r10; // same
+                result[ 11 ] = 0.0;
+                result[ 15 ] = 1.0;
 
-            var d = matrix[ 15 ];
-            var dm = d - 1.0;
-            if ( dm * dm > 1.0e-6 ) // Involves perspective, so we must
-            { // compute the full inverse
+                var tx, ty, tz;
 
-                var inv = Matrix._tmp0;
-                result[ 12 ] = result[ 13 ] = result[ 14 ] = 0.0;
+                var d = matrix[ 15 ];
+                var dm = d - 1.0;
+                if ( dm * dm > 1.0e-6 ) // Involves perspective, so we must
+                { // compute the full inverse
 
-                var a = matrix[ 3 ];
-                var b = matrix[ 7 ];
-                var c = matrix[ 11 ];
-                var px = result[ 0 ] * a + result[ 1 ] * b + result[ 2 ] * c;
-                var py = result[ 4 ] * a + result[ 5 ] * b + result[ 6 ] * c;
-                var pz = result[ 8 ] * a + result[ 9 ] * b + result[ 10 ] * c;
+                    result[ 12 ] = result[ 13 ] = result[ 14 ] = 0.0;
 
-                tx = matrix[ 12 ];
-                ty = matrix[ 13 ];
-                tz = matrix[ 14 ];
-                var oneOverS = 1.0 / ( d - ( tx * px + ty * py + tz * pz ) );
+                    var a = matrix[ 3 ];
+                    var b = matrix[ 7 ];
+                    var c = matrix[ 11 ];
+                    var px = result[ 0 ] * a + result[ 1 ] * b + result[ 2 ] * c;
+                    var py = result[ 4 ] * a + result[ 5 ] * b + result[ 6 ] * c;
+                    var pz = result[ 8 ] * a + result[ 9 ] * b + result[ 10 ] * c;
 
-                tx *= oneOverS;
-                ty *= oneOverS;
-                tz *= oneOverS; // Reduces number of calculations later on
+                    tx = matrix[ 12 ];
+                    ty = matrix[ 13 ];
+                    tz = matrix[ 14 ];
+                    var oneOverS = 1.0 / ( d - ( tx * px + ty * py + tz * pz ) );
 
-                // Compute inverse of trans*corr
-                inv[ 0 ] = tx * px + 1.0;
-                inv[ 1 ] = ty * px;
-                inv[ 2 ] = tz * px;
-                inv[ 3 ] = -px * oneOverS;
-                inv[ 4 ] = tx * py;
-                inv[ 5 ] = ty * py + 1.0;
-                inv[ 6 ] = tz * py;
-                inv[ 7 ] = -py * oneOverS;
-                inv[ 8 ] = tx * pz;
-                inv[ 9 ] = ty * pz;
-                inv[ 10 ] = tz * pz + 1.0;
-                inv[ 11 ] = -pz * oneOverS;
-                inv[ 12 ] = -tx;
-                inv[ 13 ] = -ty;
-                inv[ 14 ] = -tz;
-                inv[ 15 ] = oneOverS;
+                    tx *= oneOverS;
+                    ty *= oneOverS;
+                    tz *= oneOverS; // Reduces number of calculations later on
 
-                Matrix.preMult( result, inv ); // Finish computing full inverse of mat
-            } else {
+                    // Compute inverse of trans*corr
+                    inv[ 0 ] = tx * px + 1.0;
+                    inv[ 1 ] = ty * px;
+                    inv[ 2 ] = tz * px;
+                    inv[ 3 ] = -px * oneOverS;
+                    inv[ 4 ] = tx * py;
+                    inv[ 5 ] = ty * py + 1.0;
+                    inv[ 6 ] = tz * py;
+                    inv[ 7 ] = -py * oneOverS;
+                    inv[ 8 ] = tx * pz;
+                    inv[ 9 ] = ty * pz;
+                    inv[ 10 ] = tz * pz + 1.0;
+                    inv[ 11 ] = -pz * oneOverS;
+                    inv[ 12 ] = -tx;
+                    inv[ 13 ] = -ty;
+                    inv[ 14 ] = -tz;
+                    inv[ 15 ] = oneOverS;
 
-                tx = matrix[ 12 ];
-                ty = matrix[ 13 ];
-                tz = matrix[ 14 ];
+                    Matrix.preMult( result, inv ); // Finish computing full inverse of mat
+                } else {
 
-                // Compute translation components of mat'
-                result[ 12 ] = -( tx * result[ 0 ] + ty * result[ 4 ] + tz * result[ 8 ] );
-                result[ 13 ] = -( tx * result[ 1 ] + ty * result[ 5 ] + tz * result[ 9 ] );
-                result[ 14 ] = -( tx * result[ 2 ] + ty * result[ 6 ] + tz * result[ 10 ] );
-            }
-            return true;
+                    tx = matrix[ 12 ];
+                    ty = matrix[ 13 ];
+                    tz = matrix[ 14 ];
 
-        },
+                    // Compute translation components of mat'
+                    result[ 12 ] = -( tx * result[ 0 ] + ty * result[ 4 ] + tz * result[ 8 ] );
+                    result[ 13 ] = -( tx * result[ 1 ] + ty * result[ 5 ] + tz * result[ 9 ] );
+                    result[ 14 ] = -( tx * result[ 2 ] + ty * result[ 6 ] + tz * result[ 10 ] );
+                }
+                return true;
+            };
+        } )(),
 
         transpose: function ( mat, dest ) {
             // from glMatrix
@@ -3394,7 +3602,8 @@ define( 'osg/Matrix',[
 
         makePerspective: function ( fovy, aspect, znear, zfar, result ) {
             if ( result === undefined ) {
-                result = [];
+                Notify.warn( 'no matrix destination !' );
+                result = Matrix.create();
             }
             var ymax = znear * Math.tan( fovy * Math.PI / 360.0 );
             var ymin = -ymax;
@@ -3409,7 +3618,7 @@ define( 'osg/Matrix',[
             var left = 0.0;
             var top = 0.0;
             var bottom = 0.0;
-            var zNear,zFar;
+            var zNear, zFar;
 
             if ( matrix[ 0 * 4 + 3 ] !== 0.0 || matrix[ 1 * 4 + 3 ] !== 0.0 || matrix[ 2 * 4 + 3 ] !== -1.0 || matrix[ 3 * 4 + 3 ] !== 0.0 ) {
                 return false;
@@ -3439,7 +3648,7 @@ define( 'osg/Matrix',[
             return true;
         },
 
-        getPerspective: function ( matrix, result ) {
+        getPerspective: ( function () {
             var c = {
                 'right': 0,
                 'left': 0,
@@ -3448,25 +3657,28 @@ define( 'osg/Matrix',[
                 'zNear': 0,
                 'zFar': 0
             };
-            // get frustum and compute results
-            var r = this.getFrustum( matrix, c );
-            if ( r ) {
-                result.fovy = 180 / Math.PI * ( Math.atan( c.top / c.zNear ) - Math.atan( c.bottom / c.zNear ) );
-                result.aspectRatio = ( c.right - c.left ) / ( c.top - c.bottom );
-            }
-            result.zNear = c.zNear;
-            result.zFar = c.zFar;
-            return result;
-        },
+            return function ( matrix, result ) {
+                // get frustum and compute results
+                var r = Matrix.getFrustum( matrix, c );
+                if ( r ) {
+                    result.fovy = 180 / Math.PI * ( Math.atan( c.top / c.zNear ) - Math.atan( c.bottom / c.zNear ) );
+                    result.aspectRatio = ( c.right - c.left ) / ( c.top - c.bottom );
+                }
+                result.zNear = c.zNear;
+                result.zFar = c.zFar;
+                return result;
+            };
+        } )(),
 
         makeScale: function ( x, y, z, result ) {
             if ( result === undefined ) {
-                result = [];
+                Notify.warn( 'no matrix destination !' );
+                result = Matrix.create();
             }
-            this.setRow( result, 0, x, 0, 0, 0 );
-            this.setRow( result, 1, 0, y, 0, 0 );
-            this.setRow( result, 2, 0, 0, z, 0 );
-            this.setRow( result, 3, 0, 0, 0, 1 );
+            Matrix.setRow( result, 0, x, 0.0, 0.0, 0.0 );
+            Matrix.setRow( result, 1, 0.0, y, 0.0, 0.0 );
+            Matrix.setRow( result, 2, 0.0, 0.0, z, 0.0 );
+            Matrix.setRow( result, 3, 0.0, 0.0, 0.0, 1.0 );
             return result;
         },
 
@@ -3484,28 +3696,27 @@ define( 'osg/Matrix',[
             return vectorsArray;
         },
 
-        makeFrustum: function ( left, right,
-            bottom, top,
-            znear, zfar, result ) {
+        makeFrustum: function ( left, right, bottom, top, znear, zfar, result ) {
             if ( result === undefined ) {
-                result = [];
+                Notify.warn( 'no matrix destination !' );
+                result = Matrix.create();
             }
-            var X = 2 * znear / ( right - left );
-            var Y = 2 * znear / ( top - bottom );
+            var X = 2.0 * znear / ( right - left );
+            var Y = 2.0 * znear / ( top - bottom );
             var A = ( right + left ) / ( right - left );
             var B = ( top + bottom ) / ( top - bottom );
             var C = -( zfar + znear ) / ( zfar - znear );
-            var D = -2 * zfar * znear / ( zfar - znear );
-            this.setRow( result, 0, X, 0, 0, 0 );
-            this.setRow( result, 1, 0, Y, 0, 0 );
-            this.setRow( result, 2, A, B, C, -1 );
-            this.setRow( result, 3, 0, 0, D, 0 );
+            var D = -2.0 * zfar * znear / ( zfar - znear );
+            Matrix.setRow( result, 0, X, 0.0, 0.0, 0.0 );
+            Matrix.setRow( result, 1, 0.0, Y, 0.0, 0.0 );
+            Matrix.setRow( result, 2, A, B, C, -1.0 );
+            Matrix.setRow( result, 3, 0.0, 0.0, D, 0.0 );
             return result;
         },
 
         makeRotateFromQuat: function ( quat, result ) {
-            this.makeIdentity( result );
-            return this.setRotateFromQuat( result, quat );
+            Matrix.makeIdentity( result );
+            return Matrix.setRotateFromQuat( result, quat );
         },
 
         setRotateFromQuat: function ( matrix, quat ) {
@@ -3599,7 +3810,7 @@ define( 'osg/ComputeMatrixFromNodePath',[
         if ( ignoreCamera === undefined ) {
             ignoreCamera = true;
         }
-        var matrix = Matrix.makeIdentity( [] );
+        var matrix = Matrix.create();
 
         var j = 0;
         if ( ignoreCamera ) {
@@ -3638,7 +3849,9 @@ define( 'osg/Node',[
     'osg/TransformEnums'
 ], function ( MACROUTILS, Object, BoundingBox, BoundingSphere, StateSet, NodeVisitor, Matrix, ComputeMatrixFromNodePath, TransformEnums ) {
 
-        /**
+    
+
+    /**
      *  Node that can contains child node
      *  @class Node
      */
@@ -3655,6 +3868,8 @@ define( 'osg/Node',[
         this.boundingSphereComputed = false;
         this._updateCallbacks = [];
         this._cullCallback = undefined;
+        this._cullingActive = true;
+        this._numChildrenWithCullingDisabled = 0;
     };
 
     /** @lends Node.prototype */
@@ -3690,7 +3905,7 @@ define( 'osg/Node',[
         setNodeMask: function ( mask ) {
             this.nodeMask = mask;
         },
-        getNodeMask: function ( ) {
+        getNodeMask: function () {
             return this.nodeMask;
         },
         setStateSet: function ( s ) {
@@ -3720,7 +3935,10 @@ define( 'osg/Node',[
         @param Oject callback
      */
         setUpdateCallback: function ( cb ) {
-            this._updateCallbacks[ 0 ] = cb;
+            if ( !this._updateCallbacks.length )
+                this.addUpdateCallback( cb );
+            else
+                this._updateCallbacks[ 0 ] = cb;
         },
         /** Get update node callback, called during update traversal.
         @type Oject
@@ -3896,14 +4114,55 @@ define( 'osg/Node',[
             for ( var i = 0, l = collected.nodePaths.length; i < l; i++ ) {
                 var np = collected.nodePaths[ i ];
                 if ( np.length === 0 ) {
-                    matrixList.push( Matrix.makeIdentity( [] ) );
+                    matrixList.push( Matrix.create() );
                 } else {
                     matrixList.push( ComputeMatrixFromNodePath.computeLocalToWorld( np ) );
                 }
             }
             return matrixList;
-        }
+        },
 
+        setCullingActive: function ( value ) {
+            if ( this._cullingActive === value ) return;
+            if ( this._numChildrenWithCullingDisabled === 0 && this.parents.length > 0 ) {
+                var delta = 0;
+                if ( !this._cullingActive )--delta;
+                if ( !value )++delta;
+                if ( delta !== 0 ) {
+                    for ( var i = 0, k = this.parents.length; i < k; i++ ) {
+                        this.parents[ i ].setNumChildrenWithCullingDisabled( this.parents[ i ].getNumChildrenWithCullingDisabled() + delta );
+                    }
+                }
+            }
+            this._cullingActive = value;
+        },
+
+        getCullingActive: function () {
+            return this._cullingActive;
+        },
+
+        isCullingActive: function () {
+            return this._numChildrenWithCullingDisabled === 0 && this._cullingActive && this.getBound().valid();
+        },
+
+        setNumChildrenWithCullingDisabled: function ( num ) {
+            if ( this._numChildrenWithCullingDisabled === num ) return;
+            if ( this._cullingActive && this.parents.length > 0 ) {
+                var delta = 0;
+                if ( this._numChildrenWithCullingDisabled > 0 )--delta;
+                if ( num > 0 )++delta;
+                if ( delta !== 0 ) {
+                    for ( var i = 0, k = this.parents.length; i < k; i++ ) {
+                        this.parents[ i ].setNumChildrenWithCullingDisabled( this.parents[ i ].getNumChildrenWithCullingDisabled() + delta );
+                    }
+                }
+            }
+            this._numChildrenWithCullingDisabled = num;
+        },
+
+        getNumChildrenWithCullingDisabled: function () {
+            return this._numChildrenWithCullingDisabled;
+        }
 
     } ), 'osg', 'Node' );
     MACROUTILS.setTypeID( Node );
@@ -3918,7 +4177,9 @@ define( 'osg/Transform',[
     'osg/Vec3',
     'osg/TransformEnums'
 ], function ( MACROUTILS, Node, Matrix, Vec3, TransformEnums ) {
-        /**
+
+    
+    /**
      * Transform - base class for Transform type node ( Camera, MatrixTransform )
      * @class Transform
      * @inherits Node
@@ -3937,52 +4198,46 @@ define( 'osg/Transform',[
             return this.referenceFrame;
         },
 
-        computeBound: function ( bsphere ) {
-            Node.prototype.computeBound.call( this, bsphere );
-            if ( !bsphere.valid() ) {
+        computeBound: ( function () {
+            var xdash = [ 0.0, 0.0, 0.0 ];
+            var ydash = [ 0.0, 0.0, 0.0 ];
+            var zdash = [ 0.0, 0.0, 0.0 ];
+            return function ( bsphere ) {
+                Node.prototype.computeBound.call( this, bsphere );
+                if ( !bsphere.valid() ) {
+                    return bsphere;
+                }
+                var sphCenter = bsphere._center;
+                var sphRadius = bsphere._radius;
+
+                var matrix = Matrix.create();
+                this.computeLocalToWorldMatrix( matrix );
+
+                Vec3.copy( sphCenter, xdash );
+                xdash[ 0 ] += sphRadius;
+                Matrix.transformVec3( matrix, xdash, xdash );
+
+                Vec3.copy( sphCenter, ydash );
+                ydash[ 1 ] += sphRadius;
+                Matrix.transformVec3( matrix, ydash, ydash );
+
+                Vec3.copy( sphCenter, zdash );
+                zdash[ 2 ] += sphRadius;
+                Matrix.transformVec3( matrix, zdash, zdash );
+
+                Matrix.transformVec3( matrix, sphCenter, sphCenter );
+
+                var lenXdash = Vec3.distance( xdash, sphCenter );
+                var lenYdash = Vec3.distance( ydash, sphCenter );
+                var lenZdash = Vec3.distance( zdash, sphCenter );
+
+                if ( lenXdash > lenYdash )
+                    bsphere._radius = lenXdash > lenZdash ? lenXdash : lenZdash;
+                else
+                    bsphere._radius = lenYdash > lenZdash ? lenYdash : lenZdash;
                 return bsphere;
-            }
-            var matrix = Matrix.makeIdentity( [] );
-            this.computeLocalToWorldMatrix( matrix );
-
-            var xdash = Vec3.copy( bsphere._center, [] );
-            xdash[ 0 ] += bsphere._radius;
-            Matrix.transformVec3( matrix, xdash, xdash );
-
-            var ydash = Vec3.copy( bsphere._center, [] );
-            ydash[ 1 ] += bsphere._radius;
-            Matrix.transformVec3( matrix, ydash, ydash );
-
-            var zdash = Vec3.copy( bsphere._center, [] );
-            zdash[ 2 ] += bsphere._radius;
-            Matrix.transformVec3( matrix, zdash, zdash );
-
-            Matrix.transformVec3( matrix, bsphere._center, bsphere._center );
-
-            Vec3.sub( xdash,
-                bsphere._center,
-                xdash );
-            var lenXdash = Vec3.length( xdash );
-
-            Vec3.sub( ydash,
-                bsphere._center,
-                ydash );
-            var lenYdash = Vec3.length( ydash );
-
-            Vec3.sub( zdash,
-                bsphere._center,
-                zdash );
-            var lenZdash = Vec3.length( zdash );
-
-            bsphere._radius = lenXdash;
-            if ( bsphere._radius < lenYdash ) {
-                bsphere._radius = lenYdash;
-            }
-            if ( bsphere._radius < lenZdash ) {
-                bsphere._radius = lenZdash;
-            }
-            return bsphere;
-        }
+            };
+        } )()
     } );
 
     return Transform;
@@ -4041,6 +4296,7 @@ define( 'osg/Camera',[
         CullSettings.call( this );
 
         this.viewport = undefined;
+        this._graphicContext = undefined;
         this.setClearColor( [ 0, 0, 0, 1.0 ] );
         this.setClearDepth( 1.0 );
 
@@ -4048,8 +4304,8 @@ define( 'osg/Camera',[
         this.setClearMask( Camera.COLOR_BUFFER_BIT | Camera.DEPTH_BUFFER_BIT );
         /*jshint bitwise: true */
 
-        this.setViewMatrix( Matrix.makeIdentity( [] ) );
-        this.setProjectionMatrix( Matrix.makeIdentity( [] ) );
+        this.setViewMatrix( Matrix.create() );
+        this.setProjectionMatrix( Matrix.create() );
         this.renderOrder = Camera.NESTED_RENDER;
         this.renderOrderNum = 0;
     };
@@ -4067,6 +4323,12 @@ define( 'osg/Camera',[
         CullSettings.prototype,
         MACROUTILS.objectInehrit( Transform.prototype, {
 
+            setGraphicContext: function ( gc ) {
+                this._graphicContext = gc;
+            },
+            getGraphicContext: function () {
+                return this._graphicContext;
+            },
             setClearDepth: function ( depth ) {
                 this.clearDepth = depth;
             },
@@ -4163,16 +4425,17 @@ define( 'osg/Camera',[
                 return true;
             },
 
-            computeWorldToLocalMatrix: function ( matrix /*, nodeVisitor */ ) {
-                var inverse = [];
-                Matrix.inverse( this.modelviewMatrix, inverse );
-                if ( this.referenceFrame === TransformEnums.RELATIVE_RF ) {
-                    Matrix.postMult( inverse, matrix );
-                } else {
-                    matrix = inverse;
-                }
-                return true;
-            }
+            computeWorldToLocalMatrix: ( function ( matrix /*, nodeVisitor */ ) {
+                var inverse = Matrix.create();
+                return function () {
+                    if ( this.referenceFrame === TransformEnums.RELATIVE_RF ) {
+                        Matrix.postMult( Matrix.inverse( this.modelviewMatrix, inverse ), matrix );
+                    } else {
+                        Matrix.inverse( this.modelviewMatrix, matrix );
+                    }
+                    return true;
+                };
+            } )()
 
         } ) ), 'osg', 'Camera' );
 
@@ -4330,7 +4593,7 @@ define( 'osg/MatrixTransform',[
      */
     var MatrixTransform = function () {
         Transform.call( this );
-        this.matrix = Matrix.makeIdentity( [] );
+        this.matrix = Matrix.create();
     };
 
     /** @lends MatrixTransform.prototype */
@@ -4350,7 +4613,7 @@ define( 'osg/MatrixTransform',[
             return true;
         },
         computeWorldToLocalMatrix: function ( matrix /*, nodeVisitor */ ) {
-            var minverse = Matrix.makeIdentity([]);
+            var minverse = Matrix.create();
             Matrix.inverse( this.matrix, minverse );
 
             if ( this.referenceFrame === TransformEnums.RELATIVE_RF ) {
@@ -4374,7 +4637,7 @@ define( 'osg/Projection',[
 
     var Projection = function () {
         Node.call( this );
-        this.projection = Matrix.makeIdentity( [] );
+        this.projection = Matrix.create();
     };
     Projection.prototype = MACROUTILS.objectInehrit( Node.prototype, {
         getProjectionMatrix: function () {
@@ -4490,16 +4753,18 @@ define( 'osg/Geometry',[
             var prgID = program.getInstanceID();
             if ( this.cacheAttributeList[ prgID ] === undefined ) {
                 var attribute;
-                var attributesCache = program.attributesCache;
+
+                var attributesCacheKeys = program.attributesCache.getKeys();
+                var attributesCacheMap = program.attributesCache;
                 var attributeList = [];
 
                 var generated = '//generated by Geometry::implementation\n';
                 generated += 'state.lazyDisablingOfVertexAttributes();\n';
                 generated += 'var attr;\n';
 
-                for ( var i = 0, l = attributesCache.attributeKeys.length; i < l; i++ ) {
-                    var key = attributesCache.attributeKeys[ i ];
-                    attribute = attributesCache[ key ];
+                for ( var i = 0, l = attributesCacheKeys.length; i < l; i++ ) {
+                    var key = attributesCacheKeys[ i ];
+                    attribute = attributesCacheMap[ key ];
                     var attr = this.attributes[ key ];
                     if ( attr === undefined ) {
                         continue;
@@ -4582,6 +4847,7 @@ define( 'osg/Geometry',[
 
     return Geometry;
 } );
+
 define( 'osg/RenderBin',[
     'osg/Notify',
     'osg/StateGraph',
@@ -4716,10 +4982,10 @@ define( 'osg/RenderBin',[
             this._leafs.length = 0;
             this._sorted = false;
         },
-        applyPositionedAttribute: function ( state, positionedAttibutes ) {
+        applyPositionedAttribute: function ( state, positionedAttributes ) {
             // the idea is to set uniform 'globally' in uniform map.
-            for ( var index = 0, l = positionedAttibutes.length; index < l; index++ ) {
-                var element = positionedAttibutes[ index ];
+            for ( var index = 0, l = positionedAttributes.length; index < l; index++ ) {
+                var element = positionedAttributes[ index ];
                 // add or set uniforms in state
                 var stateAttribute = element[ 1 ];
                 var matrix = element[ 0 ];
@@ -4768,16 +5034,61 @@ define( 'osg/RenderBin',[
             return previous;
         },
 
+        drawGeometry: ( function() {
+            var normal = Matrix.create();
+            var modelViewUniform, projectionUniform, normalUniform, program;
+
+            return function( state, leaf, push ) {
+
+                var gl = state.getGraphicContext();
+
+                if ( push === true ) {
+
+                    state.apply();
+                    program = state.getLastProgramApplied();
+
+                    modelViewUniform = program.uniformsCache[ state.modelViewMatrix.name ];
+                    projectionUniform = program.uniformsCache[ state.projectionMatrix.name ];
+                    normalUniform = program.uniformsCache[ state.normalMatrix.name ];
+                }
+
+
+                if ( modelViewUniform !== undefined ) {
+                    state.modelViewMatrix.set( leaf.modelview );
+                    state.modelViewMatrix.apply( gl, modelViewUniform );
+                }
+
+                if ( projectionUniform !== undefined ) {
+                    state.projectionMatrix.set( leaf.projection );
+                    state.projectionMatrix.apply( gl, projectionUniform );
+                }
+
+                if ( normalUniform !== undefined ) {
+                    Matrix.copy( leaf.modelview, normal );
+                    normal[ 12 ] = 0.0;
+                    normal[ 13 ] = 0.0;
+                    normal[ 14 ] = 0.0;
+
+                    Matrix.inverse( normal, normal );
+                    Matrix.transpose( normal, normal );
+                    state.normalMatrix.set( normal );
+                    state.normalMatrix.apply( gl, normalUniform );
+                }
+
+                leaf.geometry.drawImplementation( state );
+
+                if ( push === true ) {
+                    state.popGeneratedProgram();
+                    state.popStateSet();
+                }
+
+            };
+        })(),
+
         drawLeafs: function ( state, previousRenderLeaf ) {
-            var gl = state.getGraphicContext();
             var stateList = this.stateGraphList;
             var leafs = this._leafs;
-            var normalUniform;
-            var modelViewUniform;
-            var projectionUniform;
-            var program;
             var previousLeaf = previousRenderLeaf;
-            var normal = [];
 
             if ( previousLeaf ) {
                 StateGraph.prototype.moveToRootStateGraph( state, previousRenderLeaf.parent );
@@ -4814,44 +5125,7 @@ define( 'osg/RenderBin',[
                     push = true;
                 }
 
-                if ( push === true ) {
-                    //state.pushGeneratedProgram();
-                    state.apply();
-                    program = state.getLastProgramApplied();
-
-                    modelViewUniform = program.uniformsCache[ state.modelViewMatrix.name ];
-                    projectionUniform = program.uniformsCache[ state.projectionMatrix.name ];
-                    normalUniform = program.uniformsCache[ state.normalMatrix.name ];
-                }
-
-
-                if ( modelViewUniform !== undefined ) {
-                    state.modelViewMatrix.set( leaf.modelview );
-                    state.modelViewMatrix.apply( gl, modelViewUniform );
-                }
-                if ( projectionUniform !== undefined ) {
-                    state.projectionMatrix.set( leaf.projection );
-                    state.projectionMatrix.apply( gl, projectionUniform );
-                }
-                if ( normalUniform !== undefined ) {
-                    Matrix.copy( leaf.modelview, normal );
-                    //Matrix.setTrans(normal, 0, 0, 0);
-                    normal[ 12 ] = 0;
-                    normal[ 13 ] = 0;
-                    normal[ 14 ] = 0;
-
-                    Matrix.inverse( normal, normal );
-                    Matrix.transpose( normal, normal );
-                    state.normalMatrix.set( normal );
-                    state.normalMatrix.apply( gl, normalUniform );
-                }
-
-                leaf.geometry.drawImplementation( state );
-
-                if ( push === true ) {
-                    state.popGeneratedProgram();
-                    state.popStateSet();
-                }
+                this.drawGeometry( state, leaf, push );
 
                 previousLeaf = leaf;
             }
@@ -4888,44 +5162,7 @@ define( 'osg/RenderBin',[
                         push = true;
                     }
 
-                    if ( push === true ) {
-                        //state.pushGeneratedProgram();
-                        state.apply();
-                        program = state.getLastProgramApplied();
-
-                        modelViewUniform = program.uniformsCache[ state.modelViewMatrix.name ];
-                        projectionUniform = program.uniformsCache[ state.projectionMatrix.name ];
-                        normalUniform = program.uniformsCache[ state.normalMatrix.name ];
-                    }
-
-
-                    if ( modelViewUniform !== undefined ) {
-                        state.modelViewMatrix.set( leaf.modelview );
-                        state.modelViewMatrix.apply( gl, modelViewUniform );
-                    }
-                    if ( projectionUniform !== undefined ) {
-                        state.projectionMatrix.set( leaf.projection );
-                        state.projectionMatrix.apply( gl, projectionUniform );
-                    }
-                    if ( normalUniform !== undefined ) {
-                        Matrix.copy( leaf.modelview, normal );
-                        //Matrix.setTrans(normal, 0, 0, 0);
-                        normal[ 12 ] = 0;
-                        normal[ 13 ] = 0;
-                        normal[ 14 ] = 0;
-
-                        Matrix.inverse( normal, normal );
-                        Matrix.transpose( normal, normal );
-                        state.normalMatrix.set( normal );
-                        state.normalMatrix.apply( gl, normalUniform );
-                    }
-
-                    leaf.geometry.drawImplementation( state );
-
-                    if ( push === true ) {
-                        state.popGeneratedProgram();
-                        state.popStateSet();
-                    }
+                    this.drawGeometry( state, leaf, push );
 
                     previousLeaf = leaf;
                 }
@@ -5277,50 +5514,131 @@ define( 'osg/Lod',[
     'osg/Node',
     'osg/NodeVisitor',
     'osg/Matrix',
-    'osg/Vec3'
-], function ( MACROUTILS, Node, NodeVisitor, Matrix, Vec3) {
+    'osg/Vec3',
+    'osg/BoundingSphere'
+], function ( MACROUTILS, Node, NodeVisitor, Matrix, Vec3, BoundingSphere ) {
     /**
      *  Lod that can contains child node
      *  @class Lod
      */
     var Lod = function () {
         Node.call( this );
-        this.radius = -1;
-        this.range = [];
+        this._radius = -1;
+        this._range = [];
+        this._rangeMode = Lod.DISTANCE_FROM_EYE_POINT;
+        this._userDefinedCenter = [];
+        this._centerMode = Lod.USE_BOUNDING_SPHERE_CENTER;
     };
+
+    Lod.DISTANCE_FROM_EYE_POINT = 0;
+    Lod.PIXEL_SIZE_ON_SCREEN = 1;
+
+    Lod.USE_BOUNDING_SPHERE_CENTER = 0;
+    Lod.USER_DEFINED_CENTER = 1;
+    Lod.UNION_OF_BOUNDING_SPHERE_AND_USER_DEFINED = 2;
+
     /** @lends Lod.prototype */
     Lod.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( Node.prototype, {
         // Functions here
         getRadius: function () {
-            return this.radius;
+            return this._radius;
         },
 
         /** Set the object-space reference radius of the volume enclosed by the LOD.
          * Used to determine the bounding sphere of the LOD in the absence of any children.*/
         setRadius: function ( radius ) {
-            this.radius = radius;
+            this._radius = radius;
+        },
+
+        setCenter: function ( center ) {
+            if ( this._centerMode !== Lod.UNION_OF_BOUNDING_SPHERE_AND_USER_DEFINED )
+                this._centerMode = Lod.USER_DEFINED_CENTER;
+            this._userDefinedCenter = center;
+        },
+
+        getCenter: function () {
+            if ( ( this._centerMode === Lod.USER_DEFINED_CENTER ) || ( this._centerMode === Lod.UNION_OF_BOUNDING_SPHERE_AND_USER_DEFINED ) )
+                return this._userDefinedCenter;
+            else return this.getBound().center();
+        },
+
+        setCenterMode: function ( centerMode ) {
+            this._centerMode = centerMode;
+        },
+
+        computeBound: function ( bsphere ) {
+            if ( this._centerMode === Lod.USER_DEFINED_CENTER && this._radius >= 0.0)
+            {
+                bsphere.set( this._userDefinedCenter, this._radius);
+                return bsphere;
+            }
+            else if ( this._centerMode === Lod.UNION_OF_BOUNDING_SPHERE_AND_USER_DEFINED && this._radius >= 0.0)
+            {
+                bsphere.set( this._userDefinedCenter, this._radius);
+                var bs = new BoundingSphere();
+                bsphere.expandBy( Node.prototype.computeBound.call( this, bs ) );
+                return bsphere;
+            }
+            else
+            {
+                Node.prototype.computeBound.call( this, bsphere );
+                return bsphere;
+            }
+        },
+
+        projectBoundingSphere: ( function () {
+            // from http://www.iquilezles.org/www/articles/sphereproj/sphereproj.htm
+            // Sample code at http://www.shadertoy.com/view/XdBGzd?
+            var o = Vec3.create();
+            return function ( sph, camMatrix, fle ) {
+                Matrix.transformVec3( camMatrix, sph.center(), o );
+                var r2 = sph.radius2();
+                var z2 = o[ 2 ] * o[ 2 ];
+                var l2 = Vec3.length2( o );
+                var area = -Math.PI * fle * fle * r2 * Math.sqrt( Math.abs( ( l2 - r2 ) / ( r2 - z2 ) ) ) / ( r2 - z2 );
+                return area;
+            };
+        } )(),
+
+        setRangeMode: function ( mode ) {
+            //TODO: check if mode is correct
+            this._rangeMode = mode;
+        },
+
+        addChildNode: function ( node ) {
+
+            Node.prototype.addChild.call( this, node );
+            if ( this.children.length > this._range.length ) {
+                var r = [];
+                var max = 0.0;
+                if ( this._range.lenght > 0 )
+                    max = this._range[ this._range.length - 1 ][ 1 ];
+                r.push( [ max, max ] );
+                this._range.push( r );
+            }
+            return true;
         },
 
         addChild: function ( node, min, max ) {
             Node.prototype.addChild.call( this, node );
 
-            if ( this.children.length > this.range.length ) {
+            if ( this.children.length > this._range.length ) {
                 var r = [];
                 r.push( [ min, min ] );
-                this.range.push( r );
+                this._range.push( r );
             }
-            this.range[ this.children.length - 1 ][ 0 ] = min;
-            this.range[ this.children.length - 1 ][ 1 ] = max;
+            this._range[ this.children.length - 1 ][ 0 ] = min;
+            this._range[ this.children.length - 1 ][ 1 ] = max;
             return true;
         },
 
-        traverse: (function() {
+        traverse: ( function () {
 
             // avoid to generate variable on the heap to limit garbage collection
             // instead create variable and use the same each time
-            var zeroVector = [ 0.0, 0.0, 0.0 ];
-            var eye = [ 0.0, 0.0, 0.0 ];
-            var viewModel = Matrix.makeIdentity( [] );
+            var zeroVector = Vec3.create();
+            var eye = Vec3.create();
+            var viewModel = Matrix.create();
 
             return function ( visitor ) {
                 var traversalMode = visitor.traversalMode;
@@ -5336,19 +5654,27 @@ define( 'osg/Lod',[
 
                 case ( NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ):
                     var requiredRange = 0;
-
-                    // First approximation calculate distance from viewpoint
                     var matrix = visitor.getCurrentModelviewMatrix();
                     Matrix.inverse( matrix, viewModel );
-                    Matrix.transformVec3( viewModel, zeroVector, eye );
-                    var d = Vec3.distance( eye, this.getBound().center() );
-                    requiredRange = d;
+                    // Calculate distance from viewpoint
+                    if ( this._rangeMode === Lod.DISTANCE_FROM_EYE_POINT ) {
+                        Matrix.transformVec3( viewModel, zeroVector, eye );
+                        var d = Vec3.distance( eye, this.getBound().center() );
+                        requiredRange = d;
+                    } else {
+                        // Let's calculate pixels on screen
+                        var projmatrix = visitor.getCurrentProjectionMatrix();
+                        // focal lenght is the value stored in projmatrix[0]
+                        requiredRange = this.projectBoundingSphere( this.getBound(), matrix, projmatrix[ 0 ] );
+                        // Multiply by a factor to get the real area value
+                        requiredRange = ( requiredRange * visitor.getViewport().width() * visitor.getViewport().width() ) * 0.25;
+                    }
 
                     var numChildren = this.children.length;
-                    if ( this.range.length < numChildren ) numChildren = this.range.length;
+                    if ( this._range.length < numChildren ) numChildren = this._range.length;
 
                     for ( var j = 0; j < numChildren; ++j ) {
-                        if ( this.range[ j ][ 0 ] <= requiredRange && requiredRange < this.range[ j ][ 1 ] ) {
+                        if ( this._range[ j ][ 0 ] <= requiredRange && requiredRange < this._range[ j ][ 1 ] ) {
                             this.children[ j ].accept( visitor );
                         }
                     }
@@ -5358,13 +5684,275 @@ define( 'osg/Lod',[
                     break;
                 }
             };
-        })()
+        } )()
 
     } ), 'osg', 'Lod' );
 
     MACROUTILS.setTypeID( Lod );
     return Lod;
-});
+} );
+
+define( 'Q',[],function ( ) {
+    if ( window.Q ) {
+        return window.Q;
+    }
+    return window.require( 'Q' );
+} );
+
+/**
+ * @author Jordi Torres
+ */
+
+
+define( 'osg/PagedLOD',[
+    'Q',
+    'osg/Utils',
+    'osg/Lod',
+    'osg/NodeVisitor',
+    'osg/Matrix',
+    'osg/Vec3',
+    'osg/Node',
+    'osg/Geometry',
+    'osg/Notify'
+], function ( Q, MACROUTILS, Lod, NodeVisitor, Matrix, Vec3, Node, Geometry, Notify ) {
+    /**
+     *  PagedLOD that can contains paged child nodes
+     *  @class PagedLod
+     */
+    var PagedLOD = function () {
+        Lod.call( this );
+        this._perRangeDataList = [];
+        this._loading = false;
+        this._expiryTime = 10.0;
+        this._centerMode = Lod.USER_DEFINED_CENTER;
+    };
+
+    /**
+     *  PerRangeData utility structure to store per range values
+     *  @class PerRangeData
+     */
+    var PerRangeData = function () {
+        this.filename = '';
+        this.function = undefined;
+        this.loaded = false;
+        this.timeStamp = 0.0;
+        this.frameNumber = 0;
+        this.frameNumberOfLastTraversal = 0;
+    };
+
+    /** @lends PagedLOD.prototype */
+    PagedLOD.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInehrit( Lod.prototype, {
+        // Functions here
+        setRange: function ( childNo, min, max ) {
+            if ( childNo >= this._range.length ) {
+                var r = [];
+                r.push( [ min, min ] );
+                this._range.push( r );
+            }
+            this._range[ childNo ][ 0 ] = min;
+            this._range[ childNo ][ 1 ] = max;
+        },
+
+        setExpiryTime: function ( expiryTime ) {
+            this._expiryTime = expiryTime;
+        },
+
+        setFileName: function ( childNo, filename ) {
+            // May we should expand the vector first?
+            if ( childNo >= this._perRangeDataList.length ) {
+                var rd = new PerRangeData();
+                rd.filename = filename;
+                this._perRangeDataList.push( rd );
+            } else {
+                this._perRangeDataList[ childNo ].filename = filename;
+            }
+        },
+        setFunction: function ( childNo, func ) {
+            if ( childNo >= this._perRangeDataList.length ) {
+                var rd = new PerRangeData();
+                rd.function = func;
+                this._perRangeDataList.push( rd );
+            } else {
+                this._perRangeDataList[ childNo ].function = func;
+            }
+        },
+
+        addChild: function ( node, min, max ) {
+            Lod.prototype.addChild.call( this, node, min, max );
+            this._perRangeDataList.push( new PerRangeData() );
+        },
+
+        addChildNode: function ( node ) {
+            Lod.prototype.addChildNode.call( this, node );
+            // this.perRangeDataList.push ( null );
+        },
+
+        loadNode: function ( perRangeData, node ) {
+            if ( perRangeData.function === undefined )
+                this.loadNodeFromURL( perRangeData, node );
+            else this.loadNodeFromFunction( perRangeData, node );
+        },
+
+        loadNodeFromURL: function ( perRangeData, node ) {
+            // TODO:
+            // we should ask to the Cache if the data is in the IndexedDB first
+            var ReaderParser = require( 'osgDB/ReaderParser' );
+            Notify.log( 'loading ' + perRangeData.filename );
+            var req = new XMLHttpRequest();
+            req.open( 'GET', perRangeData.filename, true );
+            req.onload = function ( aEvt ) {
+                var promise = ReaderParser.parseSceneGraph( JSON.parse( req.responseText ) );
+                Q.when( promise ).then( function ( child ) {
+                    node.addChildNode( child );
+                } );
+                Notify.log( 'success ' + perRangeData.filename, aEvt );
+            };
+
+            req.onerror = function ( aEvt ) {
+                Notify.error( 'error ' + perRangeData.filename, aEvt );
+            };
+            req.send( null );
+        },
+
+        loadNodeFromFunction: function ( perRangeData, node ) {
+            // Need to call with this paged lod as parent
+            Q.when( ( perRangeData.function )( this ) ).then( function ( child ) {
+                node.addChildNode( child );
+            } );
+        },
+
+        removeExpiredChildren: function ( frameStamp, gl ) {
+
+            var ReleaseVisitor = function ( gl ) {
+                NodeVisitor.call( this, NodeVisitor.TRAVERSE_ALL_CHILDREN );
+                this.gl = gl;
+            };
+            ReleaseVisitor.prototype = MACROUTILS.objectInehrit( NodeVisitor.prototype, {
+                apply: function ( node ) {
+                    if ( node instanceof Geometry ) {
+                        node.releaseGLObjects( this.gl );
+                    }
+                    this.traverse( node );
+                }
+            } );
+            if ( frameStamp.getFrameNumber() === 0 ) return;
+            var numChildren = this.children.length;
+            for ( var i = numChildren - 1; i > 0; i-- ) {
+                //First children never expires, also children added with addChild method should not be deleted
+                var timed = frameStamp.getSimulationTime() - this._perRangeDataList[ i ].timeStamp;
+                if ( ( timed > this._expiryTime ) && ( this._perRangeDataList[ i ].filename.length > 0 ||
+                                                    this._perRangeDataList[ i ].function !== undefined ) ){
+                    if ( i === this.children.length - 1 ) {
+                        this.children[ i ].accept( new ReleaseVisitor( gl ) );
+                        this.removeChild( this.children[ i ] );
+                        this._perRangeDataList[ i ].loaded = false;
+                        numChildren--;
+                    }
+                } else {
+                    return;
+                }
+            }
+        },
+
+        traverse: ( function () {
+
+            // avoid to generate variable on the heap to limit garbage collection
+            // instead create variable and use the same each time
+            var zeroVector = Vec3.create();
+            var eye = Vec3.create();
+            var viewModel = Matrix.create();
+            return function ( visitor ) {
+                var traversalMode = visitor.traversalMode;
+                var updateTimeStamp = false;
+                if ( visitor.getVisitorType() === NodeVisitor.CULL_VISITOR ) {
+                    updateTimeStamp = true;
+                    //this._frameNumberOfLastTraversal = visitor.getFrameStamp().getFrameNumber();
+                }
+
+                switch ( traversalMode ) {
+
+                case NodeVisitor.TRAVERSE_ALL_CHILDREN:
+
+                    for ( var index = 0; index < this.children.length; index++ ) {
+                        this.children[ index ].accept( visitor );
+                    }
+                    break;
+
+                case ( NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ):
+                    var requiredRange = 0;
+
+                    // Calculate distance from viewpoint
+                    var matrix = visitor.getCurrentModelviewMatrix();
+                    Matrix.inverse( matrix, viewModel );
+                    if ( this._rangeMode === Lod.DISTANCE_FROM_EYE_POINT ) {
+                        Matrix.transformVec3( viewModel, zeroVector, eye );
+                        var d = Vec3.distance( eye, this.getBound().center() );
+                        requiredRange = d;
+                    } else {
+                        // Calculate pixels on screen
+                        var projmatrix = visitor.getCurrentProjectionMatrix();
+                        // focal lenght is the value stored in projmatrix[0] 
+                        requiredRange = this.projectBoundingSphere( this.getBound(), matrix, projmatrix[ 0 ] );
+                        // Get the real area value
+                        requiredRange = ( requiredRange * visitor.getViewport().width() * visitor.getViewport().width() ) * 0.25;
+                        if ( requiredRange < 0 ) requiredRange = this._range[ this._range.length -1 ][ 0 ];
+                    }
+
+                    var needToLoadChild = false;
+                    var lastChildTraversed = -1;
+                    for ( var j = 0; j < this._range.length; ++j ) {
+                        if ( this._range[ j ][ 0 ] <= requiredRange && requiredRange < this._range[ j ][ 1 ] ) {
+                            if ( j < this.children.length ) {
+                                if ( updateTimeStamp ) {
+                                    this._perRangeDataList[ j ].timeStamp = visitor.getFrameStamp().getSimulationTime();
+                                    //this.perRangeDataList[j].frameNumber = visitor.getFrameStamp().getFrameNumber();
+                                }
+                                this.children[ j ].accept( visitor );
+                                lastChildTraversed = j;
+                            } else {
+                                needToLoadChild = true;
+                            }
+                        }
+                    }
+                    if ( needToLoadChild ) {
+                        var numChildren = this.children.length;
+                        if ( numChildren > 0 && ( ( numChildren - 1 ) !== lastChildTraversed ) ) {
+
+                            if ( updateTimeStamp ) {
+                                this._perRangeDataList[ numChildren - 1 ].timeStamp = visitor.getFrameStamp().getSimulationTime();
+                                //this.perRangeDataList[numChildren -1].frameNumber = visitor.getFrameStamp().getFrameNumber();
+                            }
+
+                            this.children[ numChildren - 1 ].accept( visitor );
+                        }
+                        // now request the loading of the next unloaded child.
+                        if ( numChildren < this._range.length ) {
+
+                            // Here we should do the request
+                            var group = visitor.nodePath[ visitor.nodePath.length - 1 ];
+                            if ( this._perRangeDataList[ numChildren ].loaded === false ) {
+                                this._perRangeDataList[ numChildren ].loaded = true;
+                                this.loadNode( this._perRangeDataList[ numChildren ], group );
+                            }
+                        }
+                    }
+                    // Remove the expired childs if any
+                    this.removeExpiredChildren( visitor.getFrameStamp(), visitor.getCurrentCamera().getGraphicContext() );
+                    break;
+
+                default:
+                    break;
+                }
+            };
+        } )()
+
+
+
+    } ), 'osg', 'PagedLOD' );
+
+    MACROUTILS.setTypeID( PagedLOD );
+    return PagedLOD;
+} );
 
 define( 'osg/CullVisitor',[
     'osg/Notify',
@@ -5380,9 +5968,14 @@ define( 'osg/CullVisitor',[
     'osg/RenderStage',
     'osg/Node',
     'osg/Lod',
+    'osg/PagedLOD',
     'osg/Camera',
-    'osg/TransformEnums'
-], function ( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Lod, Camera, TransformEnums ) {
+    'osg/TransformEnums',
+    'osg/Vec4',
+    'osg/Vec3',
+    'osg/ComputeMatrixFromNodePath'
+], function ( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Lod, PagedLOD, Camera, TransformEnums, Vec4, Vec3, ComputeMatrixFromNodePath ) {
+
 
     /**
      * CullVisitor traverse the tree and collect Matrix/State for the rendering traverse
@@ -5398,12 +5991,12 @@ define( 'osg/CullVisitor',[
         this._currentRenderBin = undefined;
         this._currentRenderStage = undefined;
         this._rootRenderStage = undefined;
-
+        this._frustum = [ Vec4.create(), Vec4.create(), Vec4.create(), Vec4.create(), Vec4.create(), Vec4.create() ];
         this._computedNear = Number.POSITIVE_INFINITY;
         this._computedFar = Number.NEGATIVE_INFINITY;
-
+        this._enableFrustumCulling = false;
         var lookVector = [ 0.0, 0.0, -1.0 ];
-
+        this._camera = undefined;
         /*jshint bitwise: false */
         this._bbCornerFar = ( lookVector[ 0 ] >= 0 ? 1 : 0 ) | ( lookVector[ 1 ] >= 0 ? 2 : 0 ) | ( lookVector[ 2 ] >= 0 ? 4 : 0 );
         this._bbCornerNear = ( ~this._bbCornerFar ) & 7;
@@ -5420,6 +6013,7 @@ define( 'osg/CullVisitor',[
         this._reserveLeafStack.current = 0;
 
         this._renderBinStack = [];
+        this.visitorType = NodeVisitor.CULL_VISITOR;
     };
 
     /** @lends CullVisitor.prototype */
@@ -5437,7 +6031,12 @@ define( 'osg/CullVisitor',[
             }
             this.traverse( node );
         },
-
+        setCamera: function(camera){
+            this._camera = camera;
+        },
+        getCurrentCamera: function (){
+            return this._camera;
+        },
         updateCalculatedNearFar: function ( matrix, drawable ) {
 
             var bb = drawable.getBoundingBox();
@@ -5581,8 +6180,9 @@ define( 'osg/CullVisitor',[
         setCurrentRenderBin: function ( rb ) {
             this._currentRenderBin = rb;
         },
-        addPositionedAttribute: function ( attribute ) {
-            var matrix = this._modelviewMatrixStack[ this._modelviewMatrixStack.length - 1 ];
+        addPositionedAttribute: function ( attribute, matrix ) {
+            if ( matrix === undefined )
+                matrix = this._modelviewMatrixStack[ this._modelviewMatrixStack.length - 1 ];
             this._currentRenderBin.getStage().positionedAttribute.push( [ matrix, attribute ] );
         },
 
@@ -5629,7 +6229,7 @@ define( 'osg/CullVisitor',[
         _getReservedMatrix: function () {
             var m = this._reserveMatrixStack[ this._reserveMatrixStack.current++ ];
             if ( this._reserveMatrixStack.current === this._reserveMatrixStack.length ) {
-                this._reserveMatrixStack.push( Matrix.makeIdentity( [] ) );
+                this._reserveMatrixStack.push( Matrix.create() );
             }
             return m;
         },
@@ -5639,7 +6239,96 @@ define( 'osg/CullVisitor',[
                 this._reserveLeafStack.push( {} );
             }
             return l;
-        }
+        },
+
+        setEnableFrustumCulling: function ( value ) {
+            this._enableFrustumCulling = value;
+        },
+
+        getFrustumPlanes: ( function () {
+
+            var right = Vec4.create();
+            var left = Vec4.create();
+            var bottom = Vec4.create();
+            var top = Vec4.create();
+            var far = Vec4.create();
+            var near = Vec4.create();
+
+            return function ( matrix, result, withNearFar ) {
+                if ( withNearFar === undefined )
+                    withNearFar = false;
+                // Right clipping plane.
+                right[ 0 ] = matrix[ 3 ] - matrix[ 0 ];
+                right[ 1 ] = matrix[ 7 ] - matrix[ 4 ];
+                right[ 2 ] = matrix[ 11 ] - matrix[ 8 ];
+                right[ 3 ] = matrix[ 15 ] - matrix[ 12 ];
+                result[ 0 ] = right;
+                // Left clipping plane.
+                left[ 0 ] = matrix[ 3 ] + matrix[ 0 ];
+                left[ 1 ] = matrix[ 7 ] + matrix[ 4 ];
+                left[ 2 ] = matrix[ 11 ] + matrix[ 8 ];
+                left[ 3 ] = matrix[ 15 ] + matrix[ 12 ];
+                result[ 1 ] = left;
+                // Bottom clipping plane.
+                bottom[ 0 ] = matrix[ 3 ] + matrix[ 1 ];
+                bottom[ 1 ] = matrix[ 7 ] + matrix[ 5 ];
+                bottom[ 2 ] = matrix[ 11 ] + matrix[ 9 ];
+                bottom[ 3 ] = matrix[ 15 ] + matrix[ 13 ];
+                result[ 2 ] = bottom;
+                // Top clipping plane.
+                top[ 0 ] = matrix[ 3 ] - matrix[ 1 ];
+                top[ 1 ] = matrix[ 7 ] - matrix[ 5 ];
+                top[ 2 ] = matrix[ 11 ] - matrix[ 9 ];
+                top[ 3 ] = matrix[ 15 ] - matrix[ 13 ];
+                result[ 3 ] = top;
+
+                if( withNearFar ) {
+                    // Far clipping plane.
+                    far[ 0 ] = matrix[ 3 ] - matrix[ 2 ];
+                    far[ 1 ] = matrix[ 7 ] - matrix[ 6 ];
+                    far[ 2 ] = matrix[ 11 ] - matrix[ 10 ];
+                    far[ 3 ] = matrix[ 15 ] - matrix[ 14 ];
+                    result[ 4 ] = far;
+                    // Near clipping plane.
+                    near[ 0 ] = matrix[ 3 ] + matrix[ 2 ];
+                    near[ 1 ] = matrix[ 7 ] + matrix[ 6 ];
+                    near[ 2 ] = matrix[ 11 ] + matrix[ 10 ];
+                    near[ 3 ] = matrix[ 15 ] + matrix[ 14 ];
+                    result[ 5 ] = near;
+                }
+                //Normalize the planes
+                for ( var i = 0, j = result.length; i < j; i++ ) {
+                    var norm = result[ i ][ 0 ] * result[ i ][ 0 ] + result[ i ][ 1 ] * result[ i ][ 1 ] + result[ i ][ 2 ] * result[ i ][ 2 ];
+                    var inv = 1.0 / Math.sqrt( norm );
+                    result[ i ][ 0 ] = result[ i ][ 0 ] * inv;
+                    result[ i ][ 1 ] = result[ i ][ 1 ] * inv;
+                    result[ i ][ 2 ] = result[ i ][ 2 ] * inv;
+                    result[ i ][ 3 ] = result[ i ][ 3 ] * inv;
+                }
+            };
+        } )(),
+
+        isCulled: ( function () {
+            var position = Vec3.create();
+
+            return function ( node ) {
+                var pos = node.getBound().center();
+                Vec3.copy( pos, position );
+                var radius = - node.getBound().radius();
+                var d;
+                var m = ComputeMatrixFromNodePath.computeLocalToWorld( this.nodePath );
+                Matrix.transformVec3( m, position, position);
+
+                for ( var i = 0, j = this._frustum.length; i < j; i++ ) {
+                    d = this._frustum[ i ][ 0 ] * position[ 0 ] + this._frustum[ i ][ 1 ] * position[ 1 ] + this._frustum[ i ][ 2 ] * position[ 2 ] + this._frustum[ i ][ 3 ];
+                    if ( d <= radius )
+                    {
+                        return true;
+                    }
+                }
+                return false;
+        };
+    } )()
     } ) ) );
 
     CullVisitor.prototype[ Camera.typeID ] = function ( camera ) {
@@ -5804,6 +6493,9 @@ define( 'osg/CullVisitor',[
 
     CullVisitor.prototype[ Node.typeID ] = function ( node ) {
 
+        // We need the frame stamp > 0 to do the frustum culling, otherwise the projection matrix is not correct
+        if ( this._enableFrustumCulling === true && node.isCullingActive() && this.getFrameStamp().getFrameNumber() !== 0 && this.isCulled ( node ) ) return;
+
         var stateset = node.getStateSet();
         if ( stateset ) {
             this.pushStateSet( stateset );
@@ -5821,6 +6513,9 @@ define( 'osg/CullVisitor',[
 
     // same code like Node
     CullVisitor.prototype[ Lod.typeID ] = CullVisitor.prototype[ Node.typeID ];
+
+    // same code like Node
+    CullVisitor.prototype[ PagedLOD.typeID ] = CullVisitor.prototype[ Node.typeID ];
 
     CullVisitor.prototype[ LightSource.typeID ] = function ( node ) {
 
@@ -6169,14 +6864,14 @@ define( 'osg/EllipsoidModel',[
         convertLatLongHeightToXYZ: function ( latitude, longitude, height, result ) {
             if ( result === undefined ) {
                 Notify.warn( 'deprecated, use this signature convertLatLongHeightToXYZ( latitude, longitude, height, result )' );
-                result = [];
+                result = [ 0.0, 0.0, 0.0 ];
             }
             var sinLatitude = Math.sin( latitude );
             var cosLatitude = Math.cos( latitude );
             var N = this._radiusEquator / Math.sqrt( 1.0 - this._eccentricitySquared * sinLatitude * sinLatitude );
             var X = ( N + height ) * cosLatitude * Math.cos( longitude );
             var Y = ( N + height ) * cosLatitude * Math.sin( longitude );
-            var Z = ( N * ( 1 - this._eccentricitySquared ) + height ) * sinLatitude;
+            var Z = ( N * ( 1.0 - this._eccentricitySquared ) + height ) * sinLatitude;
             result[ 0 ] = X;
             result[ 1 ] = Y;
             result[ 2 ] = Z;
@@ -6185,7 +6880,7 @@ define( 'osg/EllipsoidModel',[
         convertXYZToLatLongHeight: function ( X, Y, Z, result ) {
             if ( result === undefined ) {
                 Notify.warn( 'deprecated, use this signature convertXYZToLatLongHeight( X,  Y,  Z , result)' );
-                result = [];
+                result = [ 0.0, 0.0, 0.0 ];
             }
             // http://www.colorado.edu/geography/gcraft/notes/datum/gif/xyzllh.gif
             var p = Math.sqrt( X * X + Y * Y );
@@ -6202,7 +6897,9 @@ define( 'osg/EllipsoidModel',[
             var sinLatitude = Math.sin( latitude );
             var N = this._radiusEquator / Math.sqrt( 1.0 - this._eccentricitySquared * sinLatitude * sinLatitude );
 
-            var height = p / Math.cos( latitude ) - N;
+            var cosLat = Math.cos( latitude );
+            if ( cosLat === 0) cosLat = 1;
+            var height = p / cosLat - N;
             result[ 0 ] = latitude;
             result[ 1 ] = longitude;
             result[ 2 ] = height;
@@ -6227,7 +6924,7 @@ define( 'osg/EllipsoidModel',[
 
         computeCoefficients: function () {
             var flattening = ( this._radiusEquator - this._radiusPolar ) / this._radiusEquator;
-            this._eccentricitySquared = 2 * flattening - flattening * flattening;
+            this._eccentricitySquared = 2.0 * flattening - flattening * flattening;
         },
         computeLocalToWorldTransformFromLatLongHeight: function ( latitude, longitude, height, result ) {
             if ( result === undefined ) {
@@ -6241,67 +6938,44 @@ define( 'osg/EllipsoidModel',[
         },
         computeLocalToWorldTransformFromXYZ: function ( X, Y, Z ) {
             var lla = this.convertXYZToLatLongHeight( X, Y, Z );
-            var m = Matrix.makeTranslate( X, Y, Z );
+            var m = Matrix.makeTranslate( X, Y, Z, Matrix.create() );
             this.computeCoordinateFrame( lla[ 0 ], lla[ 1 ], m );
             return m;
         },
-        computeCoordinateFrame: function ( latitude, longitude, localToWorld ) {
-            // Compute up vector
-            var up = [ Math.cos( longitude ) * Math.cos( latitude ), Math.sin( longitude ) * Math.cos( latitude ), Math.sin( latitude ) ];
+        computeCoordinateFrame: ( function () {
+            var up = [ 0.0, 0.0, 0.0 ];
+            var east = [ 0.0, 0.0, 0.0 ];
+            var north = [ 0.0, 0.0, 0.0 ];
+            return function ( latitude, longitude, localToWorld ) {
+                // Compute up vector
+                up[ 0 ] = Math.cos( longitude ) * Math.cos( latitude );
+                up[ 1 ] = Math.sin( longitude ) * Math.cos( latitude );
+                up[ 2 ] = Math.sin( latitude );
 
-            // Compute east vector
-            var east = [ -Math.sin( longitude ), Math.cos( longitude ), 0 ];
+                // Compute east vector
+                east[ 0 ] = -Math.sin( longitude );
+                east[ 1 ] = -Math.cos( longitude );
 
-            // Compute north vector = outer product up x east
-            var north = Vec3.cross( up, east, [] );
+                // Compute north vector = outer product up x east
+                Vec3.cross( up, east, north );
 
-            // set matrix
-            Matrix.set( localToWorld, 0, 0, east[ 0 ] );
-            Matrix.set( localToWorld, 0, 1, east[ 1 ] );
-            Matrix.set( localToWorld, 0, 2, east[ 2 ] );
+                // set matrix
+                Matrix.set( localToWorld, 0, 0, east[ 0 ] );
+                Matrix.set( localToWorld, 0, 1, east[ 1 ] );
+                Matrix.set( localToWorld, 0, 2, east[ 2 ] );
 
-            Matrix.set( localToWorld, 1, 0, north[ 0 ] );
-            Matrix.set( localToWorld, 1, 1, north[ 1 ] );
-            Matrix.set( localToWorld, 1, 2, north[ 2 ] );
+                Matrix.set( localToWorld, 1, 0, north[ 0 ] );
+                Matrix.set( localToWorld, 1, 1, north[ 1 ] );
+                Matrix.set( localToWorld, 1, 2, north[ 2 ] );
 
-            Matrix.set( localToWorld, 2, 0, up[ 0 ] );
-            Matrix.set( localToWorld, 2, 1, up[ 1 ] );
-            Matrix.set( localToWorld, 2, 2, up[ 2 ] );
-        }
+                Matrix.set( localToWorld, 2, 0, up[ 0 ] );
+                Matrix.set( localToWorld, 2, 1, up[ 1 ] );
+                Matrix.set( localToWorld, 2, 2, up[ 2 ] );
+            };
+        } )()
     };
 
     return EllipsoidModel;
-} );
-
-define( 'osg/FrameStamp',[
-], function () {
-
-    var FrameStamp = function () {
-        var frame = 0;
-        var startSimulation = 0.0;
-        var currentSimulation = 0.0;
-
-        this.setReferenceTime = function ( s ) {
-            startSimulation = s;
-        };
-        this.setSimulationTime = function ( s ) {
-            currentSimulation = s;
-        };
-        this.getReferenceTime = function () {
-            return startSimulation;
-        };
-        this.getSimulationTime = function () {
-            return currentSimulation;
-        };
-        this.setFrameNumber = function ( n ) {
-            frame = n;
-        };
-        this.getFrameNumber = function () {
-            return frame;
-        };
-    };
-
-    return FrameStamp;
 } );
 
 define( 'osg/Image',[
@@ -6578,7 +7252,7 @@ define( 'osgUtil/TriangleIntersect',[
         set: function( start, end ) {
             this.start = start;
             this.end = end;
-            this.dir = Vec3.sub( end, start, [] );
+            this.dir = Vec3.sub( end, start, [ 0.0, 0.0, 0.0 ] );
             this.length = Vec3.length( this.dir );
             this.invLength = 1.0 / this.length;
             Vec3.mult( this.dir, this.invLength, this.dir );
@@ -7337,7 +8011,7 @@ define( 'osg/KdTreeBuilder',[
 define( 'osg/Uniform',[
     'osg/Utils'
 ], function ( MACROUTILS ) {
-        /**
+    /**
      * Uniform manage variable used in glsl shader.
      * @class Uniform
      */
@@ -7349,7 +8023,7 @@ define( 'osg/Uniform',[
     };
 
     Uniform.isUniform = function ( obj ) {
-        if ( obj.prototype === Uniform.prototype ) {
+        if ( typeof obj === 'object' && Object.getPrototypeOf(obj) === Uniform.prototype ) {
             return true;
         }
         return false;
@@ -7464,7 +8138,7 @@ define( 'osg/Uniform',[
         uniform.glData = new MACROUTILS.Float32Array( uniform.data );
         uniform.update = Uniform.prototype._updateFloat1;
         uniform.set = function ( value ) {
-            if ( typeof value === 'number' ) {
+            if ( value.length === undefined ) {
                 this.data[ 0 ] = value;
             } else {
                 this.data = value;
@@ -7572,7 +8246,7 @@ define( 'osg/Uniform',[
             gl.uniform1iv( location, glData );
         };
         uniform.set = function ( value ) {
-            if ( typeof value === 'number' ) {
+            if ( value.length === undefined ) {
                 this.data[ 0 ] = value;
             } else {
                 this.data = value;
@@ -7738,12 +8412,12 @@ define( 'osg/Uniform',[
 
     return Uniform;
 } );
-
 define( 'osg/Program',[
     'osg/Utils',
     'osg/Notify',
     'osg/StateAttribute',
-], function ( MACROUTILS, Notify, StateAttribute ) {
+    'osg/Map'
+], function ( MACROUTILS, Notify, StateAttribute, Map ) {
 
     /**
      * Program encapsulate an vertex and fragment shader
@@ -7813,10 +8487,8 @@ define( 'osg/Program',[
                     return;
                 }
 
-                this.uniformsCache = {};
-                this.uniformsCache.uniformKeys = [];
-                this.attributesCache = {};
-                this.attributesCache.attributeKeys = [];
+                this.uniformsCache = new Map();
+                this.attributesCache = new Map();
 
                 this.cacheUniformList( gl, this.vertex.text );
                 this.cacheUniformList( gl, this.fragment.text );
@@ -7831,14 +8503,15 @@ define( 'osg/Program',[
 
         cacheUniformList: function ( gl, str ) {
             var r = str.match( /uniform\s+\w+\s+\w+/g );
+            var map = this.uniformsCache;
             if ( r !== null ) {
                 for ( var i = 0, l = r.length; i < l; i++ ) {
                     var uniform = r[ i ].match( /uniform\s+\w+\s+(\w+)/ )[ 1 ];
                     var location = gl.getUniformLocation( this.program, uniform );
                     if ( location !== undefined && location !== null ) {
-                        if ( this.uniformsCache[ uniform ] === undefined ) {
-                            this.uniformsCache[ uniform ] = location;
-                            this.uniformsCache.uniformKeys.push( uniform );
+                        if ( map[ uniform ] === undefined ) {
+                            map[ uniform ] = location;
+                            this.uniformsCache.dirty();
                         }
                     }
                 }
@@ -7847,14 +8520,15 @@ define( 'osg/Program',[
 
         cacheAttributeList: function ( gl, str ) {
             var r = str.match( /attribute\s+\w+\s+\w+/g );
+            var map = this.attributesCache;
             if ( r !== null ) {
                 for ( var i = 0, l = r.length; i < l; i++ ) {
                     var attr = r[ i ].match( /attribute\s+\w+\s+(\w+)/ )[ 1 ];
                     var location = gl.getAttribLocation( this.program, attr );
                     if ( location !== -1 && location !== undefined ) {
-                        if ( this.attributesCache[ attr ] === undefined ) {
-                            this.attributesCache[ attr ] = location;
-                            this.attributesCache.attributeKeys.push( attr );
+                        if ( map[ attr ] === undefined ) {
+                            map[ attr ] = location;
+                            this.attributesCache.dirty();
                         }
                     }
                 }
@@ -7863,7 +8537,7 @@ define( 'osg/Program',[
     } ), 'osg', 'Program' );
 
     Program.create = function ( vShader, fShader ) {
-        console.log( 'Program.create is deprecated use new Program(vertex, fragment) instead' );
+        Notify.log( 'Program.create is deprecated use new Program(vertex, fragment) instead' );
         var program = new Program( vShader, fShader );
         return program;
     };
@@ -7931,8 +8605,9 @@ define( 'osg/Shader',[
 define( 'osg/ShaderGenerator',[
     'osg/Notify',
     'osg/Program',
-    'osg/Shader'
-], function ( Notify, Program, Shader ) {
+    'osg/Shader',
+    'osg/Map'
+], function ( Notify, Program, Shader, Map ) {
 
     var ShaderGenerator = function () {
         this.cache = [];
@@ -7954,9 +8629,11 @@ define( 'osg/ShaderGenerator',[
         getActiveTypeMember: function ( state ) {
             // we should check attribute is active or not
             var types = [];
-            for ( var j = 0, k = state.attributeMap.attributeKeys.length; j < k; j++ ) {
-                var keya = state.attributeMap.attributeKeys[ j ];
-                var attributeStack = state.attributeMap[ keya ];
+            var attributeMapKeys = state.attributeMap.getKeys();
+            var attributeMap = state.attributeMap;
+            for ( var j = 0, k = attributeMapKeys.length; j < k; j++ ) {
+                var keya = attributeMapKeys[ j ];
+                var attributeStack = attributeMap[ keya ];
                 if ( attributeStack.length === 0 && attributeStack.globalDefault.applyPositionedUniform === undefined ) {
                     continue;
                 }
@@ -7970,9 +8647,13 @@ define( 'osg/ShaderGenerator',[
                 if ( attributesForUnit === undefined ) {
                     continue;
                 }
-                for ( var h = 0, m = attributesForUnit.attributeKeys.length; h < m; h++ ) {
-                    var key = attributesForUnit.attributeKeys[ h ];
-                    var textureAttributeStack = attributesForUnit[ key ];
+
+                var textureAttributeMapKeys = attributesForUnit.getKeys();
+                var textureAttributeMap = attributesForUnit;
+
+                for ( var h = 0, m = textureAttributeMapKeys.length; h < m; h++ ) {
+                    var key = textureAttributeMapKeys[ h ];
+                    var textureAttributeStack = textureAttributeMap[ key ];
                     if ( textureAttributeStack.length === 0 ) {
                         continue;
                     }
@@ -7986,9 +8667,12 @@ define( 'osg/ShaderGenerator',[
 
         getActiveAttributeMapKeys: function ( state ) {
             var keys = [];
-            for ( var j = 0, k = state.attributeMap.attributeKeys.length; j < k; j++ ) {
-                var keya = state.attributeMap.attributeKeys[ j ];
-                var attributeStack = state.attributeMap[ keya ];
+            var attributeMapKeys = state.attributeMap.getKeys();
+            var attributeMap = state.attributeMap;
+
+            for ( var j = 0, k = attributeMapKeys.length; j < k; j++ ) {
+                var keya = attributeMapKeys[ j ];
+                var attributeStack = attributeMap[ keya ];
                 if ( attributeStack.length === 0 && attributeStack.globalDefault.applyPositionedUniform === undefined ) {
                     continue;
                 }
@@ -8006,10 +8690,14 @@ define( 'osg/ShaderGenerator',[
                 if ( attributesForUnit === undefined ) {
                     continue;
                 }
+
+                var textureAttributeMapKeys = attributesForUnit.getKeys();
+                var textureAttributeMap = attributesForUnit;
+
                 textureAttributeKeys[ i ] = [];
-                for ( var j = 0, m = attributesForUnit.attributeKeys.length; j < m; j++ ) {
-                    var key = attributesForUnit.attributeKeys[ j ];
-                    var textureAttributeStack = attributesForUnit[ key ];
+                for ( var j = 0, m = textureAttributeMapKeys.length; j < m; j++ ) {
+                    var key = textureAttributeMapKeys[ j ];
+                    var textureAttributeStack = textureAttributeMap[ key ];
                     if ( textureAttributeStack.length === 0 ) {
                         continue;
                     }
@@ -8025,19 +8713,23 @@ define( 'osg/ShaderGenerator',[
         // return the list of uniforms enabled from the State
         // The idea behind this is to generate a shader depending on attributes/uniforms enabled by the user
         getActiveUniforms: function ( state, attributeKeys, textureAttributeKeys ) {
-            var uniforms = {};
+
+            var uniformMap = new Map();
+            var attributeMap = state.attributeMap;
 
             for ( var i = 0, l = attributeKeys.length; i < l; i++ ) {
                 var key = attributeKeys[ i ];
 
-                if ( state.attributeMap[ key ].globalDefault.getOrCreateUniforms === undefined ) {
+                if ( attributeMap[ key ].globalDefault.getOrCreateUniforms === undefined ) {
                     continue;
                 }
-                var attributeUniforms = state.attributeMap[ key ].globalDefault.getOrCreateUniforms();
-                for ( var j = 0, m = attributeUniforms.uniformKeys.length; j < m; j++ ) {
-                    var name = attributeUniforms.uniformKeys[ j ];
+                var attributeUniforms = attributeMap[ key ].globalDefault.getOrCreateUniforms();
+
+                var attributeUniformKeys = attributeUniforms.getKeys();
+                for ( var j = 0, m = attributeUniformKeys.length; j < m; j++ ) {
+                    var name = attributeUniformKeys[ j ];
                     var uniform = attributeUniforms[ name ];
-                    uniforms[ uniform.name ] = uniform;
+                    uniformMap[ uniform.name ] = uniform;
                 }
             }
 
@@ -8055,21 +8747,18 @@ define( 'osg/ShaderGenerator',[
                     if ( textureAttribute.getOrCreateUniforms === undefined ) {
                         continue;
                     }
-                    var texUniforms = textureAttribute.getOrCreateUniforms( a );
-                    for ( var t = 0, tl = texUniforms.uniformKeys.length; t < tl; t++ ) {
-                        var tname = texUniforms.uniformKeys[ t ];
-                        var tuniform = texUniforms[ tname ];
-                        uniforms[ tuniform.name ] = tuniform;
+                    var texUniformMap = textureAttribute.getOrCreateUniforms( a );
+                    var texUniformMapKeys = texUniformMap.getKeys();
+                    for ( var t = 0, tl = texUniformMapKeys.length; t < tl; t++ ) {
+                        var tname = texUniformMapKeys[ t ];
+                        var tuniform = texUniformMap[ tname ];
+                        uniformMap[ tuniform.name ] = tuniform;
                     }
                 }
             }
 
-            var keys = [];
-            for ( var ukey in uniforms ) {
-                keys.push( ukey );
-            }
-            uniforms.uniformKeys = keys;
-            return uniforms;
+            uniformMap.dirty();
+            return uniformMap;
         },
 
         getOrCreateProgram: function ( state ) {
@@ -8130,11 +8819,11 @@ define( 'osg/ShaderGenerator',[
                 if ( attributeKeys === undefined ) {
                     continue;
                 }
-                var attributes = attributeMapList[ i ];
+                var attributeMap = attributeMapList[ i ];
                 for ( var j = 0, m = attributeKeys.length; j < m; j++ ) {
                     var key = attributeKeys[ j ];
 
-                    var element = attributes[ key ].globalDefault;
+                    var element = attributeMap[ key ].globalDefault;
 
                     if ( element.generateShaderCommon !== undefined && commonTypeShader[ key ] === undefined ) {
                         shader += element.generateShaderCommon( i, mode );
@@ -8280,10 +8969,11 @@ define( 'osg/Light',[
     'osg/Uniform',
     'osg/Matrix',
     'osg/Vec4',
-    'osg/ShaderGenerator'
-], function ( MACROUTILS, StateAttribute, Uniform, Matrix, Vec4, ShaderGenerator ) {
+    'osg/ShaderGenerator',
+    'osg/Map'
+], function ( MACROUTILS, StateAttribute, Uniform, Matrix, Vec4, ShaderGenerator, Map ) {
 
-        /**
+    /**
      *  Light
      *  @class Light
      */
@@ -8327,8 +9017,12 @@ define( 'osg/Light',[
             var uniforms = Light.uniforms;
             var typeMember = this.getTypeMember();
             if ( uniforms[ typeMember ] === undefined ) {
+
+                var map = new Map();
+                uniforms[ typeMember ] = map;
+
                 var uFact = Uniform;
-                uniforms[ typeMember ] = {
+                map.setMap( {
                     'ambient': uFact.createFloat4( [ 0.2, 0.2, 0.2, 1 ], this.getUniformName( 'ambient' ) ),
                     'diffuse': uFact.createFloat4( [ 0.8, 0.8, 0.8, 1 ], this.getUniformName( 'diffuse' ) ),
                     'specular': uFact.createFloat4( [ 0.2, 0.2, 0.2, 1 ], this.getUniformName( 'specular' ) ),
@@ -8340,11 +9034,10 @@ define( 'osg/Light',[
                     'linearAttenuation': uFact.createFloat1( 0, this.getUniformName( 'linearAttenuation' ) ),
                     'quadraticAttenuation': uFact.createFloat1( 0, this.getUniformName( 'quadraticAttenuation' ) ),
                     'enable': uFact.createInt1( 0, this.getUniformName( 'enable' ) ),
-                    'matrix': uFact.createMatrix4( Matrix.makeIdentity( [] ), this.getUniformName( 'matrix' ) ),
-                    'invMatrix': uFact.createMatrix4( Matrix.makeIdentity( [] ), this.getUniformName( 'invMatrix' ) )
-                };
 
-                uniforms[ typeMember ].uniformKeys = window.Object.keys( uniforms[ typeMember ] );
+                    'matrix': uFact.createMatrix4( Matrix.create(), this.getUniformName( 'matrix' ) ),
+                    'invMatrix': uFact.createMatrix4( Matrix.create(), this.getUniformName( 'invMatrix' ) )
+                });
             }
             return uniforms[ typeMember ];
         },
@@ -8425,43 +9118,43 @@ define( 'osg/Light',[
         },
 
         applyPositionedUniform: function ( matrix /*, state */ ) {
-            var uniform = this.getOrCreateUniforms();
-            Matrix.copy( matrix, uniform.matrix.get() );
-            uniform.matrix.dirty();
+            var uniformMap = this.getOrCreateUniforms();
+            Matrix.copy( matrix, uniformMap.matrix.get() );
+            uniformMap.matrix.dirty();
 
-            Matrix.copy( matrix, uniform.invMatrix.get() );
-            uniform.invMatrix.get()[ 12 ] = 0;
-            uniform.invMatrix.get()[ 13 ] = 0;
-            uniform.invMatrix.get()[ 14 ] = 0;
-            Matrix.inverse( uniform.invMatrix.get(), uniform.invMatrix.get() );
-            Matrix.transpose( uniform.invMatrix.get(), uniform.invMatrix.get() );
-            uniform.invMatrix.dirty();
+            Matrix.copy( matrix, uniformMap.invMatrix.get() );
+            uniformMap.invMatrix.get()[ 12 ] = 0;
+            uniformMap.invMatrix.get()[ 13 ] = 0;
+            uniformMap.invMatrix.get()[ 14 ] = 0;
+            Matrix.inverse( uniformMap.invMatrix.get(), uniformMap.invMatrix.get() );
+            Matrix.transpose( uniformMap.invMatrix.get(), uniformMap.invMatrix.get() );
+            uniformMap.invMatrix.dirty();
         },
 
         apply: function ( /*state*/ ) {
-            var light = this.getOrCreateUniforms();
+            var uniformMap = this.getOrCreateUniforms();
 
-            light.ambient.set( this._ambient );
-            light.diffuse.set( this._diffuse );
-            light.specular.set( this._specular );
-            light.position.set( this._position );
-            light.direction.set( this._direction );
+            uniformMap.ambient.set( this._ambient );
+            uniformMap.diffuse.set( this._diffuse );
+            uniformMap.specular.set( this._specular );
+            uniformMap.position.set( this._position );
+            uniformMap.direction.set( this._direction );
 
             var spotsize = Math.cos( this._spotCutoff * Math.PI / 180.0 );
-            light.spotCutoff.get()[ 0 ] = spotsize;
-            light.spotCutoff.dirty();
+            uniformMap.spotCutoff.get()[ 0 ] = spotsize;
+            uniformMap.spotCutoff.dirty();
 
-            light.spotBlend.get()[ 0 ] = ( 1.0 - spotsize ) * this._spotBlend;
-            light.spotBlend.dirty();
+            uniformMap.spotBlend.get()[ 0 ] = ( 1.0 - spotsize ) * this._spotBlend;
+            uniformMap.spotBlend.dirty();
 
-            light.constantAttenuation.get()[ 0 ] = this._constantAttenuation;
-            light.constantAttenuation.dirty();
+            uniformMap.constantAttenuation.get()[ 0 ] = this._constantAttenuation;
+            uniformMap.constantAttenuation.dirty();
 
-            light.linearAttenuation.get()[ 0 ] = this._linearAttenuation;
-            light.linearAttenuation.dirty();
+            uniformMap.linearAttenuation.get()[ 0 ] = this._linearAttenuation;
+            uniformMap.linearAttenuation.dirty();
 
-            light.quadraticAttenuation.get()[ 0 ] = this._quadraticAttenuation;
-            light.quadraticAttenuation.dirty();
+            uniformMap.quadraticAttenuation.get()[ 0 ] = this._quadraticAttenuation;
+            uniformMap.quadraticAttenuation.dirty();
 
             //light._enable.set([this.enable]);
 
@@ -8670,8 +9363,8 @@ define( 'osg/Light',[
         ].join( '\n' );
 
         // replace Light_xxxx by instance variable of 'this' light
-        var uniforms = window.Object.keys( this.getOrCreateUniforms() );
-        str = this._replace( 'Light_', uniforms, str, this.getUniformName );
+        var uniformMapKeys = this.getOrCreateUniforms().getKeys();
+        str = this._replace( 'Light_', uniformMapKeys, str, this.getUniformName );
         return str;
     };
 
@@ -8710,8 +9403,8 @@ define( 'osg/Light',[
             'attenuation'
         ];
         str = this._replace( '', fields, str, this.getParameterName );
-        var uniforms = window.Object.keys( this.getOrCreateUniforms() );
-        str = this._replace( 'Light_', uniforms, str, this.getUniformName );
+        var uniformMapKeys = this.getOrCreateUniforms().getKeys();
+        str = this._replace( 'Light_', uniformMapKeys, str, this.getUniformName );
         return str;
     };
 
@@ -8754,8 +9447,9 @@ define( 'osg/Material',[
     'osg/StateAttribute',
     'osg/Vec4',
     'osg/Uniform',
-    'osg/ShaderGenerator'
-], function ( MACROUTILS, StateAttribute, Vec4, Uniform, ShaderGenerator ) {
+    'osg/ShaderGenerator',
+    'osg/Map'
+], function ( MACROUTILS, StateAttribute, Vec4, Uniform, ShaderGenerator, Map ) {
 
     /**
      * Material
@@ -8820,29 +9514,27 @@ define( 'osg/Material',[
         },
         getOrCreateUniforms: function () {
             if ( Material.uniforms === undefined ) {
-                Material.uniforms = {
+                var map = new Map();
+                Material.uniforms = map;
+                map.setMap( {
                     'ambient': Uniform.createFloat4( [ 0, 0, 0, 0 ], 'MaterialAmbient' ),
                     'diffuse': Uniform.createFloat4( [ 0, 0, 0, 0 ], 'MaterialDiffuse' ),
                     'specular': Uniform.createFloat4( [ 0, 0, 0, 0 ], 'MaterialSpecular' ),
                     'emission': Uniform.createFloat4( [ 0, 0, 0, 0 ], 'MaterialEmission' ),
                     'shininess': Uniform.createFloat1( [ 0 ], 'MaterialShininess' )
-                };
-                var uniformKeys = [];
-                for ( var k in Material.uniforms ) {
-                    uniformKeys.push( k );
-                }
-                Material.uniforms.uniformKeys = uniformKeys;
+                } );
             }
             return Material.uniforms;
         },
 
         apply: function ( /*state*/ ) {
-            var uniforms = this.getOrCreateUniforms();
-            uniforms.ambient.set( this.ambient );
-            uniforms.diffuse.set( this.diffuse );
-            uniforms.specular.set( this.specular );
-            uniforms.emission.set( this.emission );
-            uniforms.shininess.set( [ this.shininess ] );
+            var uniformMap = this.getOrCreateUniforms();
+
+            uniformMap.ambient.set( this.ambient );
+            uniformMap.diffuse.set( this.diffuse );
+            uniformMap.specular.set( this.specular );
+            uniformMap.emission.set( this.emission );
+            uniformMap.shininess.set( [ this.shininess ] );
             this._dirty = false;
         },
 
@@ -8905,8 +9597,6 @@ define( 'osg/Math',[], function () {
     };
 } );
 
-/*global define */
-
 define( 'osg/Shape',[
     'osg/Notify',
     'osg/StateAttribute',
@@ -8918,15 +9608,26 @@ define( 'osg/Shape',[
     'osg/DrawArrays',
     'osg/DrawElements',
     'osg/Program',
-    'osg/Shader'
-], function ( Notify, StateAttribute, Vec3, Uniform, BufferArray, Geometry, PrimitiveSet, DrawArrays, DrawElements, Program, Shader ) {
+    'osg/Shader',
+    'osg/Utils'
+], function ( Notify, StateAttribute, Vec3, Uniform, BufferArray, Geometry, PrimitiveSet, DrawArrays, DrawElements, Program, Shader, MACROUTILS ) {
+
+    
 
     /**
      * Create a Textured Box on the given center with given size
      * @name createTexturedBox
      */
-    var createTexturedBoxGeometry = function ( centerx, centery, centerz,
-        sizex, sizey, sizez ) {
+    var createTexturedBoxGeometry = function ( cx, cy, cz,
+        sx, sy, sz ) {
+
+        var centerx = cx !== undefined ? cx : 0.0;
+        var centery = cy !== undefined ? cy : 0.0;
+        var centerz = cz !== undefined ? cz : 0.0;
+
+        var sizex = sx !== undefined ? sx : 1.0;
+        var sizey = sy !== undefined ? sy : 1.0;
+        var sizez = sz !== undefined ? sz : 1.0;
 
         var g = new Geometry();
         var dx, dy, dz;
@@ -8934,237 +9635,237 @@ define( 'osg/Shape',[
         dy = sizey / 2.0;
         dz = sizez / 2.0;
 
-        var vertexes = [];
-        var uv = [];
-        var normal = [];
+        var vertexes = new MACROUTILS.Float32Array( 72 );
+        var uv = new MACROUTILS.Float32Array( 48 );
+        var normal = new MACROUTILS.Float32Array( 72 );
 
         // -ve y plane
         vertexes[ 0 ] = centerx - dx;
         vertexes[ 1 ] = centery - dy;
         vertexes[ 2 ] = centerz + dz;
-        normal[ 0 ] = 0;
-        normal[ 1 ] = -1;
-        normal[ 2 ] = 0;
-        uv[ 0 ] = 0;
-        uv[ 1 ] = 1;
+        normal[ 0 ] = 0.0;
+        normal[ 1 ] = -1.0;
+        normal[ 2 ] = 0.0;
+        uv[ 0 ] = 0.0;
+        uv[ 1 ] = 1.0;
 
         vertexes[ 3 ] = centerx - dx;
         vertexes[ 4 ] = centery - dy;
         vertexes[ 5 ] = centerz - dz;
-        normal[ 3 ] = 0;
-        normal[ 4 ] = -1;
-        normal[ 5 ] = 0;
-        uv[ 2 ] = 0;
-        uv[ 3 ] = 0;
+        normal[ 3 ] = 0.0;
+        normal[ 4 ] = -1.0;
+        normal[ 5 ] = 0.0;
+        uv[ 2 ] = 0.0;
+        uv[ 3 ] = 0.0;
 
         vertexes[ 6 ] = centerx + dx;
         vertexes[ 7 ] = centery - dy;
         vertexes[ 8 ] = centerz - dz;
-        normal[ 6 ] = 0;
-        normal[ 7 ] = -1;
-        normal[ 8 ] = 0;
-        uv[ 4 ] = 1;
-        uv[ 5 ] = 0;
+        normal[ 6 ] = 0.0;
+        normal[ 7 ] = -1.0;
+        normal[ 8 ] = 0.0;
+        uv[ 4 ] = 1.0;
+        uv[ 5 ] = 0.0;
 
         vertexes[ 9 ] = centerx + dx;
         vertexes[ 10 ] = centery - dy;
         vertexes[ 11 ] = centerz + dz;
-        normal[ 9 ] = 0;
-        normal[ 10 ] = -1;
-        normal[ 11 ] = 0;
-        uv[ 6 ] = 1;
-        uv[ 7 ] = 1;
+        normal[ 9 ] = 0.0;
+        normal[ 10 ] = -1.0;
+        normal[ 11 ] = 0.0;
+        uv[ 6 ] = 1.0;
+        uv[ 7 ] = 1.0;
 
 
         // +ve y plane
         vertexes[ 12 ] = centerx + dx;
         vertexes[ 13 ] = centery + dy;
         vertexes[ 14 ] = centerz + dz;
-        normal[ 12 ] = 0;
-        normal[ 13 ] = 1;
-        normal[ 14 ] = 0;
-        uv[ 8 ] = 0;
-        uv[ 9 ] = 1;
+        normal[ 12 ] = 0.0;
+        normal[ 13 ] = 1.0;
+        normal[ 14 ] = 0.0;
+        uv[ 8 ] = 0.0;
+        uv[ 9 ] = 1.0;
 
         vertexes[ 15 ] = centerx + dx;
         vertexes[ 16 ] = centery + dy;
         vertexes[ 17 ] = centerz - dz;
-        normal[ 15 ] = 0;
-        normal[ 16 ] = 1;
-        normal[ 17 ] = 0;
-        uv[ 10 ] = 0;
-        uv[ 11 ] = 0;
+        normal[ 15 ] = 0.0;
+        normal[ 16 ] = 1.0;
+        normal[ 17 ] = 0.0;
+        uv[ 10 ] = 0.0;
+        uv[ 11 ] = 0.0;
 
         vertexes[ 18 ] = centerx - dx;
         vertexes[ 19 ] = centery + dy;
         vertexes[ 20 ] = centerz - dz;
-        normal[ 18 ] = 0;
-        normal[ 19 ] = 1;
-        normal[ 20 ] = 0;
-        uv[ 12 ] = 1;
-        uv[ 13 ] = 0;
+        normal[ 18 ] = 0.0;
+        normal[ 19 ] = 1.0;
+        normal[ 20 ] = 0.0;
+        uv[ 12 ] = 1.0;
+        uv[ 13 ] = 0.0;
 
         vertexes[ 21 ] = centerx - dx;
         vertexes[ 22 ] = centery + dy;
         vertexes[ 23 ] = centerz + dz;
-        normal[ 21 ] = 0;
-        normal[ 22 ] = 1;
-        normal[ 23 ] = 0;
-        uv[ 14 ] = 1;
-        uv[ 15 ] = 1;
+        normal[ 21 ] = 0.0;
+        normal[ 22 ] = 1.0;
+        normal[ 23 ] = 0.0;
+        uv[ 14 ] = 1.0;
+        uv[ 15 ] = 1.0;
 
 
         // +ve x plane
         vertexes[ 24 ] = centerx + dx;
         vertexes[ 25 ] = centery - dy;
         vertexes[ 26 ] = centerz + dz;
-        normal[ 24 ] = 1;
-        normal[ 25 ] = 0;
-        normal[ 26 ] = 0;
-        uv[ 16 ] = 0;
-        uv[ 17 ] = 1;
+        normal[ 24 ] = 1.0;
+        normal[ 25 ] = 0.0;
+        normal[ 26 ] = 0.0;
+        uv[ 16 ] = 0.0;
+        uv[ 17 ] = 1.0;
 
         vertexes[ 27 ] = centerx + dx;
         vertexes[ 28 ] = centery - dy;
         vertexes[ 29 ] = centerz - dz;
-        normal[ 27 ] = 1;
-        normal[ 28 ] = 0;
-        normal[ 29 ] = 0;
-        uv[ 18 ] = 0;
-        uv[ 19 ] = 0;
+        normal[ 27 ] = 1.0;
+        normal[ 28 ] = 0.0;
+        normal[ 29 ] = 0.0;
+        uv[ 18 ] = 0.0;
+        uv[ 19 ] = 0.0;
 
         vertexes[ 30 ] = centerx + dx;
         vertexes[ 31 ] = centery + dy;
         vertexes[ 32 ] = centerz - dz;
-        normal[ 30 ] = 1;
-        normal[ 31 ] = 0;
-        normal[ 32 ] = 0;
-        uv[ 20 ] = 1;
-        uv[ 21 ] = 0;
+        normal[ 30 ] = 1.0;
+        normal[ 31 ] = 0.0;
+        normal[ 32 ] = 0.0;
+        uv[ 20 ] = 1.0;
+        uv[ 21 ] = 0.0;
 
         vertexes[ 33 ] = centerx + dx;
         vertexes[ 34 ] = centery + dy;
         vertexes[ 35 ] = centerz + dz;
-        normal[ 33 ] = 1;
-        normal[ 34 ] = 0;
-        normal[ 35 ] = 0;
-        uv[ 22 ] = 1;
-        uv[ 23 ] = 1;
+        normal[ 33 ] = 1.0;
+        normal[ 34 ] = 0.0;
+        normal[ 35 ] = 0.0;
+        uv[ 22 ] = 1.0;
+        uv[ 23 ] = 1.0;
 
         // -ve x plane
         vertexes[ 36 ] = centerx - dx;
         vertexes[ 37 ] = centery + dy;
         vertexes[ 38 ] = centerz + dz;
-        normal[ 36 ] = -1;
-        normal[ 37 ] = 0;
-        normal[ 38 ] = 0;
-        uv[ 24 ] = 0;
-        uv[ 25 ] = 1;
+        normal[ 36 ] = -1.0;
+        normal[ 37 ] = 0.0;
+        normal[ 38 ] = 0.0;
+        uv[ 24 ] = 0.0;
+        uv[ 25 ] = 1.0;
 
         vertexes[ 39 ] = centerx - dx;
         vertexes[ 40 ] = centery + dy;
         vertexes[ 41 ] = centerz - dz;
-        normal[ 39 ] = -1;
-        normal[ 40 ] = 0;
-        normal[ 41 ] = 0;
-        uv[ 26 ] = 0;
-        uv[ 27 ] = 0;
+        normal[ 39 ] = -1.0;
+        normal[ 40 ] = 0.0;
+        normal[ 41 ] = 0.0;
+        uv[ 26 ] = 0.0;
+        uv[ 27 ] = 0.0;
 
         vertexes[ 42 ] = centerx - dx;
         vertexes[ 43 ] = centery - dy;
         vertexes[ 44 ] = centerz - dz;
-        normal[ 42 ] = -1;
-        normal[ 43 ] = 0;
-        normal[ 44 ] = 0;
-        uv[ 28 ] = 1;
-        uv[ 29 ] = 0;
+        normal[ 42 ] = -1.0;
+        normal[ 43 ] = 0.0;
+        normal[ 44 ] = 0.0;
+        uv[ 28 ] = 1.0;
+        uv[ 29 ] = 0.0;
 
         vertexes[ 45 ] = centerx - dx;
         vertexes[ 46 ] = centery - dy;
         vertexes[ 47 ] = centerz + dz;
-        normal[ 45 ] = -1;
-        normal[ 46 ] = 0;
-        normal[ 47 ] = 0;
-        uv[ 30 ] = 1;
-        uv[ 31 ] = 1;
+        normal[ 45 ] = -1.0;
+        normal[ 46 ] = 0.0;
+        normal[ 47 ] = 0.0;
+        uv[ 30 ] = 1.0;
+        uv[ 31 ] = 1.0;
 
         // top
         // +ve z plane
         vertexes[ 48 ] = centerx - dx;
         vertexes[ 49 ] = centery + dy;
         vertexes[ 50 ] = centerz + dz;
-        normal[ 48 ] = 0;
-        normal[ 49 ] = 0;
-        normal[ 50 ] = 1;
-        uv[ 32 ] = 0;
-        uv[ 33 ] = 1;
+        normal[ 48 ] = 0.0;
+        normal[ 49 ] = 0.0;
+        normal[ 50 ] = 1.0;
+        uv[ 32 ] = 0.0;
+        uv[ 33 ] = 1.0;
 
         vertexes[ 51 ] = centerx - dx;
         vertexes[ 52 ] = centery - dy;
         vertexes[ 53 ] = centerz + dz;
-        normal[ 51 ] = 0;
-        normal[ 52 ] = 0;
-        normal[ 53 ] = 1;
-        uv[ 34 ] = 0;
-        uv[ 35 ] = 0;
+        normal[ 51 ] = 0.0;
+        normal[ 52 ] = 0.0;
+        normal[ 53 ] = 1.0;
+        uv[ 34 ] = 0.0;
+        uv[ 35 ] = 0.0;
 
         vertexes[ 54 ] = centerx + dx;
         vertexes[ 55 ] = centery - dy;
         vertexes[ 56 ] = centerz + dz;
-        normal[ 54 ] = 0;
-        normal[ 55 ] = 0;
-        normal[ 56 ] = 1;
-        uv[ 36 ] = 1;
-        uv[ 37 ] = 0;
+        normal[ 54 ] = 0.0;
+        normal[ 55 ] = 0.0;
+        normal[ 56 ] = 1.0;
+        uv[ 36 ] = 1.0;
+        uv[ 37 ] = 0.0;
 
         vertexes[ 57 ] = centerx + dx;
         vertexes[ 58 ] = centery + dy;
         vertexes[ 59 ] = centerz + dz;
-        normal[ 57 ] = 0;
-        normal[ 58 ] = 0;
-        normal[ 59 ] = 1;
-        uv[ 38 ] = 1;
-        uv[ 39 ] = 1;
+        normal[ 57 ] = 0.0;
+        normal[ 58 ] = 0.0;
+        normal[ 59 ] = 1.0;
+        uv[ 38 ] = 1.0;
+        uv[ 39 ] = 1.0;
 
         // bottom
         // -ve z plane
         vertexes[ 60 ] = centerx + dx;
         vertexes[ 61 ] = centery + dy;
         vertexes[ 62 ] = centerz - dz;
-        normal[ 60 ] = 0;
-        normal[ 61 ] = 0;
-        normal[ 62 ] = -1;
-        uv[ 40 ] = 0;
-        uv[ 41 ] = 1;
+        normal[ 60 ] = 0.0;
+        normal[ 61 ] = 0.0;
+        normal[ 62 ] = -1.0;
+        uv[ 40 ] = 0.0;
+        uv[ 41 ] = 1.0;
 
         vertexes[ 63 ] = centerx + dx;
         vertexes[ 64 ] = centery - dy;
         vertexes[ 65 ] = centerz - dz;
-        normal[ 63 ] = 0;
-        normal[ 64 ] = 0;
-        normal[ 65 ] = -1;
-        uv[ 42 ] = 0;
-        uv[ 43 ] = 0;
+        normal[ 63 ] = 0.0;
+        normal[ 64 ] = 0.0;
+        normal[ 65 ] = -1.0;
+        uv[ 42 ] = 0.0;
+        uv[ 43 ] = 0.0;
 
         vertexes[ 66 ] = centerx - dx;
         vertexes[ 67 ] = centery - dy;
         vertexes[ 68 ] = centerz - dz;
-        normal[ 66 ] = 0;
-        normal[ 67 ] = 0;
-        normal[ 68 ] = -1;
-        uv[ 44 ] = 1;
-        uv[ 45 ] = 0;
+        normal[ 66 ] = 0.0;
+        normal[ 67 ] = 0.0;
+        normal[ 68 ] = -1.0;
+        uv[ 44 ] = 1.0;
+        uv[ 45 ] = 0.0;
 
         vertexes[ 69 ] = centerx - dx;
         vertexes[ 70 ] = centery + dy;
         vertexes[ 71 ] = centerz - dz;
-        normal[ 69 ] = 0;
-        normal[ 70 ] = 0;
-        normal[ 71 ] = -1;
-        uv[ 46 ] = 1;
-        uv[ 47 ] = 1;
+        normal[ 69 ] = 0.0;
+        normal[ 70 ] = 0.0;
+        normal[ 71 ] = -1.0;
+        uv[ 46 ] = 1.0;
+        uv[ 47 ] = 1.0;
 
-        var indexes = [];
+        var indexes = new MACROUTILS.Uint16Array( 36 );
         indexes[ 0 ] = 0;
         indexes[ 1 ] = 1;
         indexes[ 2 ] = 2;
@@ -9224,13 +9925,13 @@ define( 'osg/Shape',[
         if ( r === undefined && t === undefined ) {
             r = l;
             t = b;
-            l = 0;
-            b = 0;
+            l = 0.0;
+            b = 0.0;
         }
 
         var g = new Geometry();
 
-        var vertexes = [];
+        var vertexes = new MACROUTILS.Float32Array( 12 );
         vertexes[ 0 ] = cornerx + hx;
         vertexes[ 1 ] = cornery + hy;
         vertexes[ 2 ] = cornerz + hz;
@@ -9254,7 +9955,7 @@ define( 'osg/Shape',[
             t = 1.0;
         }
 
-        var uvs = [];
+        var uvs = new MACROUTILS.Float32Array( 8 );
         uvs[ 0 ] = l;
         uvs[ 1 ] = t;
 
@@ -9267,8 +9968,8 @@ define( 'osg/Shape',[
         uvs[ 6 ] = r;
         uvs[ 7 ] = t;
 
-        var n = Vec3.cross( [ wx, wy, wz ], [ hx, hy, hz ], [] );
-        var normal = [];
+        var n = Vec3.cross( [ wx, wy, wz ], [ hx, hy, hz ], [ 0.0, 0.0, 0.0 ] );
+        var normal = new MACROUTILS.Float32Array( 12 );
         normal[ 0 ] = n[ 0 ];
         normal[ 1 ] = n[ 1 ];
         normal[ 2 ] = n[ 2 ];
@@ -9286,7 +9987,7 @@ define( 'osg/Shape',[
         normal[ 11 ] = n[ 2 ];
 
 
-        var indexes = [];
+        var indexes = new MACROUTILS.Uint16Array( 6 );
         indexes[ 0 ] = 0;
         indexes[ 1 ] = 1;
         indexes[ 2 ] = 2;
@@ -9370,25 +10071,21 @@ define( 'osg/Shape',[
 
         var g = new Geometry();
 
-        var vertexes = [];
-        vertexes.push( 0, 0, 0 );
-        vertexes.push( size, 0, 0 );
+        var vertexes = new MACROUTILS.Float32Array( 18 );
+        vertexes[ 3 ] = size;
+        vertexes[ 10 ] = size;
+        vertexes[ 17 ] = size;
 
-        vertexes.push( 0, 0, 0 );
-        vertexes.push( 0, size, 0 );
-
-        vertexes.push( 0, 0, 0 );
-        vertexes.push( 0, 0, size );
-
-        var colors = [];
-        colors.push( 1, 0, 0, 1.0 );
-        colors.push( 1, 0, 0, 1.0 );
-
-        colors.push( 0, 1, 0, 1.0 );
-        colors.push( 0, 1, 0, 1.0 );
-
-        colors.push( 0, 0, 1, 1.0 );
-        colors.push( 0, 0, 1, 1.0 );
+        var colors = new MACROUTILS.Float32Array( 24 );
+        //red color
+        colors[ 0 ] = colors[ 3 ] = 1.0;
+        colors[ 4 ] = colors[ 4 + 3 ] = 1.0;
+        //green color
+        colors[ 4 * 2 + 1 ] = colors[ 4 * 2 + 3 ] = 1.0;
+        colors[ 4 * 3 + 1 ] = colors[ 4 * 3 + 3 ] = 1.0;
+        //blue color
+        colors[ 4 * 4 + 2 ] = colors[ 4 * 4 + 3 ] = 1.0;
+        colors[ 4 * 5 + 2 ] = colors[ 4 * 5 + 3 ] = 1.0;
 
         g.getAttributes().Vertex = new BufferArray( BufferArray.ARRAY_BUFFER, vertexes, 3 );
         g.getAttributes().Color = new BufferArray( BufferArray.ARRAY_BUFFER, colors, 4 );
@@ -9406,118 +10103,137 @@ define( 'osg/Shape',[
      * @author Darrell Esau
      */
     var createTexturedSphere = function ( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {
-        radius = radius || 50;
+        radius = radius || 50.0;
 
-        phiStart = phiStart !== undefined ? phiStart : 0;
+        phiStart = phiStart !== undefined ? phiStart : 0.0;
         phiLength = phiLength !== undefined ? phiLength : Math.PI * 2;
 
-        thetaStart = thetaStart !== undefined ? thetaStart : 0;
+        thetaStart = thetaStart !== undefined ? thetaStart : 0.0;
         thetaLength = thetaLength !== undefined ? thetaLength : Math.PI;
 
         var segmentsX = Math.max( 3, Math.floor( widthSegments ) || 8 );
         var segmentsY = Math.max( 2, Math.floor( heightSegments ) || 6 );
 
-        var x, y, vertices = [],
-            uvs = [],
-            allVertices = [];
-
-        for ( y = 0; y <= segmentsY; y++ ) {
-            var verticesRow = [];
-            var uvsRow = [];
-
-            for ( x = 0; x <= segmentsX; x++ ) {
-                var u = x / segmentsX;
-                var v = y / segmentsY;
-
-                var vertex = {};
-                vertex.x = -radius * Math.cos( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
-                vertex.y = radius * Math.cos( thetaStart + v * thetaLength );
-                vertex.z = radius * Math.sin( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
-
-                allVertices.push( vertex );
-
-                verticesRow.push( allVertices.length - 1 );
-                uvsRow.push( {
-                    u: u,
-                    v: 1 - v
-                } );
-
-            }
-
-            vertices.push( verticesRow );
-            uvs.push( uvsRow );
-        }
-
-        var fullVerticesList = [];
-        var fullNormalsList = [];
-        var fullUVList = [];
-        var indexes = [];
+        var useDrawArrays = ( ( segmentsX * segmentsY ) / 3 ) >= 65536;
+        var nbPrim = useDrawArrays ? segmentsX * segmentsY * 6 : segmentsX * segmentsY * 4;
+        var fullVerticesList = new MACROUTILS.Float32Array( nbPrim * 3 );
+        var fullNormalsList = new MACROUTILS.Float32Array( nbPrim * 3 );
+        var fullUVList = new MACROUTILS.Float32Array( nbPrim * 2 );
+        var indexes = !useDrawArrays ? new MACROUTILS.Uint16Array( segmentsX * segmentsY * 6 ) : undefined;
         var vtxCount = 0;
-        // #FIXME quick fix to enable bigger mesh
-        // however we should check if the OES_element_index_uint
-        // has been enabled
-        var useDrawArrays = ( allVertices.length / 3 ) >= 65536;
+        var triCount = 0;
 
-        for ( y = 0; y < segmentsY; y++ ) {
-            for ( x = 0; x < segmentsX; x++ ) {
+        var v1 = new MACROUTILS.Float32Array( 3 );
+        var v2 = new MACROUTILS.Float32Array( 3 );
+        var v3 = new MACROUTILS.Float32Array( 3 );
+        var v4 = new MACROUTILS.Float32Array( 3 );
+        var n1 = new MACROUTILS.Float32Array( 3 );
+        var n2 = new MACROUTILS.Float32Array( 3 );
+        var n3 = new MACROUTILS.Float32Array( 3 );
+        var n4 = new MACROUTILS.Float32Array( 3 );
+        var uv1 = new MACROUTILS.Float32Array( 2 );
+        var uv2 = new MACROUTILS.Float32Array( 2 );
+        var uv3 = new MACROUTILS.Float32Array( 2 );
+        var uv4 = new MACROUTILS.Float32Array( 2 );
+        var getCoordAndUvSphere = function ( u, v, coord, norm, uv ) {
+            coord[ 0 ] = -radius * Math.cos( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
+            coord[ 1 ] = radius * Math.cos( thetaStart + v * thetaLength );
+            coord[ 2 ] = radius * Math.sin( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
+            Vec3.normalize( coord, norm );
+            uv[ 0 ] = u;
+            uv[ 1 ] = 1 - v;
+        };
+        for ( var y = 0; y < segmentsY; y++ ) {
+            for ( var x = 0; x < segmentsX; x++ ) {
+                getCoordAndUvSphere( ( x + 1 ) / segmentsX, y / segmentsY, v1, n1, uv1 );
+                getCoordAndUvSphere( x / segmentsX, y / segmentsY, v2, n2, uv2 );
+                getCoordAndUvSphere( x / segmentsX, ( y + 1 ) / segmentsY, v3, n3, uv3 );
+                getCoordAndUvSphere( ( x + 1 ) / segmentsX, ( y + 1 ) / segmentsY, v4, n4, uv4 );
 
-                var v1 = vertices[ y ][ x + 1 ];
-                var v2 = vertices[ y ][ x ];
-                var v3 = vertices[ y + 1 ][ x ];
-                var v4 = vertices[ y + 1 ][ x + 1 ];
+                var idv = vtxCount * 3;
+                fullVerticesList[ idv ] = v1[ 0 ];
+                fullVerticesList[ idv + 1 ] = v1[ 1 ];
+                fullVerticesList[ idv + 2 ] = v1[ 2 ];
+                fullVerticesList[ idv + 3 ] = v2[ 0 ];
+                fullVerticesList[ idv + 4 ] = v2[ 1 ];
+                fullVerticesList[ idv + 5 ] = v2[ 2 ];
+                fullVerticesList[ idv + 6 ] = v3[ 0 ];
+                fullVerticesList[ idv + 7 ] = v3[ 1 ];
+                fullVerticesList[ idv + 8 ] = v3[ 2 ];
 
-                var vtx1 = allVertices[ v1 ];
-                var vtx2 = allVertices[ v2 ];
-                var vtx3 = allVertices[ v3 ];
-                var vtx4 = allVertices[ v4 ];
+                fullNormalsList[ idv ] = n1[ 0 ];
+                fullNormalsList[ idv + 1 ] = n1[ 1 ];
+                fullNormalsList[ idv + 2 ] = n1[ 2 ];
+                fullNormalsList[ idv + 3 ] = n2[ 0 ];
+                fullNormalsList[ idv + 4 ] = n2[ 1 ];
+                fullNormalsList[ idv + 5 ] = n2[ 2 ];
+                fullNormalsList[ idv + 6 ] = n3[ 0 ];
+                fullNormalsList[ idv + 7 ] = n3[ 1 ];
+                fullNormalsList[ idv + 8 ] = n3[ 2 ];
 
-                var n1 = Vec3.normalize( [ vtx1.x, vtx1.y, vtx1.z ], [] );
-                var n2 = Vec3.normalize( [ vtx2.x, vtx2.y, vtx2.z ], [] );
-                var n3 = Vec3.normalize( [ vtx3.x, vtx3.y, vtx3.z ], [] );
-                var n4 = Vec3.normalize( [ vtx4.x, vtx4.y, vtx4.z ], [] );
+                var idu = vtxCount * 2;
+                fullUVList[ idu ] = uv1[ 0 ];
+                fullUVList[ idu + 1 ] = uv1[ 1 ];
+                fullUVList[ idu + 2 ] = uv2[ 0 ];
+                fullUVList[ idu + 3 ] = uv2[ 1 ];
+                fullUVList[ idu + 4 ] = uv3[ 0 ];
+                fullUVList[ idu + 5 ] = uv3[ 1 ];
 
-                var uv1 = uvs[ y ][ x + 1 ];
-                var uv2 = uvs[ y ][ x ];
-                var uv3 = uvs[ y + 1 ][ x ];
-                var uv4 = uvs[ y + 1 ][ x + 1 ];
-
-                fullVerticesList.push( vtx1.x, vtx1.y, vtx1.z );
-                fullVerticesList.push( vtx2.x, vtx2.y, vtx2.z );
-                fullVerticesList.push( vtx3.x, vtx3.y, vtx3.z );
-
-                fullNormalsList.push( n1[ 0 ], n1[ 1 ], n1[ 2 ] );
-                fullNormalsList.push( n2[ 0 ], n2[ 1 ], n2[ 2 ] );
-                fullNormalsList.push( n3[ 0 ], n3[ 1 ], n3[ 2 ] );
-
-                fullUVList.push( uv1.u, uv1.v );
-                fullUVList.push( uv2.u, uv2.v );
-                fullUVList.push( uv3.u, uv3.v );
-
+                vtxCount += 3;
                 if ( useDrawArrays ) {
-                    fullVerticesList.push( vtx1.x, vtx1.y, vtx1.z );
-                    fullVerticesList.push( vtx3.x, vtx3.y, vtx3.z );
-                    fullVerticesList.push( vtx4.x, vtx4.y, vtx4.z );
+                    idv = vtxCount * 3;
+                    fullVerticesList[ idv ] = v1[ 0 ];
+                    fullVerticesList[ idv + 1 ] = v1[ 1 ];
+                    fullVerticesList[ idv + 2 ] = v1[ 2 ];
+                    fullVerticesList[ idv + 3 ] = v3[ 0 ];
+                    fullVerticesList[ idv + 4 ] = v3[ 1 ];
+                    fullVerticesList[ idv + 5 ] = v3[ 2 ];
+                    fullVerticesList[ idv + 6 ] = v4[ 0 ];
+                    fullVerticesList[ idv + 7 ] = v4[ 1 ];
+                    fullVerticesList[ idv + 8 ] = v4[ 2 ];
 
-                    fullNormalsList.push( n1[ 0 ], n1[ 1 ], n1[ 2 ] );
-                    fullNormalsList.push( n3[ 0 ], n3[ 1 ], n3[ 2 ] );
-                    fullNormalsList.push( n4[ 0 ], n4[ 1 ], n4[ 2 ] );
+                    fullNormalsList[ idv ] = n1[ 0 ];
+                    fullNormalsList[ idv + 1 ] = n1[ 1 ];
+                    fullNormalsList[ idv + 2 ] = n1[ 2 ];
+                    fullNormalsList[ idv + 3 ] = n3[ 0 ];
+                    fullNormalsList[ idv + 4 ] = n3[ 1 ];
+                    fullNormalsList[ idv + 5 ] = n3[ 2 ];
+                    fullNormalsList[ idv + 6 ] = n4[ 0 ];
+                    fullNormalsList[ idv + 7 ] = n4[ 1 ];
+                    fullNormalsList[ idv + 8 ] = n4[ 2 ];
 
-                    fullUVList.push( uv1.u, uv1.v );
-                    fullUVList.push( uv3.u, uv3.v );
-                    fullUVList.push( uv4.u, uv4.v );
+                    idu = vtxCount * 2;
+                    fullUVList[ idu ] = uv1[ 0 ];
+                    fullUVList[ idu + 1 ] = uv1[ 1 ];
+                    fullUVList[ idu + 2 ] = uv3[ 0 ];
+                    fullUVList[ idu + 3 ] = uv3[ 1 ];
+                    fullUVList[ idu + 4 ] = uv4[ 0 ];
+                    fullUVList[ idu + 5 ] = uv4[ 1 ];
+                    vtxCount += 3;
                 } else {
-                    fullVerticesList.push( vtx4.x, vtx4.y, vtx4.z );
-                    fullNormalsList.push( n4[ 0 ], n4[ 1 ], n4[ 2 ] );
-                    fullUVList.push( uv4.u, uv4.v );
+                    idv = vtxCount * 3;
+                    fullVerticesList[ idv ] = v4[ 0 ];
+                    fullVerticesList[ idv + 1 ] = v4[ 1 ];
+                    fullVerticesList[ idv + 2 ] = v4[ 2 ];
 
-                    vtxCount += 4;
-                    var tristart = vtxCount - 4;
-                    indexes.push( tristart );
-                    indexes.push( tristart + 1 );
-                    indexes.push( tristart + 2 );
-                    indexes.push( tristart );
-                    indexes.push( tristart + 2 );
-                    indexes.push( tristart + 3 );
+                    fullNormalsList[ idv ] = n4[ 0 ];
+                    fullNormalsList[ idv + 1 ] = n4[ 1 ];
+                    fullNormalsList[ idv + 2 ] = n4[ 2 ];
+
+                    idu = vtxCount * 2;
+                    fullUVList[ idu ] = uv4[ 0 ];
+                    fullUVList[ idu + 1 ] = uv4[ 1 ];
+
+                    var iStart = triCount * 3;
+                    var tristart = vtxCount - 3;
+                    indexes[ iStart ] = tristart;
+                    indexes[ iStart + 1 ] = tristart + 1;
+                    indexes[ iStart + 2 ] = tristart + 2;
+                    indexes[ iStart + 3 ] = tristart;
+                    indexes[ iStart + 4 ] = tristart + 2;
+                    indexes[ iStart + 5 ] = tristart + 3;
+                    triCount += 2;
+                    vtxCount += 1;
                 }
             }
         }
@@ -9543,6 +10259,7 @@ define( 'osg/Shape',[
         createTexturedSphere: createTexturedSphere
     };
 } );
+
 define( 'osg/Stack',[], function () {
 
     var Stack = function () {};
@@ -9564,8 +10281,9 @@ define( 'osg/State',[
     'osg/Stack',
     'osg/Uniform',
     'osg/Matrix',
-    'osg/ShaderGenerator'
-], function ( StateAttribute, Stack, Uniform, Matrix, ShaderGenerator ) {
+    'osg/ShaderGenerator',
+    'osg/Map'
+], function ( StateAttribute, Stack, Uniform, Matrix, ShaderGenerator, Map ) {
 
     var State = function () {
         this._graphicContext = undefined;
@@ -9574,27 +10292,28 @@ define( 'osg/State',[
         this.vertexAttribList = [];
         this.programs = Stack.create();
         this.stateSets = Stack.create();
-        this.uniforms = {};
-        this.uniforms.uniformKeys = [];
+        this.uniforms = new Map();
 
         this.textureAttributeMapList = [];
 
-        this.attributeMap = {};
-        this.attributeMap.attributeKeys = [];
-
-        this.modeMap = {};
+        this.attributeMap = new Map();
 
         this.shaderGenerator = new ShaderGenerator();
 
-        this.modelViewMatrix = Uniform.createMatrix4( Matrix.makeIdentity( [] ), 'ModelViewMatrix' );
-        this.projectionMatrix = Uniform.createMatrix4( Matrix.makeIdentity( [] ), 'ProjectionMatrix' );
-        this.normalMatrix = Uniform.createMatrix4( Matrix.makeIdentity( [] ), 'NormalMatrix' );
+        this.modelViewMatrix = Uniform.createMatrix4( Matrix.create(), 'ModelViewMatrix' );
+        this.projectionMatrix = Uniform.createMatrix4( Matrix.create(), 'ProjectionMatrix' );
+        this.normalMatrix = Uniform.createMatrix4( Matrix.create(), 'NormalMatrix' );
 
         // track uniform for color array enabled
-        this.uniforms.ArrayColorEnabled = Stack.create();
-        this.uniforms.ArrayColorEnabled.globalDefault = Uniform.createFloat1( 0.0, 'ArrayColorEnabled' );
-        this.uniforms.ArrayColorEnabled.uniformKeys = [];
-        this.uniforms.ArrayColorEnabled.uniformKeys.push( 'ArrayColorEnabled' );
+
+        // Stoped HERE color array does not work
+        // check point cloud example
+        var arrayColorEnable = Stack.create();
+        arrayColorEnable.globalDefault = Uniform.createFloat1( 0.0, 'ArrayColorEnabled' );
+
+        this.uniforms.setMap( {
+            ArrayColorEnabled: arrayColorEnable
+        } );
 
 
         this.vertexAttribMap = {};
@@ -9624,8 +10343,7 @@ define( 'osg/State',[
                         continue;
                     }
                     if ( !this.textureAttributeMapList[ textureUnit ] ) {
-                        this.textureAttributeMapList[ textureUnit ] = {};
-                        this.textureAttributeMapList[ textureUnit ].attributeKeys = [];
+                        this.textureAttributeMapList[ textureUnit ] = new Map();
                     }
                     this.pushAttributeMap( this.textureAttributeMapList[ textureUnit ], list[ textureUnit ] );
                 }
@@ -9679,12 +10397,15 @@ define( 'osg/State',[
 
         applyAttribute: function ( attribute ) {
             var key = attribute.getTypeMember();
-            var attributeStack = this.attributeMap[ key ];
+
+            var attributeMap = this.attributeMap;
+            var attributeStack = attributeMap[ key ];
+
             if ( attributeStack === undefined ) {
                 attributeStack = Stack.create();
-                this.attributeMap[ key ] = attributeStack;
-                this.attributeMap[ key ].globalDefault = attribute.cloneType();
-                this.attributeMap.attributeKeys.push( key );
+                attributeMap[ key ] = attributeStack;
+                attributeMap[ key ].globalDefault = attribute.cloneType();
+                this.attributeMap.dirty();
             }
 
             if ( attributeStack.lastApplied !== attribute ) {
@@ -9702,20 +10423,23 @@ define( 'osg/State',[
             var key = attribute.getTypeMember();
 
             if ( !this.textureAttributeMapList[ unit ] ) {
-                this.textureAttributeMapList[ unit ] = {};
-                this.textureAttributeMapList[ unit ].attributeKeys = [];
+                this.textureAttributeMapList[ unit ] = new Map();
             }
 
-            var attributeStack = this.textureAttributeMapList[ unit ][ key ];
+            var textureUnitAttributeMap = this.textureAttributeMapList[ unit ];
+            var attributeStack = textureUnitAttributeMap[ key ];
+
             if ( attributeStack === undefined ) {
+
                 attributeStack = Stack.create();
-                this.textureAttributeMapList[ unit ][ key ] = attributeStack;
+                textureUnitAttributeMap[ key ] = attributeStack;
+                textureUnitAttributeMap.dirty();
                 attributeStack.globalDefault = attribute.cloneType();
-                this.textureAttributeMapList[ unit ].attributeKeys.push( key );
+
             }
 
             if ( attributeStack.lastApplied !== attribute ) {
-                //if (attributeStack.lastApplied !== attribute || attribute.isDirty()) {
+
                 if ( attribute.apply ) {
                     attribute.apply( this );
                 }
@@ -9730,9 +10454,11 @@ define( 'osg/State',[
 
         pushGeneratedProgram: function () {
             var program;
-            if ( this.attributeMap.Program !== undefined && this.attributeMap.Program.length !== 0 ) {
-                program = this.attributeMap.Program.back().object;
-                var value = this.attributeMap.Program.back().value;
+            var attributeMap = this.attributeMap;
+
+            if ( attributeMap.Program !== undefined && attributeMap.Program.length !== 0 ) {
+                program = attributeMap.Program.back().object;
+                var value = attributeMap.Program.back().value;
                 if ( program !== undefined && value !== StateAttribute.OFF ) {
                     this.programs.push( this.getObjectPair( program, value ) );
                     return program;
@@ -9762,11 +10488,112 @@ define( 'osg/State',[
             this.applyTextureAttributeMapList( this.textureAttributeMapList );
         },
 
+        computeForeignUniforms: function( programUniformMap, activeUniformMap ) {
+            var uniformMapKeys = programUniformMap.getKeys();
+            var uniformMap = programUniformMap;
+
+            var foreignUniforms = [];
+            for ( var i = 0, l = uniformMapKeys.length; i < l; i++ ) {
+                var name = uniformMapKeys[ i ];
+                var location = uniformMap[ name ];
+                if ( location !== undefined && activeUniformMap[ name ] === undefined ) {
+                    // filter 'standard' uniform matrix that will be applied for all shader
+                    if ( name !== this.modelViewMatrix.name &&
+                         name !== this.projectionMatrix.name &&
+                         name !== this.normalMatrix.name &&
+                         name !== 'ArrayColorEnabled' ) {
+                             foreignUniforms.push( name );
+                         }
+                }
+            }
+            return foreignUniforms;
+        },
+
+        removeUniformsNotRequiredByProgram: function( activeUniformMap, programUniformMap ) {
+
+            var activeUniformMapKeys = activeUniformMap.getKeys();
+
+            for ( var i = 0, l = activeUniformMapKeys.length; i < l; i++ ) {
+                var name = activeUniformMapKeys[ i ];
+                var location = programUniformMap[ name ];
+                if ( location === undefined || location === null ) {
+                    delete activeUniformMap[ name ];
+                    activeUniformMap.dirty();
+                }
+            }
+        },
+
+
+
+        cacheUniformsForGeneratedProgram: function( program ) {
+
+            var foreignUniforms = this.computeForeignUniforms( program.uniformsCache, program.activeUniforms );
+            program.foreignUniforms = foreignUniforms;
+
+
+            // remove uniforms listed by attributes (getActiveUniforms) but not required by the program
+            this.removeUniformsNotRequiredByProgram( program.activeUniforms, program.uniformsCache );
+
+        },
+
+        applyGeneratedProgram: function( program ) {
+
+            // note that about TextureAttribute that need uniform on unit we would need to improve
+            // the current uniformList ...
+
+            // when we apply the shader for the first time, we want to compute the active uniforms for this shader and the list of uniforms not extracted from attributes called foreignUniforms
+
+            // typically the following code will be executed once on the first execution of generated program
+
+            var foreignUniformKeys = program.foreignUniforms;
+            if ( !foreignUniformKeys ) {
+                this.cacheUniformsForGeneratedProgram( program );
+                foreignUniformKeys = program.foreignUniforms;
+            }
+
+
+            var programUniformMap = program.uniformsCache;
+            var activeUniformMap = program.activeUniforms;
+
+
+            // apply active uniforms
+            // caching uniforms from attribtues make it impossible to overwrite uniform with a custom uniform instance not used in the attributes
+            var i,l, name, location;
+            var activeUniformKeys = activeUniformMap.getKeys();
+
+            for ( i = 0, l = activeUniformKeys.length; i < l; i++ ) {
+
+                name = activeUniformKeys[ i ];
+                location = programUniformMap[ name ];
+                activeUniformMap[ name ].apply( this._graphicContext, location );
+
+            }
+
+            var uniformMapStack = this.uniforms;
+
+            // apply now foreign uniforms, it's uniforms needed by the program but not contains in attributes used to generate this program
+            for ( i = 0, l = foreignUniformKeys.length; i < l; i++ ) {
+
+                name = foreignUniformKeys[ i ];
+                var uniformStack = uniformMapStack[ name ];
+                location = programUniformMap[ name ];
+                var uniform;
+
+                if ( uniformStack !== undefined ) {
+
+                    if ( uniformStack.length === 0 ) {
+                        uniform = uniformStack.globalDefault;
+                    } else {
+                        uniform = uniformStack.back().object;
+                    }
+
+                    uniform.apply( this._graphicContext, location );
+                }
+
+            }
+        },
+
         apply: function () {
-            var gl = this._graphicContext;
-
-
-
             this.applyAttributeMap( this.attributeMap );
             this.applyTextureAttributeMapList( this.textureAttributeMapList );
 
@@ -9777,252 +10604,178 @@ define( 'osg/State',[
                 this.programs.lastApplied = program;
             }
 
-            var programUniforms;
-            var activeUniforms;
-            var i,l;
-            var key;
-            var self = this;
-            var uniformMap;
             if ( program.generated === true ) {
-                // note that about TextureAttribute that need uniform on unit we would need to improve
-                // the current uniformList ...
 
-                programUniforms = program.uniformsCache;
-                activeUniforms = program.activeUniforms;
-                uniformMap = this.uniforms;
-                ( function () {
+                // will cache uniform and apply them with the program
 
-                    var programUniforms = program.uniformsCache;
-                    var activeUniforms = program.activeUniforms;
-                    var foreignUniforms = program.foreignUniforms;
-
-                    // when we apply the shader for the first time, we want to compute the active uniforms for this shader and the list of uniforms not extracted from attributes called foreignUniforms
-
-                    // typically the following code will be executed once on the first execution of generated program
-                    if ( !foreignUniforms ) {
-
-                        ( function () {
-
-                            foreignUniforms = [];
-                            for ( var i = 0, l = programUniforms.uniformKeys.length; i < l; i++ ) {
-                                var name = programUniforms.uniformKeys[ i ];
-                                var location = programUniforms[ name ];
-                                if ( location !== undefined && activeUniforms[ name ] === undefined ) {
-                                    // filter 'standard' uniform matrix that will be applied for all shader
-                                    if ( name !== self.modelViewMatrix.name &&
-                                         name !== self.projectionMatrix.name &&
-                                         name !== self.normalMatrix.name &&
-                                         name !== 'ArrayColorEnabled' ) {
-                                             foreignUniforms.push( name );
-                                         }
-                                }
-                            }
-                            program.foreignUniforms = foreignUniforms;
-
-                        } )();
-
-
-                        // remove uniforms listed by attributes (getActiveUniforms) but not required by the program
-                        ( function () {
-
-                            for ( var i = 0, l = activeUniforms.uniformKeys.length; i < l; i++ ) {
-                                var name = activeUniforms.uniformKeys[ i ];
-                                var location = programUniforms[ name ];
-                                if ( location === undefined || location === null ) {
-                                    delete activeUniforms[ name ];
-                                }
-                            }
-                            // regenerate uniforms keys
-                            var keys = window.Object.keys( activeUniforms );
-                            for ( var j = 0, m = keys.length; j < m; j++ ) {
-                                if ( keys[ j ] === 'uniformKeys' ) {
-                                    keys.splice( j, 1 );
-                                    break;
-                                }
-                            }
-                            activeUniforms.uniformKeys = keys;
-                        } )();
-                    }
-
-
-                    // apply active uniforms
-                    // caching uniforms from attribtues make it impossible to overwrite uniform with a custom uniform instance not used in the attributes
-                    ( function () {
-                        for ( var i = 0, l = activeUniforms.uniformKeys.length; i < l; i++ ) {
-                            var name = activeUniforms.uniformKeys[ i ];
-                            var location = programUniforms[ name ];
-                            activeUniforms[ name ].apply( gl, location );
-                        }
-                    } )();
-
-
-                    // apply now foreign uniforms, it's uniforms needed by the program but not contains in attributes used to generate this program
-                    ( function () {
-                        for ( var i = 0, l = foreignUniforms.length; i < l; i++ ) {
-                            var name = foreignUniforms[ i ];
-                            var uniformStack = uniformMap[ name ];
-                            var location = programUniforms[ name ];
-                            var uniform;
-                            if ( uniformStack !== undefined ) {
-                                if ( uniformStack.length === 0 ) {
-                                    uniform = uniformStack.globalDefault;
-                                } else {
-                                    uniform = uniformStack.back().object;
-                                }
-                                uniform.apply( gl, location );
-                            }
-                        }
-                    } )();
-
-                } )();
+                this.applyGeneratedProgram( program );
 
             } else {
-
-                //this.applyUniformList(this.uniforms, {});
 
                 // custom program so we will iterate on uniform from the program and apply them
                 // but in order to be able to use Attribute in the state graph we will check if
                 // our program want them. It must be defined by the user
-                var programObject = program.program;
-                var location1;
-                var uniformStack;
-                var uniform;
+                this.applyCustomProgram( program );
 
-                programUniforms = program.uniformsCache;
-                uniformMap = this.uniforms;
+            }
+        },
 
-                // first time we see attributes key, so we will keep a list of uniforms from attributes
-                activeUniforms = [];
-                var trackAttributes = program.trackAttributes;
-                var trackUniforms = program.trackUniforms;
-                var attribute;
-                var uniforms;
-                var a,b;
-                var attributeStack;
-                // loop on wanted attributes and texture attribute to track state graph uniforms from those attributes
-                if ( trackAttributes !== undefined && trackUniforms === undefined ) {
-                    var attributeKeys = program.trackAttributes.attributeKeys;
-                    if ( attributeKeys !== undefined ) {
-                        for ( i = 0, l = attributeKeys.length; i < l; i++ ) {
-                            key = attributeKeys[ i ];
-                            attributeStack = this.attributeMap[ key ];
-                            if ( attributeStack === undefined ) {
-                                continue;
-                            }
-                            // we just need the uniform list and not the attribute itself
-                            attribute = attributeStack.globalDefault;
-                            if ( attribute.getOrCreateUniforms === undefined ) {
-                                continue;
-                            }
-                            uniforms = attribute.getOrCreateUniforms();
-                            for ( a = 0, b = uniforms.uniformKeys.length; a < b; a++ ) {
-                                activeUniforms.push( uniforms[ uniforms.uniformKeys[ a ] ] );
-                            }
-                        }
+
+
+        getActiveUniformsFromProgramAttributes: function( program, activeUniformsList ) {
+
+            var attributeMapStack = this.attributeMap;
+
+            var attributeKeys = program.trackAttributes.attributeKeys;
+
+            if ( attributeKeys.length > 0 ) {
+
+                for ( var i = 0, l = attributeKeys.length; i < l; i++ ) {
+
+                    var key = attributeKeys[ i ];
+                    var attributeStack = attributeMapStack[ key ];
+                    if ( attributeStack === undefined ) {
+                        continue;
                     }
 
-                    var textureAttributeKeysList = program.trackAttributes.textureAttributeKeys;
-                    if ( textureAttributeKeysList !== undefined ) {
-                        for ( i = 0, l = textureAttributeKeysList.length; i < l; i++ ) {
-                            var tak = textureAttributeKeysList[ i ];
-                            if ( tak === undefined ) {
-                                continue;
-                            }
-                            for ( var j = 0, m = tak.length; j < m; j++ ) {
-                                key = tak[ j ];
-                                var attributeList = this.textureAttributeMapList[ i ];
-                                if ( attributeList === undefined ) {
-                                    continue;
-                                }
-                                attributeStack = attributeList[ key ];
-                                if ( attributeStack === undefined ) {
-                                    continue;
-                                }
-                                attribute = attributeStack.globalDefault;
-                                if ( attribute.getOrCreateUniforms === undefined ) {
-                                    continue;
-                                }
-                                uniforms = attribute.getOrCreateUniforms( i );
-                                for ( a = 0, b = uniforms.uniformKeys.length; a < b; a++ ) {
-                                    activeUniforms.push( uniforms[ uniforms.uniformKeys[ a ] ] );
-                                }
-                            }
-                        }
+                    // we just need the uniform list and not the attribute itself
+                    var attribute = attributeStack.globalDefault;
+                    if ( attribute.getOrCreateUniforms === undefined ) {
+                        continue;
                     }
-                    // now we have a list on uniforms we want to track but we will filter them to use only what is needed by our program
-                    // not that if you create a uniforms whith the same name of a tracked attribute, and it will override it
-                    var uniformsFinal = {};
-                    for ( i = 0, l = activeUniforms.length; i < l; i++ ) {
-                        var u = activeUniforms[ i ];
-                        var loc = gl.getUniformLocation( programObject, u.name );
-                        if ( loc !== undefined && loc !== null ) {
-                            uniformsFinal[ u.name ] = activeUniforms[ i ];
-                        }
+
+                    var uniformMap = attribute.getOrCreateUniforms();
+                    var uniformKeys = uniformMap.getKeys();
+
+                    for ( var a = 0, b = uniformKeys.length; a < b; a++ ) {
+                        activeUniformsList.push( uniformMap[ uniformKeys[ a ] ] );
                     }
-                    program.trackUniforms = uniformsFinal;
                 }
 
-                for ( i = 0, l = programUniforms.uniformKeys.length; i < l; i++ ) {
-                    var uniformKey = programUniforms.uniformKeys[ i ];
-                    location1 = programUniforms[ uniformKey ];
+            }
+        },
 
-                    uniformStack = uniformMap[ uniformKey ];
+        getActiveUniformsFromProgramTextureAttributes: function( program, activeUniformsList ) {
+
+            var textureAttributeKeysList = program.trackAttributes.textureAttributeKeys;
+            if ( textureAttributeKeysList === undefined ) return;
+
+            for ( var unit = 0, nbUnit = textureAttributeKeysList.length; unit < nbUnit; unit++ ) {
+
+                var textureAttributeKeys = textureAttributeKeysList[ unit ];
+                if ( textureAttributeKeys === undefined ) continue;
+
+                var unitTextureAttributeList = this.textureAttributeMapList[ unit ];
+                if ( unitTextureAttributeList === undefined ) continue;
+
+                for ( var i = 0, l = textureAttributeKeys.length; i < l; i++ ) {
+                    var key = textureAttributeKeys[ i ];
+
+                    var attributeStack = unitTextureAttributeList[ key ];
+                    if ( attributeStack === undefined ) {
+                        continue;
+                    }
+                    // we just need the uniform list and not the attribute itself
+                    var attribute = attributeStack.globalDefault;
+                    if ( attribute.getOrCreateUniforms === undefined ) {
+                        continue;
+                    }
+                    var uniformMap = attribute.getOrCreateUniforms();
+                    var uniformMapKeys = uniformMap.getKeys();
+
+                    for ( var a = 0, b = uniformMapKeys.length; a < b; a++ ) {
+                        activeUniformsList.push( uniformMap[ uniformMapKeys[ a ] ] );
+                    }
+                }
+            }
+        },
+
+        cacheUniformsForCustomProgram: function( program, activeUniformsList ) {
+
+            this.getActiveUniformsFromProgramAttributes( program, activeUniformsList );
+
+            this.getActiveUniformsFromProgramTextureAttributes( program, activeUniformsList );
+
+            var gl = this._graphicContext;
+
+            // now we have a list on uniforms we want to track but we will filter them to use only what is needed by our program
+            // not that if you create a uniforms whith the same name of a tracked attribute, and it will override it
+            var uniformsFinal = new Map();
+
+            for ( var i = 0, l = activeUniformsList.length; i < l; i++ ) {
+                var u = activeUniformsList[ i ];
+                var loc = gl.getUniformLocation( program.program, u.name );
+                if ( loc !== undefined && loc !== null ) {
+                    uniformsFinal[ u.name ] = u;
+                }
+            }
+            uniformsFinal.dirty();
+            program.trackUniforms = uniformsFinal;
+
+        },
+
+        applyCustomProgram: (function() {
+
+            var activeUniformsList = [];
+
+            return function( program ) {
+
+                // custom program so we will iterate on uniform from the program and apply them
+                // but in order to be able to use Attribute in the state graph we will check if
+                // our program want them. It must be defined by the user
+
+                // first time we see attributes key, so we will keep a list of uniforms from attributes
+                activeUniformsList.length = 0;
+
+                // fill the program with cached active uniforms map from attributes and texture attributes
+                if ( program.trackAttributes !== undefined && program.trackUniforms === undefined ) {
+                    this.cacheUniformsForCustomProgram( program, activeUniformsList );
+                }
+
+                var programUniformMap = program.uniformsCache;
+                var programUniformKeys = programUniformMap.getKeys();
+                var uniformMapStackContent = this.uniforms;
+
+                var programTrackUniformMap;
+                if ( program.trackUniforms )
+                    programTrackUniformMap = program.trackUniforms;
+
+                var uniform;
+                for ( var i = 0, l = programUniformKeys.length; i < l; i++ ) {
+                    var uniformKey = programUniformKeys[ i ];
+                    var location = programUniformMap[ uniformKey ];
+                    var uniformStack = uniformMapStackContent[ uniformKey ];
+
                     if ( uniformStack === undefined ) {
-                        if ( program.trackUniforms !== undefined ) {
-                            uniform = program.trackUniforms[ uniformKey ];
+
+                        if ( programTrackUniformMap !== undefined ) {
+                            uniform = programTrackUniformMap[ uniformKey ];
                             if ( uniform !== undefined ) {
-                                uniform.apply( gl, location1 );
+                                uniform.apply( this._graphicContext, location );
                             }
                         }
+
                     } else {
+
                         if ( uniformStack.length === 0 ) {
                             uniform = uniformStack.globalDefault;
                         } else {
                             uniform = uniformStack.back().object;
                         }
-                        uniform.apply( gl, location1 );
+                        uniform.apply( this._graphicContext, location );
+
                     }
                 }
-            }
-        },
-
-        applyUniformList: function ( uniformMap, uniformList ) {
-            var gl = this.getGraphicContext();
-            var program = this.getLastProgramApplied();
-            var location;
-            var uniformStack;
-            var uniform;
-
-            var programUniforms = program.uniformsCache;
-
-            for ( var i = 0, l = programUniforms.uniformKeys.length; i < l; i++ ) {
-                var uniformKey = programUniforms.uniformKeys[ i ];
-                location = programUniforms[ uniformKey ];
-
-                // get the one in the list
-                uniform = uniformList[ uniformKey ];
-
-                // not found ? check on the stack
-                if ( uniform === undefined ) {
-                    uniformStack = uniformMap[ uniformKey ];
-                    if ( uniformStack === undefined ) {
-                        continue;
-                    }
-                    if ( uniformStack.length === 0 ) {
-                        uniform = uniformStack.globalDefault;
-                    } else {
-                        uniform = uniformStack.back().object;
-                    }
-                }
-                uniform.apply( gl, location );
-            }
-        },
+            };
+        })(),
 
         applyAttributeMap: function ( attributeMap ) {
             var attributeStack;
 
-            for ( var i = 0, l = attributeMap.attributeKeys.length; i < l; i++ ) {
-                var key = attributeMap.attributeKeys[ i ];
+            var attributeMapKeys = attributeMap.getKeys();
+
+            for ( var i = 0, l = attributeMapKeys.length; i < l; i++ ) {
+                var key = attributeMapKeys[ i ];
 
                 attributeStack = attributeMap[ key ];
                 if ( attributeStack === undefined ) {
@@ -10054,19 +10807,23 @@ define( 'osg/State',[
                 value: value
             };
         },
-        pushUniformsList: function ( uniformMap, uniformList ) {
+
+        pushUniformsList: function ( uniformMap, stateSetUniformMap ) {
             /*jshint bitwise: false */
             var name;
             var uniform;
-            for ( var i = 0, l = uniformList.uniformKeys.length; i < l; i++ ) {
-                var key = uniformList.uniformKeys[ i ];
-                var uniformPair = uniformList[ key ];
+
+            var stateSetUniformMapKeys = stateSetUniformMap.getKeys();
+
+            for ( var i = 0, l = stateSetUniformMapKeys.length; i < l; i++ ) {
+                var key = stateSetUniformMapKeys[ i ];
+                var uniformPair = stateSetUniformMap[ key ];
                 uniform = uniformPair.getUniform();
                 name = uniform.name;
                 if ( uniformMap[ name ] === undefined ) {
                     uniformMap[ name ] = Stack.create();
                     uniformMap[ name ].globalDefault = uniform;
-                    uniformMap.uniformKeys.push( name );
+                    uniformMap.dirty();
                 }
                 var value = uniformPair.getValue();
                 var stack = uniformMap[ name ];
@@ -10080,9 +10837,13 @@ define( 'osg/State',[
             }
             /*jshint bitwise: true */
         },
-        popUniformsList: function ( uniformMap, uniformList ) {
-            for ( var i = 0, l = uniformList.uniformKeys.length; i < l; i++ ) {
-                var key = uniformList.uniformKeys[ i ];
+
+        popUniformsList: function ( uniformMap, stateSetUniformMap ) {
+
+            var stateSetUniformMapKeys = stateSetUniformMap.getKeys();
+
+            for ( var i = 0, l = stateSetUniformMapKeys.length; i < l; i++ ) {
+                var key = stateSetUniformMapKeys[ i ];
                 uniformMap[ key ].pop();
             }
         },
@@ -10097,8 +10858,11 @@ define( 'osg/State',[
                     continue;
                 }
 
-                for ( var i = 0, lt = textureAttributeMap.attributeKeys.length; i < lt; i++ ) {
-                    var key = textureAttributeMap.attributeKeys[ i ];
+
+                var textureAttributeMapKeys = textureAttributeMap.getKeys();
+
+                for ( var i = 0, lt = textureAttributeMapKeys.length; i < lt; i++ ) {
+                    var key = textureAttributeMapKeys[ i ];
 
                     var attributeStack = textureAttributeMap[ key ];
                     if ( attributeStack === undefined ) {
@@ -10112,42 +10876,52 @@ define( 'osg/State',[
                         attribute = attributeStack.back().object;
                     }
                     if ( attributeStack.asChanged ) {
-                        //                if (attributeStack.lastApplied !== attribute || attribute.isDirty()) {
+
                         gl.activeTexture( gl.TEXTURE0 + textureUnit );
                         attribute.apply( this, textureUnit );
                         attributeStack.lastApplied = attribute;
                         attributeStack.asChanged = false;
+
                     }
                 }
             }
         },
         setGlobalDefaultValue: function ( attribute ) {
-            var key = attribute.getTypeMember();
-            if ( this.attributeMap[ key ] ) {
-                this.attributeMap[ key ].globalDefault = attribute;
-            } else {
-                this.attributeMap[ key ] = Stack.create();
-                this.attributeMap[ key ].globalDefault = attribute;
 
-                this.attributeMap.attributeKeys.push( key );
+            var key = attribute.getTypeMember();
+            var attributeMap = this.attributeMap;
+
+            if ( attributeMap[ key ] ) {
+                attributeMap[ key ].globalDefault = attribute;
+
+            } else {
+                attributeMap[ key ] = Stack.create();
+                attributeMap[ key ].globalDefault = attribute;
+
+                this.attributeMap.dirty();
             }
         },
 
-        pushAttributeMap: function ( attributeMap, attributeList ) {
+        pushAttributeMap: function ( attributeMap, stateSetAttributeMap ) {
             /*jshint bitwise: false */
             var attributeStack;
-            for ( var i = 0, l = attributeList.attributeKeys.length; i < l; i++ ) {
-                var type = attributeList.attributeKeys[ i ];
-                var attributePair = attributeList[ type ];
+            var stateSetAttributeMapKeys = stateSetAttributeMap.getKeys();
+
+            for ( var i = 0, l = stateSetAttributeMapKeys.length; i < l; i++ ) {
+
+                var type = stateSetAttributeMapKeys[ i ];
+                var attributePair = stateSetAttributeMap[ type ];
                 var attribute = attributePair.getAttribute();
+
                 if ( attributeMap[ type ] === undefined ) {
                     attributeMap[ type ] = Stack.create();
                     attributeMap[ type ].globalDefault = attribute.cloneType();
 
-                    attributeMap.attributeKeys.push( type );
+                    attributeMap.dirty();
                 }
 
                 var value = attributePair.getValue();
+
                 attributeStack = attributeMap[ type ];
                 if ( attributeStack.length === 0 ) {
                     attributeStack.push( this.getObjectPair( attribute, value ) );
@@ -10161,13 +10935,19 @@ define( 'osg/State',[
             }
             /*jshint bitwise: true */
         },
-        popAttributeMap: function ( attributeMap, attributeList ) {
+
+        popAttributeMap: function ( attributeMap, stateSetAttributeMap ) {
+
             var attributeStack;
-            for ( var i = 0, l = attributeList.attributeKeys.length; i < l; i++ ) {
-                var type = attributeList.attributeKeys[ i ];
+            var stateSetAttributeMapKeys = stateSetAttributeMap.getKeys();
+
+            for ( var i = 0, l = stateSetAttributeMapKeys.length; i < l; i++ ) {
+
+                var type = stateSetAttributeMapKeys[ i ];
                 attributeStack = attributeMap[ type ];
                 attributeStack.pop();
                 attributeStack.asChanged = true;
+
             }
         },
 
@@ -10209,11 +10989,13 @@ define( 'osg/State',[
 
             if ( program !== undefined ) {
                 var gl = this.getGraphicContext();
+                var color  = program.attributesCache.Color;
                 var updateColorUniform = false;
                 var hasColorAttrib = false;
-                if ( program.attributesCache.Color !== undefined ) {
-                    hasColorAttrib = this.vertexAttribMap[ program.attributesCache.Color ];
+                if ( color !== undefined ) {
+                    hasColorAttrib = this.vertexAttribMap[ color ];
                 }
+
                 var uniform = this.uniforms.ArrayColorEnabled.globalDefault;
                 if ( this.previousHasColorAttrib !== hasColorAttrib ) {
                     updateColorUniform = true;
@@ -10229,7 +11011,7 @@ define( 'osg/State',[
                     }
                     uniform.dirty();
                 }
-                //Notify.log(uniform.get()[0]);
+
                 uniform.apply( gl, program.uniformsCache.ArrayColorEnabled );
             }
         },
@@ -10266,13 +11048,6 @@ define( 'osg/State',[
     };
 
     return State;
-} );
-
-define( 'Q',[],function ( ) {
-    if ( window.Q ) {
-        return window.Q;
-    }
-    return window.require( 'Q' );
 } );
 
 define( 'osg/TextureManager',[
@@ -11255,7 +12030,7 @@ define( 'osgDB/ReaderParser',[
             setName( newnode, node );
 
             MACROUTILS.extend( newnode, node );
-            newnode.setMatrix( Matrix.copy( matrix ) );
+            Matrix.copy( matrix, newnode.getMatrix() );
             node = newnode;
         }
 
@@ -11264,7 +12039,7 @@ define( 'osgDB/ReaderParser',[
             newnode = new Projection();
             setName( newnode, node );
             MACROUTILS.extend( newnode, node );
-            newnode.setProjectionMatrix( Matrix.copy( projection ) );
+            Matrix.copy( projection, newnode.setProjectionMatrix() );
             node = newnode;
         }
 
@@ -11301,8 +12076,9 @@ define( 'osg/Texture',[
     'osg/Uniform',
     'osg/Image',
     'osg/ShaderGenerator',
-    'osgDB/ReaderParser'
-], function ( Q, Notify, MACROUTILS, TextureManager, StateAttribute, Uniform, Image, ShaderGenerator, ReaderParser ) {
+    'osgDB/ReaderParser',
+    'osg/Map'
+], function ( Q, Notify, MACROUTILS, TextureManager, StateAttribute, Uniform, Image, ShaderGenerator, ReaderParser, Map ) {
 
     // helper
     var isPowerOf2 = function ( x ) {
@@ -11379,10 +12155,13 @@ define( 'osg/Texture',[
             }
             if ( Texture.uniforms[ unit ] === undefined ) {
                 var name = this.getType() + unit;
-                var uniforms = {};
-                uniforms.texture = Uniform.createInt1( unit, name );
-                uniforms.uniformKeys = window.Object.keys( uniforms );
-                Texture.uniforms[ unit ] = uniforms;
+                var uniformMap = new Map();
+                var uniform = Uniform.createInt1( unit, name );
+                uniformMap.setMap( {
+                    texture: uniform
+                } );
+                uniform.dirty();
+                Texture.uniforms[ unit ] = uniformMap;
             }
             // uniform for an texture attribute should directly in Texture.uniforms[unit] and not in Texture.uniforms[unit][Texture0]
             return Texture.uniforms[ unit ];
@@ -11810,7 +12589,7 @@ define( 'osg/TextureCubeMap',[
             this.setTextureSize( image.getWidth(), image.getHeight() );
 
             MACROUTILS.timeStamp( 'osgjs.metrics:texImage2d' );
-            gl.texImage2D( target, 0, internalFormat, format, type, image.getImage() );
+            gl.texImage2D( target, 0, internalFormat, internalFormat, type, image.getImage() );
             return true;
         },
 
@@ -11828,7 +12607,7 @@ define( 'osg/TextureCubeMap',[
                 target,
                 0,
                 internalFormat,
-                imgObject.format,
+                internalFormat,
                 gl.UNSIGNED_BYTE,
                 imgObject.image ) ) {
                 imgObject.dirty = false;
@@ -11851,6 +12630,10 @@ define( 'osg/TextureCubeMap',[
 
             } else {
                 if ( !this._textureObject ) {
+
+                    // must be called before init
+                    this.computeTextureFormat();
+
                     this.init( gl );
                 }
                 this._textureObject.bind( gl );
@@ -11881,27 +12664,42 @@ define( 'osg/TextureCubeMap',[
 define( 'osg/UpdateVisitor',[
     'osg/Utils',
     'osg/NodeVisitor',
-    'osg/FrameStamp'
-], function ( MACROUTILS, NodeVisitor, FrameStamp ) {
+], function ( MACROUTILS, NodeVisitor ) {
+
+    
 
     var UpdateVisitor = function () {
         NodeVisitor.call( this );
-        var framestamp = new FrameStamp();
-        this.getFrameStamp = function () {
-            return framestamp;
-        };
-        this.setFrameStamp = function ( s ) {
-            framestamp = s;
-        };
+        this.visitorType = NodeVisitor.UPDATE_VISITOR;
     };
+
     UpdateVisitor.prototype = MACROUTILS.objectInehrit( NodeVisitor.prototype, {
+
         apply: function ( node ) {
-            var ncs = node.getUpdateCallbackList();
-            for ( var i = 0; i < ncs.length; i++ ) {
-                if ( !ncs[ i ].update( node, this ) ) {
-                    return;
-                }
+
+            // a way to avoid extra call is to implement getNumChildrenRequiringUpdateTraversal
+            // and stateset.requiresUpdateTraversal()
+
+
+            // handle callback in stateset
+            var stateSet = node.getStateSet();
+            if ( stateSet ) {
+                var updateCallbackList = stateSet.getUpdateCallbackList();
+
+                if ( updateCallbackList.length )
+                    for ( var i = 0, l = updateCallbackList.length; i < l; i++ )
+                        updateCallbackList[ i ].update( stateSet, this );
             }
+
+            // handle callback in nodes
+            var ncs = node.getUpdateCallbackList();
+            if ( ncs.length )
+                for ( var j = 0, m = ncs.length; j < m; j++ ) {
+                    if ( !ncs[ j ].update( node, this ) ) {
+                        return;
+                    }
+                }
+
             this.traverse( node );
         }
     } );
@@ -11941,6 +12739,12 @@ define( 'osg/Vec2',[], function () {
 
         length: function ( a ) {
             return Math.sqrt( a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] );
+        },
+
+        distance2: function ( a, b ) {
+            var x = a[ 0 ] - b[ 0 ];
+            var y = a[ 1 ] - b[ 1 ];
+            return x * x + y * y;
         },
 
         distance: function ( a, b ) {
@@ -12069,18 +12873,143 @@ define( 'osg/Viewport',[
         height: function () {
             return this._height;
         },
-        computeWindowMatrix: function () {
-            // res = Matrix offset * Matrix scale * Matrix translate
-            var translate = Matrix.makeTranslate( 1.0, 1.0, 1.0 );
-            var scale = Matrix.makeScale( 0.5 * this._width, 0.5 * this._height, 0.5 );
-            var offset = Matrix.makeTranslate( this._x, this._y, 0.0 );
-            //return Matrix.mult(Matrix.mult(translate, scale, translate), offset, offset);
-            return Matrix.preMult( offset, Matrix.preMult( scale, translate ) );
-        }
+        computeWindowMatrix: ( function () {
+            var translate = Matrix.create();
+            var scale = Matrix.create();
+            return function () {
+                // res = Matrix offset * Matrix scale * Matrix translate
+                Matrix.makeTranslate( 1.0, 1.0, 1.0, translate );
+                Matrix.makeScale( 0.5 * this._width, 0.5 * this._height, 0.5, scale );
+                var offset = Matrix.makeTranslate( this._x, this._y, 0.0, Matrix.create() );
+                //return Matrix.mult(Matrix.mult(translate, scale, translate), offset, offset);
+                return Matrix.preMult( offset, Matrix.preMult( scale, translate ) );
+            };
+        } )()
     } ), 'osg', 'Viewport' );
 
     return Viewport;
 } );
+
+define( 'osg/WebGLCaps',[
+], function () {
+
+    var WebGLCaps = function() {
+        this._webGLExtensions = {};
+        this._webGLParameters = {};
+        this._webGLShaderMaxInt = 'NONE';
+        this._webGLShaderMaxFloat = 'NONE';
+    };
+
+    WebGLCaps.prototype = {
+
+        init: function( gl ) {
+            this.initWebGLParameters( gl );
+            this.initWebGLExtensions( gl );
+        },
+
+        getWebGLParameter: function ( str ) {
+            return this._webGLParameters[ str ];
+        },
+        getWebGLParameters: function () {
+            return this._webGLParameters;
+        },
+        getShaderMaxPrecisionFloat: function () {
+            return this._webGLParameters.MAX_SHADER_PRECISION_FLOAT;
+        },
+        getShaderMaxPrecisionInt: function () {
+            return this._webGLParameters.MAX_SHADER_PRECISION_INT;
+        },
+        initWebGLParameters: function ( gl ) {
+            if ( gl === undefined )
+                return;
+
+            var limits = [
+                'MAX_COMBINED_TEXTURE_IMAGE_UNITS',
+                'MAX_CUBE_MAP_TEXTURE_SIZE',
+                'MAX_FRAGMENT_UNIFORM_VECTORS',
+                'MAX_RENDERBUFFER_SIZE',
+                'MAX_TEXTURE_IMAGE_UNITS',
+                'MAX_TEXTURE_SIZE',
+                'MAX_VARYING_VECTORS',
+                'MAX_VERTEX_ATTRIBS',
+                'MAX_VERTEX_TEXTURE_IMAGE_UNITS',
+                'MAX_VERTEX_UNIFORM_VECTORS',
+                'MAX_VIEWPORT_DIMS',
+                'SHADING_LANGUAGE_VERSION',
+                'VERSION',
+                'VENDOR',
+                'RENDERER',
+                'ALIASED_LINE_WIDTH_RANGE',
+                'ALIASED_POINT_SIZE_RANGE',
+                'RED_BITS',
+                'GREEN_BITS',
+                'BLUE_BITS',
+                'ALPHA_BITS',
+                'DEPTH_BITS',
+                'STENCIL_BITS'
+            ];
+            var params = this._webGLParameters;
+            for ( var i = 0, len = limits.length; i < len; ++i ) {
+                var par = limits[ i ];
+                params[ par ] = gl.getParameter( gl[ par ] );
+            }
+
+            //shader precisions for float
+            if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_FLOAT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_FLOAT = 'high';
+            }
+            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_FLOAT = 'medium';
+            }
+            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.LOW_FLOAT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_FLOAT = 'low';
+            }
+            else {
+                params.MAX_SHADER_PRECISION_FLOAT = 'none';
+            }
+
+            //shader precisions for float
+            if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_INT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_INT = 'high';
+            }
+            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_INT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_INT = 'medium';
+            }
+            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.LOW_INT ).precision !== 0 ) {
+                params.MAX_SHADER_PRECISION_INT = 'low';
+            }
+            else {
+                params.MAX_SHADER_PRECISION_INT = 'none';
+            }
+
+            // TODO ?
+            // try to compile a small shader to test the spec is respected
+        },
+        getWebGLExtension: function ( str ) {
+            return this._webGLExtensions[ str ];
+        },
+        getWebGLExtensions: function () {
+            return this._webGLExtensions;
+        },
+        initWebGLExtensions: function ( gl ) {
+            if ( gl === undefined )
+                return;
+            var supported = gl.getSupportedExtensions();
+            var ext = this._webGLExtensions;
+            // we load all the extensions
+            for ( var i = 0, len = supported.length; i < len; ++i ) {
+                var sup = supported[ i ];
+                ext[ sup ] = gl.getExtension( sup );
+            }
+            // TODO ?
+            // check if the extensions are REALLY supported ?
+            // cf http://codeflow.org/entries/2013/feb/22/how-to-write-portable-webgl/#how-can-i-detect-if-i-can-render-to-floating-point-textures
+        }
+    };
+
+
+    return WebGLCaps;
+});
 
 define( 'osg/osg',[
     'osg/BlendColor',
@@ -12109,6 +13038,7 @@ define( 'osg/osg',[
     'osg/LightSource',
     'osg/LineWidth',
     'osg/Lod',
+    'osg/Map',
     'osg/Material',
     'osg/Math',
     'osg/Matrix',
@@ -12117,6 +13047,7 @@ define( 'osg/osg',[
     'osg/NodeVisitor',
     'osg/Notify',
     'osg/Object',
+    'osg/PagedLOD',
     'osg/PrimitiveSet',
     'osg/Program',
     'osg/Projection',
@@ -12143,8 +13074,10 @@ define( 'osg/osg',[
     'osg/Vec4',
     'osg/Viewport',
     'osgUtil/osgPool',
-    'osg/TransformEnums'
-], function( BlendColor, BlendFunc, BoundingBox, BoundingSphere, BufferArray, Camera, ComputeMatrixFromNodePath, CullFace, CullSettings, CullStack, CullVisitor, Depth, DrawArrayLengths, DrawArrays, DrawElements, EllipsoidModel, FrameBufferObject, FrameStamp, Geometry, Image, KdTree, KdTreeBuilder, Light, LightSource, LineWidth, Lod, Material, Math, Matrix, MatrixTransform, Node, NodeVisitor, Notify, Object, PrimitiveSet, Program, Projection, Quat, RenderBin, RenderStage, Shader, ShaderGenerator, Shape, Stack, State, StateAttribute, StateGraph, StateSet, Texture, TextureCubeMap, Transform, TriangleIndexFunctor, Uniform, UpdateVisitor, MACROUTILS, Vec2, Vec3, Vec4, Viewport, osgPool, TransformEnums ) {
+    'osg/TransformEnums',
+    'osg/WebGLCaps'
+
+], function( BlendColor, BlendFunc, BoundingBox, BoundingSphere, BufferArray, Camera, ComputeMatrixFromNodePath, CullFace, CullSettings, CullStack, CullVisitor, Depth, DrawArrayLengths, DrawArrays, DrawElements, EllipsoidModel, FrameBufferObject, FrameStamp, Geometry, Image, KdTree, KdTreeBuilder, Light, LightSource, LineWidth, Lod, Map, Material, Math, Matrix, MatrixTransform, Node, NodeVisitor, Notify, Object, PagedLOD, PrimitiveSet, Program, Projection, Quat, RenderBin, RenderStage, Shader, ShaderGenerator, Shape, Stack, State, StateAttribute, StateGraph, StateSet, Texture, TextureCubeMap, Transform, TriangleIndexFunctor, Uniform, UpdateVisitor, MACROUTILS, Vec2, Vec3, Vec4, Viewport, osgPool, TransformEnums, WebGLCaps ) {
 
     var osg = {};
 
@@ -12176,6 +13109,7 @@ define( 'osg/osg',[
     osg.LightSource = LightSource;
     osg.LineWidth = LineWidth;
     osg.Lod = Lod;
+    osg.Map = Map;
     osg.Material = Material;
     MACROUTILS.objectMix( osg, Math );
     osg.Matrix = Matrix;
@@ -12184,6 +13118,7 @@ define( 'osg/osg',[
     osg.NodeVisitor = NodeVisitor;
     MACROUTILS.objectMix( osg, Notify );
     osg.Object = Object;
+    osg.PagedLOD = PagedLOD;
     osg.PrimitiveSet = PrimitiveSet;
     osg.Program = Program;
     osg.Projection = Projection;
@@ -12215,6 +13150,8 @@ define( 'osg/osg',[
 
     osg.Transform.RELATIVE_RF = TransformEnums.RELATIVE_RF;
     osg.Transform.ABSOLUTE_RF = TransformEnums.ABSOLUTE_RF;
+
+    osg.WebGLCaps = WebGLCaps;
 
     return osg;
 } );
@@ -13099,8 +14036,7 @@ define( 'osgAnimation/QuatTarget',[
 
     var QuatTarget = function () {
         Target.call( this );
-        this._target = [];
-        Quat.makeIdentity( this._target );
+        this._target = Quat.create();
     };
     QuatTarget.prototype = MACROUTILS.objectInehrit( Target.prototype, {
         update: function ( weight, val, priority ) {
@@ -13150,7 +14086,7 @@ define( 'osgAnimation/QuatLerpChannel',[
         Channel.call( this, sampler, target );
         sampler.setInterpolator( Interpolator.QuatLerpInterpolator );
         this.setKeyframes( keys );
-        this._data.value = Quat.copy( target.getValue(), [] );
+        this._data.value = Quat.copy( target.getValue(), Quat.create() );
     };
 
     QuatLerpChannel.prototype = Channel.prototype;
@@ -13190,12 +14126,11 @@ define( 'osgAnimation/StackedQuaternion',[
     var StackedQuaternion = function ( name, quat ) {
         Object.call( this );
         if ( !quat ) {
-            quat = [ 0, 0, 0, 1 ];
+            quat = Quat.create();
         }
         this._quaternion = quat;
         this._target = undefined;
-        this._matrixTmp = [];
-        Matrix.makeIdentity( this._matrixTmp );
+        this._matrixTmp = Matrix.create();
         this.setName( name );
     };
 
@@ -13286,20 +14221,18 @@ define( 'osgAnimation/StackedRotateAxis',[
     var StackedRotateAxis = function ( name, axis, angle ) {
         Object.call( this );
         if ( !axis ) {
-            axis = [ 1, 0, 0 ];
+            axis = [ 1.0, 0.0, 0.0 ];
         }
         if ( !angle ) {
-            angle = 0;
+            angle = 0.0;
         }
         this._axis = axis;
         this._angle = angle;
         this._target = undefined;
         this.setName( name );
 
-        this._matrixTmp = [];
-        Matrix.makeIdentity( this._matrixTmp );
-        this._quatTmp = [];
-        Quat.makeIdentity( this._quatTmp );
+        this._matrixTmp = Matrix.create();
+        this._quatTmp = Matrix.create();
     };
 
     /** @lends StackedRotateAxis.prototype */
@@ -13472,7 +14405,7 @@ define( 'osgAnimation/Vec3LerpChannel',[
         Channel.call( this, sampler, target );
         sampler.setInterpolator( Interpolator.Vec3LerpInterpolator );
         this.setKeyframes( keys );
-        this._data.value = Vec3.copy( target.getValue(), [] );
+        this._data.value = Vec3.copy( target.getValue(), [ 0.0, 0.0, 0.0 ] );
     };
 
     Vec3LerpChannel.prototype = Channel.prototype;
@@ -13540,7 +14473,7 @@ define( 'osgWrappers/serializers/osg',[
 
     osgWrapper.Object = function ( input, obj ) {
         var jsonObj = input.getJSON();
-        var check = function ( /*o*/ ) {
+        var check = function ( /*o*/) {
             return true;
         };
         if ( !check( jsonObj ) ) {
@@ -13560,11 +14493,11 @@ define( 'osgWrappers/serializers/osg',[
 
         return obj;
     };
-
+    /* jshint newcap: false */
     osgWrapper.Node = function ( input, node ) {
         var jsonObj = input.getJSON();
 
-        var check = function ( /*o*/ ) {
+        var check = function ( /*o*/) {
             return true;
         };
         if ( !check( jsonObj ) ) {
@@ -13593,7 +14526,6 @@ define( 'osgWrappers/serializers/osg',[
             }
         }
 
-
         if ( jsonObj.StateSet ) {
             var pp = input.setJSON( jsonObj.StateSet ).readObject();
             var df = Q.defer();
@@ -13607,32 +14539,43 @@ define( 'osgWrappers/serializers/osg',[
         var createChildren = function ( jsonChildren ) {
             var promise = input.setJSON( jsonChildren ).readObject();
             var df = Q.defer();
-            promiseArray.push( df.promise );
             Q.when( promise ).then( function ( obj ) {
-                if ( obj ) {
-                    node.addChild( obj );
-                }
                 df.resolve( obj );
             } );
+            return df.promise;
         };
 
+        var queue = [];
+        // For each url, create a function call and add it to the queue
         if ( jsonObj.Children ) {
-            for ( var i = 0, k = jsonObj.Children.length; i < k; i++ ) {
-                createChildren( jsonObj.Children[ i ] );
+            for ( var i = 0, k = jsonObj.Children.length; i < k; i++ )
+            {
+                queue.push( createChildren( jsonObj.Children[ i ] ) );
             }
         }
-
-        var defer = Q.defer();
-        Q.all( promiseArray ).then( function () {
-            defer.resolve( node );
+        // Resolve first updateCallbacks and stateset.
+        var deferred = Q.defer();
+        Q.all( promiseArray ).then( function( ) {
+            deferred.resolve( );
         } );
-
+        
+        var defer = Q.defer();
+        // Need to wait until the stateset and the all the callbacks are resolved
+        Q( deferred.promise ).then( function( ){
+            Q.all( queue ).then( function( ) {
+                // All the results from Q.all are on the argument as an array
+                // Now insert children in the right order
+                for ( var i = 0; i < queue.length; i++ )
+                    node.addChild( queue[ i ] );
+                defer.resolve( node );
+            } );
+        });
         return defer.promise;
     };
 
     osgWrapper.StateSet = function ( input, stateSet ) {
         var jsonObj = input.getJSON();
-        var check = function ( /*o*/ ) {
+        var check = function ( /*o*/) {
             return true;
         };
 
@@ -13819,7 +14762,7 @@ define( 'osgWrappers/serializers/osg',[
 
     osgWrapper.Texture = function ( input, texture ) {
         var jsonObj = input.getJSON();
-        var check = function ( /*o*/ ) {
+        var check = function ( /*o*/) {
             return true;
         };
         if ( !check( jsonObj ) ) {
@@ -14566,6 +15509,10 @@ define( 'osgGA/OrbitManipulatorMouseKeyboardController',[
             this.releaseButton();
             this.setMode( undefined );
         },
+        mouseout: function ( /*ev */ ) {
+            this.releaseButton();
+            this.setMode( undefined );
+        },
         mousewheel: function ( ev, intDelta /*, deltaX, deltaY */) {
             var manipulator = this._manipulator;
             ev.preventDefault();
@@ -14584,7 +15531,6 @@ define( 'osgGA/OrbitManipulatorMouseKeyboardController',[
             if ( ev.keyCode === 32 ) {
                 this._manipulator.computeHomePosition();
                 ev.preventDefault();
-
             } else if ( ev.keyCode === this._panKey &&
                 this.getMode() !== OrbitManipulatorEnums.PAN ) {
                 this.setMode( OrbitManipulatorEnums.PAN );
@@ -14824,7 +15770,7 @@ define( 'osgGA/OrbitManipulatorGamePadController',[], function () {
 
                 //SpaceNavigator & 6-axis controllers
             } else if ( axes.length >= 5 ) {
-                //console.log(axes);
+                //Notify.log(axes);
                 if ( Math.abs( axes[ 0 ] ) > AXIS_THRESHOLD || Math.abs( axes[ 1 ] ) > AXIS_THRESHOLD ) {
                     this.addPan( pan, -axes[ 0 ], axes[ 1 ] );
                 }
@@ -14900,8 +15846,7 @@ define( 'osgGA/OrbitManipulator',[
      */
     var OrbitManipulator = function () {
         Manipulator.call( this );
-        this._tmpInverse = Matrix.makeIdentity( [] );
-        this._tmpHomePosition = Vec3.init( [] );
+        this._homePosition = [ 0.0, 0.0, 0.0 ];
         this.init();
     };
 
@@ -14981,11 +15926,15 @@ define( 'osgGA/OrbitManipulator',[
     /** @lends OrbitManipulator.prototype */
     OrbitManipulator.prototype = MACROUTILS.objectInehrit( Manipulator.prototype, {
         init: function () {
-            this._distance = 25;
-            this._target = new Array( 3 );
+            this._distance = 25.0;
+            this._target = [ 0.0, 0.0, 0.0 ];
+            this._upz = [ 0.0, 0.0, 1.0 ];
             Vec3.init( this._target );
 
-            this._rotation = Matrix.mult( Matrix.makeRotate( Math.PI, 0, 0, 1, [] ), Matrix.makeRotate( -Math.PI / 10.0, 1, 0, 0, [] ), [] );
+            var rot1 = Matrix.makeRotate( Math.PI, 0.0, 0.0, 1.0, Matrix.create() );
+            var rot2 = Matrix.makeRotate( -Math.PI / 10.0, 1.0, 0.0, 0.0, Matrix.create() );
+            this._rotation = Matrix.create();
+            Matrix.mult( rot1, rot2, this._rotation );
             this._time = 0.0;
 
             this._rotate = new OrbitManipulator.Interpolator( 2 );
@@ -14999,11 +15948,11 @@ define( 'osgGA/OrbitManipulator',[
             this._buttonup = true;
 
             this._scale = 10.0;
-            this._maxDistance = 0;
-            this._minDistance = 0;
+            this._maxDistance = 0.0;
+            this._minDistance = 0.0;
             this._scaleMouseMotion = 1.0;
 
-            this._inverseMatrix = new Array( 16 );
+            this._inverseMatrix = Matrix.create();
             this._rotateKey = 65; // a
             this._zoomKey = 83; // s
             this._panKey = 68; // d
@@ -15025,47 +15974,51 @@ define( 'osgGA/OrbitManipulator',[
         },
         setTarget: function ( target ) {
             Vec3.copy( target, this._target );
-            var eyePos = new Array( 3 );
+            var eyePos = [ 0.0, 0.0, 0.0 ];
             this.getEyePosition( eyePos );
             this._distance = Vec3.distance( eyePos, target );
         },
-        setEyePosition: function ( eye ) {
-            var result = this._rotation;
-            var center = this._target;
-            var up = [ 0, 0, 1 ];
+        setEyePosition: ( function () {
+            var f = [ 0.0, 0.0, 0.0 ];
+            var s = [ 0.0, 0.0, 0.0 ];
+            var u = [ 0.0, 0.0, 0.0 ];
+            return function ( eye ) {
+                var result = this._rotation;
+                var center = this._target;
 
-            var f = Vec3.sub( eye, center, [] );
-            Vec3.normalize( f, f );
+                Vec3.sub( eye, center, f );
+                Vec3.normalize( f, f );
 
-            var s = Vec3.cross( f, up, [] );
-            Vec3.normalize( s, s );
+                Vec3.cross( f, this._upz, s );
+                Vec3.normalize( s, s );
 
-            var u = Vec3.cross( s, f, [] );
-            Vec3.normalize( u, u );
+                Vec3.cross( s, f, u );
+                Vec3.normalize( u, u );
 
-            // s[0], f[0], u[0], 0.0,
-            // s[1], f[1], u[1], 0.0,
-            // s[2], f[2], u[2], 0.0,
-            // 0,    0,    0,     1.0
-            result[ 0 ] = s[ 0 ];
-            result[ 1 ] = f[ 0 ];
-            result[ 2 ] = u[ 0 ];
-            result[ 3 ] = 0.0;
-            result[ 4 ] = s[ 1 ];
-            result[ 5 ] = f[ 1 ];
-            result[ 6 ] = u[ 1 ];
-            result[ 7 ] = 0.0;
-            result[ 8 ] = s[ 2 ];
-            result[ 9 ] = f[ 2 ];
-            result[ 10 ] = u[ 2 ];
-            result[ 11 ] = 0.0;
-            result[ 12 ] = 0;
-            result[ 13 ] = 0;
-            result[ 14 ] = 0;
-            result[ 15 ] = 1.0;
+                // s[0], f[0], u[0], 0.0,
+                // s[1], f[1], u[1], 0.0,
+                // s[2], f[2], u[2], 0.0,
+                // 0,    0,    0,     1.0
+                result[ 0 ] = s[ 0 ];
+                result[ 1 ] = f[ 0 ];
+                result[ 2 ] = u[ 0 ];
+                result[ 3 ] = 0.0;
+                result[ 4 ] = s[ 1 ];
+                result[ 5 ] = f[ 1 ];
+                result[ 6 ] = u[ 1 ];
+                result[ 7 ] = 0.0;
+                result[ 8 ] = s[ 2 ];
+                result[ 9 ] = f[ 2 ];
+                result[ 10 ] = u[ 2 ];
+                result[ 11 ] = 0.0;
+                result[ 12 ] = 0;
+                result[ 13 ] = 0;
+                result[ 14 ] = 0;
+                result[ 15 ] = 1.0;
 
-            this._distance = Vec3.distance( eye, center );
-        },
+                this._distance = Vec3.distance( eye, center );
+            };
+        } )(),
         computeHomePosition: function () {
             if ( this._node !== undefined ) {
                 //this.reset();
@@ -15076,17 +16029,15 @@ define( 'osgGA/OrbitManipulator',[
         },
 
         getHomePosition: function () {
-            var eyePos = this._tmpHomePosition;
             if ( this._node !== undefined ) {
-
                 var bs = this._node.getBound();
                 var distance = bs.radius() * 1.5;
 
                 var target = bs.center();
 
-                this.computeEyePosition( target, distance, eyePos );
+                this.computeEyePosition( target, distance, this._homePosition );
             }
-            return eyePos;
+            return this._homePosition;
         },
 
         setMaxDistance: function ( d ) {
@@ -15101,67 +16052,74 @@ define( 'osgGA/OrbitManipulator',[
         getDistance: function () {
             return this._distance;
         },
-        computePan: function ( dx, dy ) {
-            dy *= this._distance;
-            dx *= this._distance;
+        computePan: ( function () {
+            var inv = Matrix.create();
+            var x = [ 0.0, 0.0, 0.0 ];
+            var y = [ 0.0, 0.0, 0.0 ];
+            return function ( dx, dy ) {
+                dy *= this._distance;
+                dx *= this._distance;
+                Matrix.inverse( this._rotation, inv );
+                x[ 0 ] = Matrix.get( inv, 0, 0 );
+                x[ 1 ] = Matrix.get( inv, 0, 1 );
+                x[ 2 ] = Matrix.get( inv, 0, 2 );
+                Vec3.normalize( x, x );
 
-            var inv = new Array( 16 );
-            var x = new Array( 3 );
-            var y = new Array( 3 );
-            Matrix.inverse( this._rotation, inv );
-            x[ 0 ] = Matrix.get( inv, 0, 0 );
-            x[ 1 ] = Matrix.get( inv, 0, 1 );
-            x[ 2 ] = Matrix.get( inv, 0, 2 );
-            Vec3.normalize( x, x );
+                y[ 0 ] = Matrix.get( inv, 2, 0 );
+                y[ 1 ] = Matrix.get( inv, 2, 1 );
+                y[ 2 ] = Matrix.get( inv, 2, 2 );
+                Vec3.normalize( y, y );
 
-            y[ 0 ] = Matrix.get( inv, 2, 0 );
-            y[ 1 ] = Matrix.get( inv, 2, 1 );
-            y[ 2 ] = Matrix.get( inv, 2, 2 );
-            Vec3.normalize( y, y );
+                Vec3.mult( x, -dx, x );
+                Vec3.mult( y, dy, y );
+                Vec3.add( this._target, x, this._target );
+                Vec3.add( this._target, y, this._target );
+            };
+        } )(),
+        computeRotation: ( function () {
+            var of = Matrix.create();
+            var r = Matrix.create();
+            var r2 = Matrix.create();
+            var inv = Matrix.create();
+            var tmp = [ 0.0, 0.0, 0.0 ];
+            var tmpDist = [ 0.0, 0.0, 0.0 ];
+            return function ( dx, dy ) {
+                Matrix.makeRotate( dx / 10.0, 0.0, 0.0, 1.0, of );
+                Matrix.mult( this._rotation, of, r );
 
-            Vec3.mult( x, -dx, x );
-            Vec3.mult( y, dy, y );
-            Vec3.add( this._target, x, this._target );
-            Vec3.add( this._target, y, this._target );
-        },
+                Matrix.makeRotate( dy / 10.0, 1.0, 0.0, 0.0, of );
+                Matrix.mult( of, r, r2 );
 
-        computeRotation: function ( dx, dy ) {
-            var of = Matrix.makeRotate( dx / 10.0, 0, 0, 1, [] );
-            var r = Matrix.mult( this._rotation, of, [] );
+                // test that the eye is not too up and not too down to not kill
+                // the rotation matrix
+                Matrix.inverse( r2, inv );
+                tmpDist[ 1 ] = this._distance;
+                Matrix.transformVec3( inv, tmpDist, tmp );
 
-            of = Matrix.makeRotate( dy / 10.0, 1, 0, 0, [] );
-            var r2 = Matrix.mult( of, r, [] );
+                Vec3.neg( tmp, tmp );
+                Vec3.normalize( tmp, tmp );
 
-            // test that the eye is not too up and not too down to not kill
-            // the rotation matrix
-            var inv = [];
-            Matrix.inverse( r2, inv );
-            var eye = Matrix.transformVec3( inv, [ 0, this._distance, 0 ], new Array( 3 ) );
-
-            var dir = Vec3.neg( eye, [] );
-            Vec3.normalize( dir, dir );
-
-            var p = Vec3.dot( dir, [ 0, 0, 1 ] );
-            if ( Math.abs( p ) > 0.95 ) {
-                //discard rotation on y
-                this._rotation = r;
-                return;
-            }
-            this._rotation = r2;
-        },
-
+                var p = Vec3.dot( tmp, this._upz );
+                if ( Math.abs( p ) > 0.95 ) {
+                    //discard rotation on y
+                    Matrix.copy( r, this._rotation );
+                    return;
+                }
+                Matrix.copy( r2, this._rotation );
+            };
+        } )(),
         computeZoom: function ( dz ) {
             this.zoom( dz );
         },
 
         zoom: function ( ratio ) {
             var newValue = this._distance * ratio;
-            if ( this._minDistance > 0 ) {
+            if ( this._minDistance > 0.0 ) {
                 if ( newValue < this._minDistance ) {
                     newValue = this._minDistance;
                 }
             }
-            if ( this._maxDistance > 0 ) {
+            if ( this._maxDistance > 0.0 ) {
                 if ( newValue > this._maxDistance ) {
                     newValue = this._maxDistance;
                 }
@@ -15186,48 +16144,52 @@ define( 'osgGA/OrbitManipulator',[
             this.computeEyePosition( this._target, this._distance, eye );
         },
 
-        computeEyePosition: function ( target, distance, eye ) {
-            var inv = this._tmpInverse;
-            Matrix.inverse( this._rotation, this._tmpInverse );
-            Matrix.transformVec3( inv, [ 0, distance, 0 ],
-                eye );
-            Vec3.add( target, eye, eye );
-        },
+        computeEyePosition: ( function () {
+            var tmpDist = [ 0.0, 0.0, 0.0 ];
+            var tmpInverse = Matrix.create();
+            return function ( target, distance, eye ) {
+                Matrix.inverse( this._rotation, tmpInverse );
+                tmpDist[ 1 ] = distance;
+                Matrix.transformVec3( tmpInverse, tmpDist, eye );
+                Vec3.add( target, eye, eye );
+            };
+        } )(),
 
-        update: function ( nv ) {
-            var t = nv.getFrameStamp().getSimulationTime();
-            if ( this._lastUpdate === undefined ) {
+        update: ( function () {
+            var eye = [ 0.0, 0.0, 0.0 ];
+            var tmpDist = [ 0.0, 0.0, 0.0 ];
+            return function ( nv ) {
+                var t = nv.getFrameStamp().getSimulationTime();
+                if ( this._lastUpdate === undefined ) {
+                    this._lastUpdate = t;
+                }
+                //var dt = t - this._lastUpdate;
                 this._lastUpdate = t;
-            }
-            //var dt = t - this._lastUpdate;
-            this._lastUpdate = t;
 
-            var delta;
-            var mouseFactor = 0.1;
-            delta = this._rotate.update();
-            this.computeRotation( -delta[ 0 ] * mouseFactor * this._scaleMouseMotion, -delta[ 1 ] * mouseFactor * this._scaleMouseMotion );
+                var delta;
+                var mouseFactor = 0.1;
+                delta = this._rotate.update();
+                this.computeRotation( -delta[ 0 ] * mouseFactor * this._scaleMouseMotion, -delta[ 1 ] * mouseFactor * this._scaleMouseMotion );
 
 
-            var panFactor = 0.002;
-            delta = this._pan.update();
-            this.computePan( -delta[ 0 ] * panFactor, -delta[ 1 ] * panFactor );
+                var panFactor = 0.002;
+                delta = this._pan.update();
+                this.computePan( -delta[ 0 ] * panFactor, -delta[ 1 ] * panFactor );
 
 
-            delta = this._zoom.update();
-            this.computeZoom( 1.0 + delta[ 0 ] / 10.0 );
+                delta = this._zoom.update();
+                this.computeZoom( 1.0 + delta[ 0 ] / 10.0 );
 
-            var target = this._target;
-            var distance = this._distance;
+                var target = this._target;
+                var distance = this._distance;
 
-            var eye = new Array( 3 );
-            Matrix.inverse( this._rotation, this._inverseMatrix );
-            Matrix.transformVec3( this._inverseMatrix, [ 0, distance, 0 ],
-                eye );
+                Matrix.inverse( this._rotation, this._inverseMatrix );
+                tmpDist[ 1 ] = distance;
+                Matrix.transformVec3( this._inverseMatrix, tmpDist, eye );
 
-            Matrix.makeLookAt( Vec3.add( target, eye, eye ),
-                target, [ 0, 0, 1 ],
-                this._inverseMatrix );
-        },
+                Matrix.makeLookAt( Vec3.add( target, eye, eye ), target, this._upz, this._inverseMatrix );
+            };
+        } )(),
 
         getInverseMatrix: function () {
             return this._inverseMatrix;
@@ -15294,6 +16256,9 @@ define( 'osgGA/FirstPersonManipulatorMouseKeyboardController',[], function () {
         mouseup: function ( /*ev */ ) {
             this.releaseButton();
         },
+        mouseout: function ( /*ev */ ) {
+            this.releaseButton();
+        },
         mousemove: function ( ev ) {
             if ( this._buttonup === true ) {
                 return;
@@ -15313,21 +16278,26 @@ define( 'osgGA/FirstPersonManipulatorMouseKeyboardController',[], function () {
             var manipulator = this._manipulator;
             if ( event.keyCode === 32 ) {
                 manipulator.computeHomePosition();
+                event.preventDefault();
             } else if ( event.keyCode === 87 || event.keyCode === 90 || event.keyCode === 38 ) { // w/z/up
                 manipulator.getFowardInterpolator().setDelay( this._delay );
                 manipulator.getFowardInterpolator().setTarget( 1 );
+                event.preventDefault();
                 return false;
             } else if ( event.keyCode === 83 || event.keyCode === 40 ) { // S/down
                 manipulator.getFowardInterpolator().setDelay( this._delay );
                 manipulator.getFowardInterpolator().setTarget( -1 );
+                event.preventDefault();
                 return false;
             } else if ( event.keyCode === 68 || event.keyCode === 39 ) { // D/right
                 manipulator.getSideInterpolator().setDelay( this._delay );
                 manipulator.getSideInterpolator().setTarget( 1 );
+                event.preventDefault();
                 return false;
             } else if ( event.keyCode === 65 || event.keyCode === 81 || event.keyCode === 37 ) { // a/q/left
                 manipulator.getSideInterpolator().setDelay( this._delay );
                 manipulator.getSideInterpolator().setTarget( -1 );
+                event.preventDefault();
                 return false;
             }
             return undefined;
@@ -15365,10 +16335,9 @@ define( 'osgGA/FirstPersonManipulatorOculusController',[], function () {
         init: function () {
             this._stepFactor = 1.0; // meaning radius*stepFactor to move
         },
-        update: function ( rot ) {
-            // On oculus the up vector is [0,1,0]
-            // On osgjs the up vector is [0,0,1]
-            this._manipulator.setRotationBaseFromQuat( [ rot[ 0 ], -rot[ 2 ], rot[ 1 ], rot[ 3 ] ] );
+        update: function ( quaternion ) {
+
+            this._manipulator.setRotationBaseFromQuat( quaternion );
         },
 
     };
@@ -15414,7 +16383,10 @@ define( 'osgGA/FirstPersonManipulator',[
             if ( this._node !== undefined ) {
                 var bs = this._node.getBound();
                 this._radius = bs.radius();
-                this._eye = [ 0, -bs.radius() * 1.5, 0 ];
+                var eye = this._eye;
+                eye[ 0 ] = 0.0;
+                eye[ 1 ] = -bs.radius();
+                eye[ 2 ] = 0.0;
             }
         },
         init: function () {
@@ -15426,18 +16398,17 @@ define( 'osgGA/FirstPersonManipulator',[
             this._side = new OrbitManipulator.Interpolator( 1 );
             this._lookPosition = new OrbitManipulator.Interpolator( 2 );
             this._stepFactor = 1.0; // meaning radius*stepFactor to move
-            this._target = new Array( 3 );
-            Vec3.init( this._target );
+            this._target = [ 0.0, 0.0, 0.0 ];
             this._angleVertical = 0.0;
             this._angleHorizontal = 0.0;
 
             // tmp value use for computation
-            this._tmpComputeRotation1 = Matrix.makeIdentity( [] );
-            this._tmpComputeRotation2 = Matrix.makeIdentity( [] );
-            this._tmpComputeRotation3 = Matrix.makeIdentity( [] );
-            this._tmpGetTargetDir = Vec3.init( [] );
+            this._tmpComputeRotation1 = Matrix.create();
+            this._tmpComputeRotation2 = Matrix.create();
+            this._tmpComputeRotation3 = Matrix.create();
+            this._tmpGetTargetDir = [ 0.0, 0.0, 0.0 ];
 
-            this._rotBase = Matrix.makeIdentity( [] );
+            this._rotBase = Matrix.create();
 
             var self = this;
 
@@ -15466,7 +16437,7 @@ define( 'osgGA/FirstPersonManipulator',[
 
         getTarget: function ( pos, distance ) {
             if ( distance === undefined ) {
-                distance = 25;
+                distance = 25.0;
             }
             var dir = Vec3.mult( this._direction, distance, this._tmpGetTargetDir );
             Vec3.add( this._eye, dir, pos );
@@ -15478,10 +16449,10 @@ define( 'osgGA/FirstPersonManipulator',[
             this._target[ 2 ] = pos[ 2 ];
             var dir = this._tmpGetTargetDir;
             Vec3.sub( pos, this._eye, dir );
-            dir[ 2 ] = 0;
+            dir[ 2 ] = 0.0;
             Vec3.normalize( dir, dir );
             this._angleHorizontal = Math.acos( dir[ 1 ] );
-            if ( dir[ 0 ] < 0 ) {
+            if ( dir[ 0 ] < 0.0 ) {
                 this._angleHorizontal = -this._angleHorizontal;
             }
             Vec3.sub( pos, this._eye, dir );
@@ -15501,27 +16472,30 @@ define( 'osgGA/FirstPersonManipulator',[
             return this._forward;
         },
 
-        computeRotation: function ( dx, dy ) {
-            this._angleVertical += dy * 0.01;
-            this._angleHorizontal -= dx * 0.01;
+        computeRotation: ( function () {
+            var upy = [ 0.0, 1.0, 0.0 ];
+            var upz = [ 0.0, 0.0, 1.0 ];
+            return function ( dx, dy ) {
+                this._angleVertical += dy * 0.01;
+                this._angleHorizontal -= dx * 0.01;
 
-            var first = this._tmpComputeRotation1;
-            var second = this._tmpComputeRotation2;
-            var rotMat = this._tmpComputeRotation3;
-            Matrix.makeRotate( this._angleVertical, 1, 0, 0, first );
-            Matrix.makeRotate( this._angleHorizontal, 0, 0, 1, second );
-            Matrix.mult( second, first, rotMat );
+                var first = this._tmpComputeRotation1;
+                var second = this._tmpComputeRotation2;
+                var rotMat = this._tmpComputeRotation3;
+                Matrix.makeRotate( this._angleVertical, 1.0, 0.0, 0.0, first );
+                Matrix.makeRotate( this._angleHorizontal, 0.0, 0.0, 1.0, second );
+                Matrix.mult( second, first, rotMat );
 
-            var rotBase = this._rotBase;
-            // TOTO refactor the way the rotation matrix is managed
-            Matrix.preMult( rotMat, rotBase );
+                var rotBase = this._rotBase;
+                // TOTO refactor the way the rotation matrix is managed
+                Matrix.preMult( rotMat, rotBase );
 
-            this._direction = Matrix.transformVec3(rotMat, [ 0, 1, 0 ], this._direction );
-            Vec3.normalize( this._direction, this._direction );
+                this._direction = Matrix.transformVec3( rotMat, upy, this._direction );
+                Vec3.normalize( this._direction, this._direction );
 
-            this._up = Matrix.transformVec3( rotMat, [ 0, 0, 1 ], this._up );
-        },
-
+                Matrix.transformVec3( rotMat, upz, this._up );
+            };
+        } )(),
         reset: function () {
             this.init();
         },
@@ -15530,40 +16504,40 @@ define( 'osgGA/FirstPersonManipulator',[
             this._stepFactor = t;
         },
 
-        update: function ( nv ) {
-            var t = nv.getFrameStamp().getSimulationTime();
-            if ( this._lastUpdate === undefined ) {
+        update: ( function () {
+            var vec = [ 0.0, 0.0 ];
+            return function ( nv ) {
+                var t = nv.getFrameStamp().getSimulationTime();
+                if ( this._lastUpdate === undefined ) {
+                    this._lastUpdate = t;
+                }
+                var dt = t - this._lastUpdate;
                 this._lastUpdate = t;
-            }
-            var dt = t - this._lastUpdate;
-            this._lastUpdate = t;
 
-            this._forward.update();
-            this._side.update();
-            var delta = this._lookPosition.update();
+                this._forward.update();
+                this._side.update();
+                var delta = this._lookPosition.update();
 
-            this.computeRotation( -delta[ 0 ] * 0.5, -delta[ 1 ] * 0.5 );
+                this.computeRotation( -delta[ 0 ] * 0.5, -delta[ 1 ] * 0.5 );
 
-            var vec = new Array( 2 );
-            vec[ 0 ] = this._forward.getCurrent()[ 0 ];
-            vec[ 1 ] = this._side.getCurrent()[ 0 ];
-            if ( Vec2.length( vec ) > 1.0 ) {
-                Vec2.normalize( vec, vec );
-            }
-            var factor = this._radius;
-            if ( this._radius < 1e-3 ) {
-                factor = 1.0;
-            }
-            this.moveForward( vec[ 0 ] * factor * this._stepFactor * dt );
-            this.strafe( vec[ 1 ] * factor * this._stepFactor * dt );
+                vec[ 0 ] = this._forward.getCurrent()[ 0 ];
+                vec[ 1 ] = this._side.getCurrent()[ 0 ];
+                if ( Vec2.length( vec ) > 1.0 ) {
+                    Vec2.normalize( vec, vec );
+                }
+                var factor = this._radius;
+                if ( this._radius < 1e-3 ) {
+                    factor = 1.0;
+                }
+                this.moveForward( vec[ 0 ] * factor * this._stepFactor * dt );
+                this.strafe( vec[ 1 ] * factor * this._stepFactor * dt );
 
-            var target = Vec3.add( this._eye, this._direction, [] );
-            this._target = target;
+                Vec3.add( this._eye, this._direction, this._target );
 
-            Matrix.makeLookAt( this._eye, target, this._up, this._inverseMatrix );
-        },
-
-        setRotationBaseFromQuat:function( quat ){
+                Matrix.makeLookAt( this._eye, this._target, this._up, this._inverseMatrix );
+            };
+        } )(),
+        setRotationBaseFromQuat: function ( quat ) {
             Matrix.makeRotateFromQuat( quat, this._rotBase );
         },
 
@@ -15571,17 +16545,24 @@ define( 'osgGA/FirstPersonManipulator',[
             return this._inverseMatrix;
         },
 
-        moveForward: function ( distance ) {
-            var d = Vec3.mult( Vec3.normalize( this._direction, [] ), distance, [] );
-            this._eye = Vec3.add( this._eye, d, [] );
-        },
+        moveForward: ( function () {
+            var tmp = [ 0.0, 0.0, 0.0 ];
+            return function ( distance ) {
+                Vec3.normalize( this._direction, tmp );
+                Vec3.mult( tmp, distance, tmp );
+                Vec3.add( this._eye, tmp, this._eye );
+            };
+        } )(),
 
-        strafe: function ( distance ) {
-            var cx = Vec3.cross( this._direction, this._up, [] );
-            var d = Vec3.mult( Vec3.normalize( cx, cx ), distance, [] );
-            this._eye = Vec3.add( this._eye, d, [] );
-        }
-
+        strafe: ( function () {
+            var tmp = [ 0.0, 0.0, 0.0 ];
+            return function ( distance ) {
+                Vec3.cross( this._direction, this._up, tmp );
+                Vec3.normalize( tmp, tmp );
+                Vec3.mult( tmp, distance, tmp );
+                Vec3.add( this._eye, tmp, this._eye );
+            };
+        } )()
     } );
 
     ( function ( module ) {
@@ -15735,8 +16716,9 @@ define( 'osgUtil/Composer',[
     'osg/Shader',
     'osg/Shape',
     'osg/TransformEnums',
+    'osg/Vec2',
     'osg/Vec3'
-], function ( Notify, MACROUTILS, Node, Depth, Texture, Camera, FrameBufferObject, Viewport, Matrix,  Uniform, StateSet, Program, Shader, Shape, TransformEnums, Vec3 ) {
+], function ( Notify, MACROUTILS, Node, Depth, Texture, Camera, FrameBufferObject, Viewport, Matrix,  Uniform, StateSet, Program, Shader, Shape, TransformEnums, Vec2, Vec3 ) {
 
     /*
      Composer is an helper to create post fx. The idea is to push one or more textures into a pipe of shader filter.
@@ -15873,7 +16855,7 @@ define( 'osgUtil/Composer',[
 
                 // check if we want to render on screen
                 var camera = new Camera();
-                camera.setClearMask( 0 );
+                camera.setStateSet( element.filter.getStateSet() );
 
                 var texture;
                 var quad;
@@ -15891,11 +16873,9 @@ define( 'osgUtil/Composer',[
                 }
 
                 var vp = new Viewport( 0, 0, w, h );
-                var projection = Matrix.makeOrtho( -w / 2, w / 2, -h / 2, h / 2, -5, 5, [] );
                 camera.setReferenceFrame( TransformEnums.ABSOLUTE_RF );
                 camera.setViewport( vp );
-                camera.setProjectionMatrix( projection );
-                camera.setStateSet( element.filter.getStateSet() );
+                Matrix.makeOrtho( -w / 2, w / 2, -h / 2, h / 2, -5, 5, camera.getProjectionMatrix() );
 
                 quad = Shape.createTexturedQuadGeometry( -w / 2, -h / 2, 0,
                     w, 0, 0,
@@ -16056,7 +17036,7 @@ define( 'osgUtil/Composer',[
                             row[ i ] = row[ i ] / sum;
                             //str += row[i].toString() + ' ';
                         }
-                        //console.log(str);
+                        //Notify.log(str);
                     }
                 } )();
 
@@ -16508,7 +17488,7 @@ define( 'osgUtil/Composer',[
         stateSet.addUniform( this._mixValueUniform );
     };
 
-    Composer.Filter.BlendMix = MACROUTILS.objectInehrit( Composer.Filter.prototype, {
+    Composer.Filter.BlendMix.prototype = MACROUTILS.objectInehrit( Composer.Filter.prototype, {
         getBlendFactorUniform: function () {
             return this._mixValueUniform;
         },
@@ -16629,16 +17609,15 @@ define( 'osgUtil/Composer',[
             var sizeNoise = this._noiseTextureSize;
             var noise = new Array( sizeNoise * sizeNoise * 3 );
             ( function ( array ) {
+                var n = [ 0.0, 0.0 ];
                 for ( var i = 0; i < sizeNoise * sizeNoise; i++ ) {
-                    var x, y, z;
-                    x = 2.0 * ( Math.random() - 0.5 );
-                    y = 2.0 * ( Math.random() - 0.5 );
-                    z = 0.0;
+                    n[ 0 ] = 2.0 * ( Math.random() - 0.5 );
+                    n[ 1 ] = 2.0 * ( Math.random() - 0.5 );
 
-                    var n = Vec3.normalize( [ x, y, z ], [] );
+                    Vec2.normalize( n, n );
                     array[ i * 3 + 0 ] = 255 * ( n[ 0 ] * 0.5 + 0.5 );
                     array[ i * 3 + 1 ] = 255 * ( n[ 1 ] * 0.5 + 0.5 );
-                    array[ i * 3 + 2 ] = 255 * ( n[ 2 ] * 0.5 + 0.5 );
+                    array[ i * 3 + 2 ] = 255 * 0.5;
                 }
             } )( noise );
 
@@ -16683,13 +17662,13 @@ define( 'osgUtil/Composer',[
             var nbSamples = this._nbSamples;
             var kernel = new Array( nbSamples * 4 );
             ( function ( array ) {
+                var v = [ 0.0, 0.0, 0.0 ];
                 for ( var i = 0; i < nbSamples; i++ ) {
-                    var x, y, z;
-                    x = 2.0 * ( Math.random() - 0.5 );
-                    y = 2.0 * ( Math.random() - 0.5 );
-                    z = Math.random();
+                    v[ 0 ] = 2.0 * ( Math.random() - 0.5 );
+                    v[ 1 ] = 2.0 * ( Math.random() - 0.5 );
+                    v[ 2 ] = Math.random();
 
-                    var v = Vec3.normalize( [ x, y, z ], [] );
+                    Vec3.normalize( v, v );
                     var scale = Math.max( i / nbSamples, 0.1 );
                     scale = 0.1 + ( 1.0 - 0.1 ) * ( scale * scale );
                     array[ i * 3 + 0 ] = v[ 0 ];
@@ -16828,13 +17807,13 @@ define( 'osgUtil/Composer',[
             var kernel = new Array( nbSamples * 4 );
             //var angleLimit = this._angleLimit;
             ( function ( array ) {
+                var v = [ 0.0, 0.0, 0.0 ];
                 for ( var i = 0; i < nbSamples; i++ ) {
-                    var x, y, z;
-                    x = 2.0 * ( Math.random() - 0.5 );
-                    y = 2.0 * ( Math.random() - 0.5 );
-                    z = Math.random();
+                    v[ 0 ] = 2.0 * ( Math.random() - 0.5 );
+                    v[ 1 ] = 2.0 * ( Math.random() - 0.5 );
+                    v[ 2 ] = Math.random();
 
-                    var v = Vec3.normalize( [ x, y, z ], [] );
+                    Vec3.normalize( v, v );
                     var scale = Math.max( i / nbSamples, 0.1 );
                     scale = 0.1 + ( 1.0 - 0.1 ) * ( scale * scale );
                     array[ i * 3 + 0 ] = v[ 0 ];
@@ -17050,7 +18029,7 @@ define( 'osgUtil/IntersectVisitor',[
         } )(),
         pushModelMatrix: function( matrix ) {
             if ( this.matrix.length > 0 ) {
-                var m = Matrix.copy( this.matrix[ this.matrix.length - 1 ] );
+                var m = Matrix.copy( this.matrix[ this.matrix.length - 1 ], Matrix.create() );
                 Matrix.preMult( m, matrix );
                 this.matrix.push( m );
             } else {
@@ -17059,7 +18038,7 @@ define( 'osgUtil/IntersectVisitor',[
         },
         getModelMatrix: function() {
             if ( this.matrix.length === 0 ) {
-                return Matrix.makeIdentity( [] );
+                return Matrix.create();
             }
             return this.matrix[ this.matrix.length - 1 ];
         },
@@ -17134,26 +18113,26 @@ define( 'osgUtil/IntersectVisitor',[
             }
         },
 
-        transformRay: function( tStart, tEnd ) {
-            var matrix = [];
-            Matrix.copy( this.getWindowMatrix(), matrix );
-            Matrix.preMult( matrix, this.getProjectionMatrix() );
-            Matrix.preMult( matrix, this.getViewMatrix() );
-            Matrix.preMult( matrix, this.getModelMatrix() );
+        transformRay: (function() {
+            var inv = Matrix.create();
+            return function(tStart, tEnd) {
+                Matrix.copy(this.getWindowMatrix(), inv);
+                Matrix.preMult(inv, this.getProjectionMatrix());
+                Matrix.preMult(inv, this.getViewMatrix());
+                Matrix.preMult(inv, this.getModelMatrix());
 
-            var inv = [];
-            var valid = Matrix.inverse( matrix, inv );
-            // if matrix is invalid do nothing on this node
-            if ( !valid ) {
-                return false;
-            }
+                var valid = Matrix.inverse(inv, inv);
+                // if matrix is invalid do nothing on this node
+                if (!valid) {
+                    return false;
+                }
 
-            Matrix.transformVec3( inv, this.start, tStart );
-            Matrix.transformVec3( inv, this.end, tEnd );
+                Matrix.transformVec3(inv, this.start, tStart);
+                Matrix.transformVec3(inv, this.end, tEnd);
 
-            return true;
-        },
-
+                return true;
+            };
+        })(),
         apply: ( function() {
             var ns = [ 0.0, 0.0, 0.0 ];
             var ne = [ 0.0, 0.0, 0.0 ];
@@ -17603,12 +18582,500 @@ define( 'osgUtil/ParameterVisitor',[
     return ParameterVisitor;
 } );
 
+define( 'osgUtil/Oculus',[
+    'osg/Camera',
+    'osg/FrameBufferObject',
+    'osg/Matrix',
+    'osg/Node',
+    'osg/Program',
+    'osg/Shader',
+    'osg/Shape',
+    'osg/Texture',
+    'osg/Transform',
+    'osg/Uniform',
+    'osg/Viewport'
+], function ( Camera, FrameBufferObject, Matrix, Node, Program, Shader, Shape, Texture, Transform, Uniform, Viewport ) {
+
+    
+
+    var UpdateRttCameraCallback = function ( rootView, offsetView ) {
+        this._rootView = rootView;
+        this._offsetView = offsetView;
+    };
+
+    UpdateRttCameraCallback.prototype = {
+        update: function ( node /*, nv */ ) {
+            var nodeView = node.getViewMatrix();
+            Matrix.mult( this._offsetView, this._rootView, nodeView );
+            return true;
+        }
+    };
+
+    var setupOculus = function ( worldFactor, HMD, oculusUniforms, oculusMatrices ) {
+        var aspect = HMD.hResolution / ( 2.0 * HMD.vResolution );
+        var r = -1.0 - ( 4.0 * ( HMD.hScreenSize * 0.25 - HMD.lensSeparationDistance * 0.5 ) / HMD.hScreenSize );
+        var distScale = ( HMD.distortionK[ 0 ] + HMD.distortionK[ 1 ] * Math.pow( r, 2 ) + HMD.distortionK[ 2 ] * Math.pow( r, 4 ) + HMD.distortionK[ 3 ] * Math.pow( r, 6 ) );
+        var fov = ( 180.0 / Math.PI ) * 2.0 * Math.atan2( HMD.vScreenSize * distScale, 2.0 * HMD.eyeToScreenDistance );
+
+        var proj = Matrix.makePerspective( fov, aspect, 0.3, 10000.0, Matrix.create() );
+        var hOffset = 4.0 * ( HMD.hScreenSize * 0.25 - HMD.interpupillaryDistance * 0.5 ) / HMD.hScreenSize;
+        var lensShift = 4.0 * ( HMD.hScreenSize * 0.25 - HMD.lensSeparationDistance * 0.5 ) / HMD.hScreenSize;
+
+        oculusMatrices.projectionLeft = Matrix.preMult( Matrix.makeTranslate( hOffset, 0.0, 0.0, Matrix.create() ), proj );
+        oculusMatrices.projectionRight = Matrix.preMult( Matrix.makeTranslate( -hOffset, 0.0, 0.0, Matrix.create() ), proj );
+        oculusMatrices.viewLeft = Matrix.makeTranslate( worldFactor * HMD.interpupillaryDistance * 0.5, 0.0, 0.0, Matrix.create() );
+        oculusMatrices.viewRight = Matrix.makeTranslate( -worldFactor * HMD.interpupillaryDistance * 0.5, 0.0, 0.0, Matrix.create() );
+
+        oculusUniforms.lensCenterLeft = [ lensShift, 0.0 ];
+        oculusUniforms.lensCenterRight = [ -lensShift, 0.0 ];
+        oculusUniforms.hmdWarpParam = HMD.distortionK;
+        oculusUniforms.chromAbParam = HMD.chromaAbParameter;
+        oculusUniforms.scaleIn = [ 1.0, 1.0 / aspect ];
+        oculusUniforms.scale = [ 1.0 / distScale, 1.0 * aspect / distScale ];
+    };
+
+    var getOculusShader = function () {
+        var vertexshader = [
+            '',
+            '#ifdef GL_ES',
+            'precision highp float;',
+            '#endif',
+
+            'attribute vec3 Vertex;',
+            'attribute vec3 Normal;',
+            'attribute vec2 TexCoord0;',
+
+            'uniform mat4 ModelViewMatrix;',
+            'uniform mat4 ProjectionMatrix;',
+            'uniform mat4 NormalMatrix;',
+
+            'varying vec2 vTexCoord;',
+
+            'void main(void) {',
+            '  vTexCoord = TexCoord0;',
+            '  gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(Vertex, 1.0);',
+            '}'
+        ].join( '\n' );
+
+        var fragmentshader = [
+            '',
+            '#ifdef GL_ES',
+            'precision highp float;',
+            '#endif',
+
+            'uniform vec2 uScale;',
+            'uniform vec2 uScaleIn;',
+            'uniform vec2 uLensCenter;',
+            'uniform vec4 uHmdWarpParam;',
+            'uniform vec4 uChromAbParam;',
+            'uniform sampler2D Texture0;',
+
+            'varying vec2 vTexCoord;',
+
+            // from http://paradise.untergrund.net/tmp/demoshit/examples/js/effects/OculusRiftEffect.js
+            'void main(void) {',
+            '  vec2 uv = (vTexCoord * 2.0) - 1.0;', // range from [0,1] to [-1,1]
+            '  vec2 theta = (uv - uLensCenter) * uScaleIn;',
+            '  float rSq = theta.x * theta.x + theta.y * theta.y;',
+            '  vec2 rvector = theta * (uHmdWarpParam.x + uHmdWarpParam.y * rSq + uHmdWarpParam.z * rSq * rSq + uHmdWarpParam.w * rSq * rSq * rSq);',
+            '  vec2 rBlue = rvector * (uChromAbParam.z + uChromAbParam.w * rSq);',
+            '  vec2 tcBlue = (uLensCenter + uScale * rBlue);',
+            '  tcBlue = (tcBlue + 1.0) * 0.5;', // range from [-1,1] to [0,1]
+            '  if (any(bvec2(clamp(tcBlue, vec2(0.0, 0.0), vec2(1.0, 1.0)) - tcBlue))) {',
+            '    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);',
+            '    return;',
+            '  }',
+            '  vec2 tcGreen = uLensCenter + uScale * rvector;',
+            '  tcGreen = (tcGreen + 1.0) * 0.5;', // range from [-1,1] to [0,1]
+            '  vec2 rRed = rvector * (uChromAbParam.x + uChromAbParam.y * rSq);',
+            '  vec2 tcRed = uLensCenter + uScale * rRed;',
+            '  tcRed = (tcRed + 1.0) * 0.5;', // range from [-1,1] to [0,1]
+            '  gl_FragColor = vec4(texture2D(Texture0, tcRed).r, texture2D(Texture0, tcGreen).g, texture2D(Texture0, tcBlue).b, 1);',
+            '}',
+            ''
+        ].join( '\n' );
+
+        var program = new Program(
+            new Shader( Shader.VERTEX_SHADER, vertexshader ),
+            new Shader( Shader.FRAGMENT_SHADER, fragmentshader ) );
+
+        return program;
+    };
+
+    var createTextureRtt = function ( rttSize ) {
+        var rttTexture = new Texture();
+        rttTexture.setTextureSize( rttSize[ 0 ], rttSize[ 1 ] );
+        rttTexture.setMinFilter( 'LINEAR' );
+        rttTexture.setMagFilter( 'LINEAR' );
+        return rttTexture;
+    };
+
+    var createQuadRtt = function ( isLeftCam, texture, ocUnifs ) {
+        var quad = Shape.createTexturedQuadGeometry( -0.5, -0.5, 0, 1, 0, 0, 0, 1, 0 );
+        var orStateSet = quad.getOrCreateStateSet();
+        orStateSet.setTextureAttributeAndMode( 0, texture );
+        orStateSet.setAttributeAndMode( getOculusShader() );
+        orStateSet.addUniform( new Uniform.createFloat2( ocUnifs.scale, 'uScale' ) );
+        orStateSet.addUniform( new Uniform.createFloat2( ocUnifs.scaleIn, 'uScaleIn' ) );
+        orStateSet.addUniform( new Uniform.createFloat2( isLeftCam ? ocUnifs.lensCenterLeft : ocUnifs.lensCenterRight, 'uLensCenter' ) );
+        orStateSet.addUniform( new Uniform.createFloat4( ocUnifs.hmdWarpParam, 'uHmdWarpParam' ) );
+        orStateSet.addUniform( new Uniform.createFloat4( ocUnifs.chromAbParam, 'uChromAbParam' ) );
+        return quad;
+    };
+
+    var createOrthoRtt = function ( left, viewportSize, canvasSize ) {
+        var orthoCamera = new Camera();
+        var vw = viewportSize[ 0 ];
+        var vh = viewportSize[ 1 ];
+        var cw = canvasSize[ 0 ];
+        var ch = canvasSize[ 1 ];
+        if ( left )
+            orthoCamera.setViewport( new Viewport( 0.5 * cw - vw, 0.5 * ( ch - vh ), vw, vh ) );
+        else
+            orthoCamera.setViewport( new Viewport( 0.5 * cw, 0.5 * ( ch - vh ), vw, vh ) );
+        Matrix.makeOrtho( -0.5, 0.5, -0.5, 0.5, -5, 5, orthoCamera.getProjectionMatrix() );
+        orthoCamera.setRenderOrder( Camera.NESTED_RENDER, 0 );
+        orthoCamera.setReferenceFrame( Transform.ABSOLUTE_RF );
+        return orthoCamera;
+    };
+
+    var createCameraRtt = function ( texture, projMatrix ) {
+        var camera = new Camera();
+        camera.setName( 'rtt camera' );
+        camera.setViewport( new Viewport( 0, 0, texture.getWidth(), texture.getHeight() ) );
+        camera.setProjectionMatrix( projMatrix );
+        camera.setClearColor( [ 0.0, 0.0, 0.0, 0.0 ] );
+        camera.setRenderOrder( Camera.POST_RENDER, 0 );
+        camera.attachTexture( FrameBufferObject.COLOR_ATTACHMENT0, texture, 0 );
+        camera.attachRenderBuffer( FrameBufferObject.DEPTH_ATTACHMENT, FrameBufferObject.DEPTH_COMPONENT16 );
+        camera.setReferenceFrame( Transform.ABSOLUTE_RF );
+        return camera;
+    };
+
+    var Oculus = {};
+
+    Oculus.createScene = function ( viewer, rttScene, HMDconfig ) {
+        var HMD = Oculus.getDefaultConfig( HMDconfig );
+        var rttSize = [ HMD.hResolution, HMD.vResolution ];
+        var viewportSize = [ HMD.hResolution * 0.5, HMD.vResolution ];
+        var vp = viewer.getCamera().getViewport();
+        var canvasSize = [ vp.width(), vp.height() ];
+
+        var worldFactor = 1.0; //world unit
+        var oculusUniforms = {};
+        var oculusMatrices = {};
+        setupOculus( worldFactor, HMD, oculusUniforms, oculusMatrices );
+
+        var rootViewMatrix = viewer.getCamera().getViewMatrix();
+
+        var root = new Node();
+
+        var rttTextureLeft = createTextureRtt( rttSize );
+        var rttCamLeft = createCameraRtt( rttTextureLeft, oculusMatrices.projectionLeft );
+        var quadTextLeft = createQuadRtt( true, rttTextureLeft, oculusUniforms );
+        var orthoCameraLeft = createOrthoRtt( true, viewportSize, canvasSize );
+        rttCamLeft.setUpdateCallback( new UpdateRttCameraCallback( rootViewMatrix, oculusMatrices.viewLeft ) );
+
+        var rttTextureRight = createTextureRtt( rttSize );
+        var rttCamRight = createCameraRtt( rttTextureRight, oculusMatrices.projectionRight );
+        var quadTextRight = createQuadRtt( false, rttTextureRight, oculusUniforms );
+        var orthoCameraRight = createOrthoRtt( false, viewportSize, canvasSize );
+        rttCamRight.setUpdateCallback( new UpdateRttCameraCallback( rootViewMatrix, oculusMatrices.viewRight ) );
+
+        rttCamLeft.addChild( rttScene );
+        rttCamRight.addChild( rttScene );
+
+        orthoCameraLeft.addChild( quadTextLeft );
+        orthoCameraRight.addChild( quadTextRight );
+
+        root.addChild( rttCamLeft );
+        root.addChild( rttCamRight );
+
+        root.addChild( orthoCameraLeft );
+        root.addChild( orthoCameraRight );
+
+        return root;
+    };
+
+    Oculus.getDefaultConfig = function ( hmdConfig ) {
+        // FOV: 103.506416
+        // vScreenCenter: 0.03645
+
+        // Oculus Rift DK2
+        var hmd = {
+            hResolution: 1920,
+            vResolution: 1080,
+            hScreenSize: 0.1296,
+            vScreenSize: 0.0729,
+            interpupillaryDistance: 0.064,
+            lensSeparationDistance: 0.0635,
+            eyeToScreenDistance: 0.04,
+            distortionK: [ 1.0, 0.22, 0.13, 0.02 ],
+            chromaAbParameter: [ 0.996, -0.004, 1.014, 0.0 ]
+        };
+        if ( hmdConfig === 2 || hmdConfig === undefined )
+            return hmd;
+        if ( hmdConfig === 1 ) {
+            // Oculus Rift DK1
+            hmd.hResolution = 1280;
+            hmd.vResolution = 800;
+            hmd.hScreenSize = 0.14976;
+            hmd.vScreenSize = 0.0936;
+            hmd.lensSeparationDistance = 0.064;
+            hmd.eyeToScreenDistance = 0.041;
+            hmd.distortionK = [ 1.0, 0.22, 0.24, 0.0 ];
+            return hmd;
+        }
+        // custom param
+        if ( hmdConfig.hResolution !== undefined ) hmd.hResolution = hmdConfig.hResolution;
+        if ( hmdConfig.vResolution !== undefined ) hmd.vResolution = hmdConfig.vResolution;
+        if ( hmdConfig.hScreenSize !== undefined ) hmd.hScreenSize = hmdConfig.hScreenSize;
+        if ( hmdConfig.vScreenSize !== undefined ) hmd.vScreenSize = hmdConfig.vScreenSize;
+        if ( hmdConfig.interpupillaryDistance !== undefined ) hmd.interpupillaryDistance = hmdConfig.interpupillaryDistance;
+        if ( hmdConfig.lensSeparationDistance !== undefined ) hmd.lensSeparationDistance = hmdConfig.lensSeparationDistance;
+        if ( hmdConfig.eyeToScreenDistance !== undefined ) hmd.eyeToScreenDistance = hmdConfig.eyeToScreenDistance;
+        if ( hmdConfig.distortionK !== undefined ) hmd.distortionK = hmdConfig.distortionK;
+        if ( hmdConfig.chromaAbParameter !== undefined ) hmd.chromaAbParameter = hmdConfig.chromaAbParameter;
+
+        return hmd;
+    };
+
+    return Oculus;
+
+} );
+
+define( 'osgUtil/WebVR',[
+    'osg/Camera',
+    'osg/FrameBufferObject',
+    'osg/Matrix',
+    'osg/Node',
+    'osg/Program',
+    'osg/Projection',
+    'osg/Shader',
+    'osg/Shape',
+    'osg/Texture',
+    'osg/Transform',
+    'osg/Uniform',
+    'osg/Viewport',
+    'osgUtil/Composer'
+], function ( Camera, FrameBufferObject, Matrix, Node, Program, Projection, Shader, Shape, Texture, Transform, Uniform, Viewport, Composer ) {
+
+    
+
+    var UpdateRttCameraCallback = function ( rootView, offsetView ) {
+        this._rootView = rootView;
+        this._offsetView = offsetView;
+    };
+
+    UpdateRttCameraCallback.prototype = {
+        update: function ( node /*, nv */ ) {
+            var nodeView = node.getViewMatrix();
+            Matrix.mult( this._offsetView, this._rootView, nodeView );
+            return true;
+        }
+    };
+
+    function perspectiveMatrixFromVRFieldOfView( fov, zNear, zFar ) {
+
+        var matrix = new Matrix.create();
+
+        var upTan = Math.tan( fov.upDegrees * Math.PI / 180.0 );
+        var downTan = Math.tan( fov.downDegrees * Math.PI / 180.0 );
+        var leftTan = Math.tan( fov.leftDegrees * Math.PI / 180.0 );
+        var rightTan = Math.tan( fov.rightDegrees * Math.PI / 180.0 );
+
+        var xScale = 2.0 / ( leftTan + rightTan );
+        var yScale = 2.0 / ( upTan + downTan );
+
+        // return Matrix.makeFrustum( xmin, xmax, ymin, ymax, znear, zfar, result );
+
+        matrix[ 0 ] = xScale;
+        matrix[ 4 ] = 0.0;
+        matrix[ 8 ] = -( ( leftTan - rightTan ) * xScale * 0.5 );
+        matrix[ 12 ] = 0.0;
+
+        matrix[ 1 ] = 0.0;
+        matrix[ 5 ] = yScale;
+        matrix[ 9 ] = ( ( upTan - downTan ) * yScale * 0.5 );
+        matrix[ 13 ] = 0.0;
+
+        matrix[ 2 ] = 0.0;
+        matrix[ 6 ] = 0.0;
+        matrix[ 10 ] = zFar / ( zNear - zFar );
+        matrix[ 14 ] = ( zFar * zNear ) / ( zNear - zFar );
+
+        matrix[ 3 ] = 0.0;
+        matrix[ 7 ] = 0.0;
+        matrix[ 11 ] = -1.0;
+        matrix[ 15 ] = 0.0;
+
+        return matrix;
+    }
+
+
+    var createTexture = function ( size ) {
+        var texture = new Texture();
+        texture.setTextureSize( size.width, size.height );
+        texture.setMinFilter( 'LINEAR' );
+        texture.setMagFilter( 'LINEAR' );
+        return texture;
+    };
+
+    function getAssembleShader() {
+
+        var fragmentShader = [
+            '#ifdef GL_ES',
+            '   precision highp float;',
+            '#endif',
+            'varying vec2 FragTexCoord0;',
+            'uniform sampler2D leftEyeTexture;',
+            'uniform sampler2D rightEyeTexture;',
+
+            'void main() {',
+            '   if (FragTexCoord0.x < 0.5)',
+            '       gl_FragColor = texture2D(leftEyeTexture, vec2(FragTexCoord0.x * 2.0, FragTexCoord0.y));',
+            '   else',
+            '       gl_FragColor = texture2D(rightEyeTexture, vec2(FragTexCoord0.x * 2.0 - 1.0, FragTexCoord0.y));',
+            '}',
+        ].join( '\n' );
+
+        return new Program(
+            new Shader( Shader.VERTEX_SHADER, Composer.Filter.defaultVertexShader ),
+            new Shader( Shader.FRAGMENT_SHADER, fragmentShader )
+        );
+    }
+
+    // This camera will render both textures on the canvas in a single pass
+    var createCameraCanvas = function ( leftEyeTexture, rightEyeTexture, viewport ) {
+
+        var orthoCamera = new Camera();
+        orthoCamera.setViewport( viewport );
+        orthoCamera.setRenderOrder( Camera.POST_RENDER, 0 );
+        orthoCamera.setReferenceFrame( Transform.ABSOLUTE_RF );
+        Matrix.makeOrtho( -0.5, 0.5, -0.5, 0.5, -5.0, 5.0, orthoCamera.getProjectionMatrix() );
+
+        var quad = Shape.createTexturedQuadGeometry( -0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
+        var stateSet = quad.getOrCreateStateSet();
+        var samplerLeft = Uniform.createInt1( 0, 'leftEyeTexture' );
+        var samplerRight = Uniform.createInt1( 1, 'rightEyeTexture' );
+
+        stateSet.setTextureAttributeAndMode( 0, leftEyeTexture );
+        stateSet.setTextureAttributeAndMode( 1, rightEyeTexture );
+        stateSet.setAttributeAndMode( getAssembleShader() );
+        stateSet.addUniform( samplerLeft );
+        stateSet.addUniform( samplerRight );
+
+        orthoCamera.addChild( quad );
+
+        return orthoCamera;
+    };
+
+    // This camera will render the scene on a texture for an eye 
+    var createCameraRtt = function ( texture, projection ) {
+        var camera = new Camera();
+        camera.setName( 'rtt camera' );
+        camera.setViewport( new Viewport( 0.0, 0.0, texture.getWidth(), texture.getHeight() ) );
+        camera.setProjectionMatrix( projection );
+        camera.setClearColor( [ 0.3, 0.3, 0.3, 0.0 ] );
+        camera.setRenderOrder( Camera.PRE_RENDER, 0 );
+        camera.attachTexture( FrameBufferObject.COLOR_ATTACHMENT0, texture, 0 );
+        camera.attachRenderBuffer( FrameBufferObject.DEPTH_ATTACHMENT, FrameBufferObject.DEPTH_COMPONENT16 );
+        camera.setReferenceFrame( Transform.ABSOLUTE_RF );
+        return camera;
+    };
+
+    var WebVR = {};
+
+    WebVR.createScene = function ( viewer, rttScene, HMDdevice ) {
+
+        var root = new Node();
+        var worldFactor = 1.0;
+
+        var hmd = getHMDOptions( HMDdevice );
+
+        // Compute projections and view matrices for both eyes
+        var projectionLeft = perspectiveMatrixFromVRFieldOfView( hmd.fovLeft, 0.1, 1000 );
+        var projectionRight = perspectiveMatrixFromVRFieldOfView( hmd.fovRight, 0.1, 1000 );
+        var viewLeft = Matrix.makeTranslate( worldFactor * hmd.eyeOffsetLeft.x, hmd.eyeOffsetLeft.y, hmd.eyeOffsetLeft.z, Matrix.create() );
+        var viewRight = Matrix.makeTranslate( worldFactor * hmd.eyeOffsetRight.x, hmd.eyeOffsetRight.y, hmd.eyeOffsetRight.z, Matrix.create() );
+
+        // Each eye is rendered on a texture whose width is half of the final combined texture
+        var eyeTextureSize = {
+            width: hmd.rttResolution.width / 2.0,
+            height: hmd.rttResolution.height
+        };
+
+        var leftEyeTexture = createTexture( eyeTextureSize );
+        var rightEyeTexture = createTexture( eyeTextureSize );
+
+        // Setup the render cameras for both eyes
+        var camRttLeft = createCameraRtt( leftEyeTexture, projectionLeft );
+        var camRttRight = createCameraRtt( rightEyeTexture, projectionRight );
+
+        // The viewMatrix of each eye is updated with the current viewer's camera viewMatrix
+        var rootViewMatrix = viewer.getCamera().getViewMatrix();
+        camRttLeft.setUpdateCallback( new UpdateRttCameraCallback( rootViewMatrix, viewLeft ) );
+        camRttRight.setUpdateCallback( new UpdateRttCameraCallback( rootViewMatrix, viewRight ) );
+
+        // Render both textures on the canvas, using the viewer's camera viewport to render on the fullscreen canvas
+        var camCanvas = createCameraCanvas( leftEyeTexture, rightEyeTexture, viewer.getCamera().getViewport() );
+
+        camRttLeft.addChild( rttScene );
+        camRttRight.addChild( rttScene );
+
+        root.addChild( camRttLeft );
+        root.addChild( camRttRight );
+        root.addChild( camCanvas );
+
+        return root;
+    };
+
+    function getHMDOptions( hmdDevice ) {
+
+        /* WebVR API state as of 22/07/2014
+        Firefox { 
+            getCurrentEyeFieldOfView()
+            getMaximumEyeFieldOfView()
+            getRecommendedEyeFieldOfView()
+            getEyeTranslation()
+        },
+        Chrome {
+            getCurrentEyeFieldOfView()
+            getMaximumEyeFieldOfView()
+            getRecommendedEyeFieldOfView()
+            getEyeTranslation()
+            getRecommendedRenderTargetSize()
+        }*/
+
+        var hmd = {
+
+            fovLeft: hmdDevice.getRecommendedEyeFieldOfView( 'left' ),
+            fovRight: hmdDevice.getRecommendedEyeFieldOfView( 'right' ),
+            eyeOffsetLeft: hmdDevice.getEyeTranslation( 'left' ),
+            eyeOffsetRight: hmdDevice.getEyeTranslation( 'right' ),
+            rttResolution: {
+                width: 1920,
+                height: 1080
+            },
+        };
+        if ( hmdDevice.getRecommendedRenderTargetSize )
+            hmd.rttResolution = hmdDevice.getRecommendedRenderTargetSize();
+
+        return hmd;
+    }
+
+    return WebVR;
+
+} );
+
 define( 'osgUtil/osgUtil',[
     'osgUtil/Composer',
     'osgUtil/IntersectVisitor',
     'osgUtil/ParameterVisitor',
-    'osgUtil/TriangleIntersect'
-], function( Composer, IntersectVisitor, ParameterVisitor, TriangleIntersect ) {
+    'osgUtil/TriangleIntersect',
+    'osgUtil/Oculus',
+    'osgUtil/WebVR'
+], function( Composer, IntersectVisitor, ParameterVisitor, TriangleIntersect, Oculus, WebVR ) {
 
     var osgUtil = {};
 
@@ -17616,130 +19083,11 @@ define( 'osgUtil/osgUtil',[
     osgUtil.IntersectVisitor = IntersectVisitor;
     osgUtil.ParameterVisitor = ParameterVisitor;
     osgUtil.TriangleIntersect = TriangleIntersect;
+    osgUtil.Oculus = Oculus;
+    osgUtil.WebVR = WebVR;
 
     return osgUtil;
 } );
-
-define( 'osg/WebGLCaps',[
-], function () {
-
-    var WebGLCaps = function() {
-        this._webGLExtensions = {};
-        this._webGLParameters = {};
-        this._webGLShaderMaxInt = 'NONE';
-        this._webGLShaderMaxFloat = 'NONE';
-    };
-
-    WebGLCaps.prototype = {
-
-        init: function( gl ) {
-            this.initWebGLParameters( gl );
-            this.initWebGLExtensions( gl );
-        },
-
-        getWebGLParameter: function ( str ) {
-            return this._webGLParameters[ str ];
-        },
-        getWebGLParameters: function () {
-            return this._webGLParameters;
-        },
-        getShaderMaxPrecisionFloat: function () {
-            return this._webGLParameters.MAX_SHADER_PRECISION_FLOAT;
-        },
-        getShaderMaxPrecisionInt: function () {
-            return this._webGLParameters.MAX_SHADER_PRECISION_INT;
-        },
-        initWebGLParameters: function ( gl ) {
-            if ( gl === undefined )
-                return;
-
-            var limits = [
-                'MAX_COMBINED_TEXTURE_IMAGE_UNITS',
-                'MAX_CUBE_MAP_TEXTURE_SIZE',
-                'MAX_FRAGMENT_UNIFORM_VECTORS',
-                'MAX_RENDERBUFFER_SIZE',
-                'MAX_TEXTURE_IMAGE_UNITS',
-                'MAX_TEXTURE_SIZE',
-                'MAX_VARYING_VECTORS',
-                'MAX_VERTEX_ATTRIBS',
-                'MAX_VERTEX_TEXTURE_IMAGE_UNITS',
-                'MAX_VERTEX_UNIFORM_VECTORS',
-                'MAX_VIEWPORT_DIMS',
-                'SHADING_LANGUAGE_VERSION',
-                'VERSION',
-                'VENDOR',
-                'RENDERER',
-                'ALIASED_LINE_WIDTH_RANGE',
-                'ALIASED_POINT_SIZE_RANGE',
-                'RED_BITS',
-                'GREEN_BITS',
-                'BLUE_BITS',
-                'ALPHA_BITS',
-                'DEPTH_BITS',
-                'STENCIL_BITS'
-            ];
-            var params = this._webGLParameters;
-            for ( var i = 0, len = limits.length; i < len; ++i ) {
-                var par = limits[ i ];
-                params[ par ] = gl.getParameter( gl[ par ] );
-            }
-
-            //shader precisions for float
-            if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_FLOAT ).precision !== 0 ) {
-                params.MAX_SHADER_PRECISION_FLOAT = 'high';
-            }
-            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT ).precision !== 0 ) {
-                params.MAX_SHADER_PRECISION_FLOAT = 'medium';
-            }
-            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.LOW_FLOAT ).precision !== 0 ) {
-                params.MAX_SHADER_PRECISION_FLOAT = 'low';
-            }
-            else {
-                params.MAX_SHADER_PRECISION_FLOAT = 'none';
-            }
-
-            //shader precisions for float
-            if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.HIGH_INT ).precision !== 0 ) {
-                params.MAX_SHADER_PRECISION_INT = 'high';
-            }
-            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.MEDIUM_INT ).precision !== 0 ) {
-                params.MAX_SHADER_PRECISION_INT = 'medium';
-            }
-            else if ( gl.getShaderPrecisionFormat( gl.FRAGMENT_SHADER, gl.LOW_INT ).precision !== 0 ) {
-                params.MAX_SHADER_PRECISION_INT = 'low';
-            }
-            else {
-                params.MAX_SHADER_PRECISION_INT = 'none';
-            }
-
-            // TODO ?
-            // try to compile a small shader to test the spec is respected
-        },
-        getWebGLExtension: function ( str ) {
-            return this._webGLExtensions[ str ];
-        },
-        getWebGLExtensions: function () {
-            return this._webGLExtensions;
-        },
-        initWebGLExtensions: function ( gl ) {
-            if ( gl === undefined )
-                return;
-            var supported = gl.getSupportedExtensions();
-            var ext = this._webGLExtensions;
-            // we load all the extensions
-            for ( var i = 0, len = supported.length; i < len; ++i ) {
-                var sup = supported[ i ];
-                ext[ sup ] = gl.getExtension( sup );
-            }
-            // TODO ?
-            // check if the extensions are REALLY supported ?
-            // cf http://codeflow.org/entries/2013/feb/22/how-to-write-portable-webgl/#how-can-i-detect-if-i-can-render-to-floating-point-textures
-        }
-    };
-
-
-    return WebGLCaps;
-});
 
 define( 'osgViewer/View',[
     'osg/Camera',
@@ -17755,6 +19103,8 @@ define( 'osgViewer/View',[
     'osg/WebGLCaps',
     'osgUtil/IntersectVisitor'
 ], function ( Camera, Node, FrameStamp, Material, Depth, BlendFunc, CullFace, Viewport, Matrix, Light, WebGLCaps, IntersectVisitor ) {
+
+    
 
     var View = function () {
         this._graphicContext = undefined;
@@ -17791,27 +19141,59 @@ define( 'osgViewer/View',[
         getWebGLCaps: function () {
             return this._webGLCaps;
         },
-        initWebGLCaps: function( gl ) {
+        initWebGLCaps: function ( gl ) {
             this._webGLCaps = new WebGLCaps();
             this._webGLCaps.init( gl );
         },
+
+        computeCanvasSize: ( function() {
+            var canvasWidth = 0;
+            var canvasHeight = 0;
+
+            return function ( canvas ) {
+
+                var clientWidth, clientHeight;
+                clientWidth = canvas.clientWidth;
+                clientHeight = canvas.clientHeight;
+
+                if ( clientWidth < 1 ) clientWidth = 1;
+                if ( clientHeight < 1 ) clientHeight = 1;
+
+                var devicePixelRatio = 1;
+                if ( this._options.getBoolean( 'useDevicePixelRatio' ) ) {
+                    devicePixelRatio = window.devicePixelRatio || 1;
+                }
+
+                var widthPixel = clientWidth * devicePixelRatio;
+                var heightPixel = clientHeight * devicePixelRatio;
+
+                if ( canvasWidth !== widthPixel ) {
+                    canvas.width = widthPixel;
+                    canvasWidth = widthPixel;
+                }
+
+                if ( canvasHeight !== heightPixel ) {
+                    canvas.height = heightPixel;
+                    canvasHeight = heightPixel;
+                }
+
+            }; })(),
+
         setUpView: function ( canvas ) {
+            this.computeCanvasSize( canvas );
 
-            var width = canvas.clientWidth !== 0 ? canvas.clientWidth : 800;
-            var height = canvas.clientHeight !== 0 ? canvas.clientHeight : 600;
+            var ratio = canvas.clientWidth / canvas.clientHeight;
 
-            var devicePixelRatio = window.devicePixelRatio || 1;
-            width *= devicePixelRatio;
-            height *= devicePixelRatio;
+            var width  = canvas.width;
+            var height = canvas.height;
 
-            canvas.width = width;
-            canvas.height = height;
-
-            var ratio = width / height;
             this._camera.setViewport( new Viewport( 0, 0, width, height ) );
+
+            this._camera.setGraphicContext( this._graphicContext );
             Matrix.makeLookAt( [ 0, 0, -10 ], [ 0, 0, 0 ], [ 0, 1, 0 ], this._camera.getViewMatrix() );
             Matrix.makePerspective( 55, ratio, 1.0, 1000.0, this._camera.getProjectionMatrix() );
         },
+
         /**
          * X = 0 at the left
          * Y = 0 at the BOTTOM
@@ -18063,6 +19445,10 @@ define( 'osgViewer/eventProxy/LeapMotion',[
     LeapMotion.prototype = {
         init: function ( args ) {
 
+            // add condition if no leap in global space
+            if ( typeof Leap === 'undefined' || !Leap.Controller)
+                return;
+
             var self = this;
             this._controller = new Leap.Controller( {
                 enableGestures: args.gestures || true,
@@ -18120,7 +19506,7 @@ define( 'osgViewer/eventProxy/StandardMouseKeyboard',[], function () {
         this._mouseEventNode = undefined;
         this._wheelEventNode = undefined;
         this._keyboardEventNode = undefined;
-        this._eventList = [ 'mousedown', 'mouseup', 'mousemove', 'dblclick' ];
+        this._eventList = [ 'mousedown', 'mouseup', 'mouseout', 'mousemove', 'dblclick' ];
         this._mousePosition = [ 0, 0 ];
     };
 
@@ -18151,6 +19537,7 @@ define( 'osgViewer/eventProxy/StandardMouseKeyboard',[], function () {
             if ( mousewheel ) {
                 mousewheel.addEventListener( 'DOMMouseScroll', this.mousewheel.bind( this ), false );
                 mousewheel.addEventListener( 'mousewheel', this.mousewheel.bind( this ), false );
+                mousewheel.addEventListener( 'MozMousePixelScroll', this.preventDefault.bind( this ), false );
             }
 
             if ( keyboard ) {
@@ -18171,6 +19558,7 @@ define( 'osgViewer/eventProxy/StandardMouseKeyboard',[], function () {
             if ( mousewheel ) {
                 mousewheel.removeEventListener( 'DOMMouseScroll', this.mousewheel );
                 mousewheel.removeEventListener( 'mousewheel', this.mousewheel );
+                mousewheel.removeEventListener( 'MozMousePixelScroll', this.preventDefault );
             }
             if ( keyboard ) {
                 keyboard.removeEventListener( 'keydown', this.keydown );
@@ -18211,6 +19599,13 @@ define( 'osgViewer/eventProxy/StandardMouseKeyboard',[], function () {
                 return;
             if ( this.getManipulatorController().mouseup )
                 return this.getManipulatorController().mouseup( ev );
+        },
+
+        mouseout: function ( ev ) {
+            if ( !this.isValid() )
+                return;
+            if ( this.getManipulatorController().mouseout )
+                return this.getManipulatorController().mouseout( ev );
         },
 
         mousemove: function ( ev ) {
@@ -18275,6 +19670,10 @@ define( 'osgViewer/eventProxy/StandardMouseKeyboard',[], function () {
             return this.getManipulatorController().mousewheel.apply( manipulatorAdapter, args );
         },
 
+        preventDefault: function ( event ) {
+            event.preventDefault();
+        },
+
         divGlobalOffset: function ( obj ) {
             var x = 0,
                 y = 0;
@@ -18337,26 +19736,57 @@ define( 'osgViewer/eventProxy/StandardMouseKeyboard',[], function () {
     return StandardMouseKeyboard;
 } );
 
-define( 'vr',[],function ( ) {
-    return window.vr;
-} );
+define( 'osgViewer/eventProxy/Oculus',[ 
+    'osg/Notify',
+    'osg/Quat' ], function ( Notify, Quat ) {
 
-define( 'osgViewer/eventProxy/Oculus',[
-    'vr'
-], function ( vr ) {
+    
 
     var Oculus = function ( viewer ) {
         this._viewer = viewer;
         this._type = 'Oculus';
         this._enable = true;
-        this._vrstate = null;
+        this._hmd = undefined;
+        this._sensor = undefined;
+        this._quat = Quat.create();
     };
 
     Oculus.prototype = {
+
         init: function () {
-            if ( !vr )
-                return;
-            this._vrstate = new vr.State();
+
+            var self = this;
+
+            function vrDeviceCallback( vrDevices ) {
+
+                var i;
+
+                // First, find a HMD -- just use the first one we find
+                for ( i = 0; i < vrDevices.length; ++i ) {
+                    if ( vrDevices[ i ] instanceof window.HMDVRDevice ) {
+                        self._hmd = vrDevices[ i ];
+                        break;
+                    }
+                }
+
+                // Then, find a sensor corresponding to the same hardwareUnitId
+                for ( i = 0; i < vrDevices.length; ++i ) {
+                    if ( vrDevices[ i ] instanceof window.PositionSensorVRDevice && vrDevices[ i ].hardwareUnitId === self._hmd.hardwareUnitId ) {
+                        self._sensor = vrDevices[ i ];
+                        break;
+                    }
+                }
+
+                if ( self._hmd && self._sensor )
+                    Notify.log( 'Found a HMD and Sensor' );
+            }
+
+            if ( navigator.getVRDevices ) {
+                navigator.getVRDevices().then( vrDeviceCallback );
+            } else if ( navigator.mozGetVRDevices ) {
+                navigator.mozGetVRDevices( vrDeviceCallback );
+            }
+
         },
 
         getManipulatorController: function () {
@@ -18374,28 +19804,44 @@ define( 'osgViewer/eventProxy/Oculus',[
             if ( !manipulator.getControllerList()[ this._type ] )
                 return false;
 
+            if ( !this._hmd || !this._sensor )
+                return false;
+
             return true;
         },
 
         update: function () {
+
             if ( !this.isValid() )
                 return;
 
-            var vrstate = this._vrstate;
-            if ( !vr || !vrstate )
-                return;
-
-            if ( !vr.pollState( vrstate ) || !vrstate.hmd.present )
-                return;
-
             var manipulatorAdapter = this.getManipulatorController();
+
+            // update the manipulator with the rotation of the device
             if ( manipulatorAdapter.update ) {
-                manipulatorAdapter.update( vrstate.hmd.rotation );
+
+                var quat = this._sensor.getState().orientation;
+
+                // If no real oculus is detected, navigators (vr builds of FF and Chrome) simulate a fake oculus
+                // On firefox, this fake oculus returns a wrong quaternion: [0, 0, 0, 0]
+                // So we detect and set this quaternion to a neutral value: [0, 0, 0, 1]
+                if ( quat.x === 0.0 && quat.y === 0.0 && quat.y === 0.0 && quat.w === 0.0 )
+                    quat.w = 1.0;
+
+                // On oculus the up vector is [0,1,0]
+                // On osgjs the up vector is [0,0,1]
+                this._quat[ 0 ] = quat.x;
+                this._quat[ 1 ] = -quat.z;
+                this._quat[ 2 ] = quat.y;
+                this._quat[ 3 ] = quat.w;
+
+                manipulatorAdapter.update( this._quat );
             }
         }
     };
     return Oculus;
 } );
+
 define( 'osgViewer/eventProxy/EventProxy',[
     'osgViewer/eventProxy/GamePad',
     'osgViewer/eventProxy/Hammer',
@@ -18624,7 +20070,11 @@ define( 'osgViewer/webgl-utils',[], function () {
 ;
 /* jshint ignore:start */
 
-define( 'osgViewer/webgl-debug',[], function () {
+define( 'osgViewer/webgl-debug',[
+
+    'osg/Notify'
+
+], function ( Notify ) {
 
     //Copyright (c) 2009 The Chromium Authors. All rights reserved.
     //Use of this source code is governed by a BSD-style license that can be
@@ -18633,16 +20083,6 @@ define( 'osgViewer/webgl-debug',[], function () {
     // Various functions for helping debug WebGL apps.
 
     var WebGLDebugUtils = function () {
-
-        /**
-         * Wrapped logging function.
-         * @param {string} msg Message to log.
-         */
-        var log = function ( msg ) {
-            if ( window.console && window.console.log ) {
-                window.console.log( msg );
-            }
-        };
 
         /**
          * Which arguements are enums.
@@ -18930,24 +20370,24 @@ define( 'osgViewer/webgl-debug',[], function () {
         }
 
         function makePropertyWrapper( wrapper, original, propertyName ) {
-            //log("wrap prop: " + propertyName);
+            //Notify.log("wrap prop: " + propertyName);
             wrapper.__defineGetter__( propertyName, function () {
                 return original[ propertyName ];
             } );
             // TODO(gmane): this needs to handle properties that take more than
             // one value?
             wrapper.__defineSetter__( propertyName, function ( value ) {
-                //log("set: " + propertyName);
+                //Notify.log("set: " + propertyName);
                 original[ propertyName ] = value;
             } );
         }
 
         // Makes a function that calls a function on another object.
         function makeFunctionWrapper( original, functionName ) {
-            //log("wrap fn: " + functionName);
+            //Notify.log("wrap fn: " + functionName);
             var f = original[ functionName ];
             return function () {
-                //log("call: " + functionName);
+                //Notify.log("call: " + functionName);
                 var result = f.apply( original, arguments );
                 return result;
             };
@@ -18963,7 +20403,7 @@ define( 'osgViewer/webgl-debug',[], function () {
          * @param {!function(err, funcName, args): void} opt_onErrorFunc
          *        The function to call when gl.getError returns an
          *        error. If not specified the default function calls
-         *        console.log with a message.
+         *        Notify.log with a message.
          */
         function makeDebugContext( ctx, opt_onErrorFunc ) {
             init( ctx );
@@ -18974,7 +20414,7 @@ define( 'osgViewer/webgl-debug',[], function () {
                     argStr += ( ( ii === 0 ) ? '' : ', ' ) +
                         glFunctionArgToString( functionName, ii, args[ ii ] );
                 }
-                log( "WebGL error " + glEnumToString( err ) + " in " + functionName +
+                Notify.log( "WebGL error " + glEnumToString( err ) + " in " + functionName +
                     "(" + argStr + ")" );
             };
 
@@ -19169,9 +20609,9 @@ define( 'osgViewer/webgl-debug',[], function () {
                     var event = makeWebGLContextEvent( "context lost" );
                     var callbacks = onLost_.slice();
                     setTimeout( function () {
-                        //log("numCallbacks:" + callbacks.length);
+                        //Notify.log("numCallbacks:" + callbacks.length);
                         for ( var ii = 0; ii < callbacks.length; ++ii ) {
-                            //log("calling callback:" + ii);
+                            //Notify.log("calling callback:" + ii);
                             callbacks[ ii ]( event );
                         }
                         if ( restoreTimeout_ >= 0 ) {
@@ -19260,7 +20700,7 @@ define( 'osgViewer/webgl-debug',[], function () {
             function makeLostContextFunctionWrapper( ctx, functionName ) {
                 var f = ctx[ functionName ];
                 return function () {
-                    // log("calling:" + functionName);
+                    // Notify.log("calling:" + functionName);
                     // Only call the functions if the context is not lost.
                     loseContextIfTime();
                     if ( !contextLost_ ) {
@@ -19517,7 +20957,7 @@ define( 'osgViewer/webgl-debug',[], function () {
              * @param {!WebGLRenderingContext} ctx The webgl context to wrap.
              * @param {!function(err, funcName, args): void} opt_onErrorFunc The function
              *     to call when gl.getError returns an error. If not specified the default
-             *     function calls console.log with a message.
+             *     function calls Notify.log with a message.
              */
             'makeDebugContext': makeDebugContext,
 
@@ -19674,28 +21114,67 @@ define( 'osgViewer/Viewer',[
     'osgViewer/stats'
 ], function ( Notify, MACROUTILS, UpdateVisitor, CullVisitor, osgUtil, View, RenderStage, StateGraph, Matrix, State, OrbitManipulator, EventProxy, WebGLUtils, WebGLDebugUtils, Stats ) {
 
-    ( function () {
 
-        // install an html console logger for mobile
-        var optionsURL = function () {
+    var OptionsDefault = {
+        'antialias': true,
+        'useDevicePixelRatio': true,
+        'fullscreen': true,
+        'enableFrustumCulling': false
+    };
+
+
+    var Options = function( defaults ) {
+
+        Object.keys( defaults ).forEach( function ( key ) {
+            this[ key ] = defaults[ key ];
+        }.bind( this ) );
+
+    };
+
+    Options.prototype = {
+        get: function( key ) {
+            return this[key];
+        },
+        getBoolean: function ( key ) {
+            var val = this.getString( key );
+            if ( val ) return Boolean( JSON.parse(val) );
+            return undefined;
+        },
+
+        getNumber: function ( key ) {
+            var val = this[ key ];
+            if ( val ) return Number( JSON.parse(val));
+            return undefined;
+        },
+
+        getString: function ( key ) {
+            var val = this[ key ];
+            if ( val ) return this[ key ].toString();
+            return undefined;
+        }
+
+    };
+
+    var OptionsURL = ( function () {
+        var options = {};
+        ( function ( options ) {
             var vars = [],
                 hash;
-            var hashes = window.location.href.slice( window.location.href.indexOf( '?' ) + 1 ).split( '&' );
+            var indexOptions = window.location.href.indexOf( '?' );
+            if ( indexOptions < 0 ) return;
+
+            var hashes = window.location.href.slice( indexOptions + 1 ).split( '&' );
             for ( var i = 0; i < hashes.length; i++ ) {
                 hash = hashes[ i ].split( '=' );
-                var element = hash[ 0 ].toLowerCase();
+                var element = hash[ 0 ];
                 vars.push( element );
                 var result = hash[ 1 ];
                 if ( result === undefined ) {
                     result = '1';
                 }
-                vars[ element ] = result.toLowerCase();
-
+                options[ element ] = result;
             }
-            return vars;
-        };
-
-        var options = optionsURL();
+        } )( options );
 
         if ( options.log !== undefined ) {
             var level = options.log.toLowerCase();
@@ -19747,25 +21226,27 @@ define( 'osgViewer/Viewer',[
             }
         }
 
+        return options;
     } )();
 
-    var Viewer = function ( canvas, options, error ) {
+    var Viewer = function ( canvas, userOptions, error ) {
         View.call( this );
 
-        if ( options === undefined ) {
-            options = {
-                antialias: true
-            };
+        // use default options
+        var options = new Options( OptionsDefault );
+        if ( userOptions ) {
+            // user options override by user options
+            MACROUTILS.objectMix( options, userOptions );
         }
+        // if url options override url options
+        MACROUTILS.objectMix( options, OptionsURL );
+
         this._options = options;
 
-        if ( this._options.fullscreen === undefined )
-            this._options.fullscreen = true;
-
         // #FIXME see tojiro's blog for webgl lost context stuffs
-        if ( options.SimulateWebGLLostContext ) {
+        if ( options.get( 'SimulateWebGLLostContext') ) {
             canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas( canvas );
-            canvas.loseContextInNCalls( options.SimulateWebGLLostContext );
+            canvas.loseContextInNCalls( options.get( 'SimulateWebGLLostContext' ) );
         }
 
         var gl = WebGLUtils.setupWebGL( canvas, options, error );
@@ -19780,40 +21261,37 @@ define( 'osgViewer/Viewer',[
         }, false );
 
 
-        if ( Notify.reportWebGLError || options.reportWebGLError ) {
+        if ( Notify.reportWebGLError || options.get( 'reportWebGLError') ) {
             gl = WebGLDebugUtils.makeDebugContext( gl );
         }
-
 
         if ( gl ) {
             this.setGraphicContext( gl );
             this.initWebGLCaps( gl );
 
-
             MACROUTILS.init();
-            this._canvas = canvas;
             this._frameRate = 60.0;
             osgUtil.UpdateVisitor = UpdateVisitor;
             osgUtil.CullVisitor = CullVisitor;
-            this._urlOptions = true;
 
             // default argument for mouse binding
-            var eventsBackend = this._options.EventBackend || {};
-            this._options.EventBackend = eventsBackend;
+            var defaultMouseEventNode = options.mouseEventNode || canvas;
 
-            eventsBackend.StandardMouseKeyboard = this._options.EventBackend.StandardMouseKeyboard || {};
-            var mouseEventNode = eventsBackend.StandardMouseKeyboard.mouseEventNode || options.mouseEventNode || canvas;
+            var eventsBackend = options.EventBackend || {};
+            if ( !options.EventBackend )  options.EventBackend = eventsBackend;
+            eventsBackend.StandardMouseKeyboard = options.EventBackend.StandardMouseKeyboard || {};
+            var mouseEventNode = eventsBackend.StandardMouseKeyboard.mouseEventNode || defaultMouseEventNode;
             eventsBackend.StandardMouseKeyboard.mouseEventNode = mouseEventNode;
             eventsBackend.StandardMouseKeyboard.keyboardEventNode = eventsBackend.StandardMouseKeyboard.keyboardEventNode || document;
 
             // hammer
             eventsBackend.Hammer = eventsBackend.Hammer || {};
-            eventsBackend.Hammer.eventNode = eventsBackend.Hammer.eventNode || options.mouseEventNode || canvas;
+            eventsBackend.Hammer.eventNode = eventsBackend.Hammer.eventNode || defaultMouseEventNode;
 
             // gamepade
             eventsBackend.GamePad = eventsBackend.GamePad || {};
 
-            this.setUpView( canvas );
+            this.setUpView( gl.canvas );
         } else {
             throw 'No WebGL implementation found';
         }
@@ -19840,13 +21318,12 @@ define( 'osgViewer/Viewer',[
 
             this._updateVisitor = new osgUtil.UpdateVisitor();
             this._cullVisitor = new osgUtil.CullVisitor();
-
+            // It should be done in RenderStage
+            this._cullVisitor.setCamera( this.getCamera() );
             this._renderStage = new RenderStage();
             this._stateGraph = new StateGraph();
 
-            if ( this._urlOptions ) {
-                this.parseOptions();
-            }
+            this.parseOptions();
 
             this.getCamera().setClearColor( [ 0.0, 0.0, 0.0, 0.0 ] );
             this._eventProxy = this.initEventProxy( this._options );
@@ -19857,45 +21334,11 @@ define( 'osgViewer/Viewer',[
             // in View or a new Renderer object
             return this._state;
         },
+
         parseOptions: function () {
 
-            var optionsURL = function () {
-                var vars = [],
-                    hash;
-                var hashes = window.location.href.slice( window.location.href.indexOf( '?' ) + 1 ).split( '&' );
-                for ( var i = 0; i < hashes.length; i++ ) {
-                    hash = hashes[ i ].split( '=' );
-                    var element = hash[ 0 ].toLowerCase();
-                    vars.push( element );
-                    var result = hash[ 1 ];
-                    if ( result === undefined ) {
-                        result = '1';
-                    }
-                    vars[ element ] = result.toLowerCase();
-
-                }
-                return vars;
-            };
-
-            var options = optionsURL();
-
-            if ( options.stats === '1' ) {
-                this.initStats( options );
-            }
-
-            var gl = this.getGraphicContext();
-            // not the best way to do it
-            if ( options['depth_test'] === '0' ) {
-                this.getGraphicContext().disable( gl.DEPTH_TEST );
-            }
-            if ( options['blend'] === '0' ) {
-                this.getGraphicContext().disable( gl.BLEND );
-            }
-            if ( options['cull_face'] === '0' ) {
-                this.getGraphicContext().disable( gl.CULL_FACE );
-            }
-            if ( options['light'] === '0' ) {
-                this.setLightingMode( View.LightingMode.NO_LIGHT );
+            if ( this._options.stats ) {
+                this.initStats( this._options );
             }
 
         },
@@ -20043,13 +21486,23 @@ define( 'osgViewer/Viewer',[
             // update bound
             camera.getBound();
 
-            var identity = Matrix.makeIdentity( [] );
+            var identity = Matrix.create();
             this._cullVisitor.pushModelviewMatrix( identity );
-
-            if ( this._light ) {
-                this._cullVisitor.addPositionedAttribute( this._light );
+            switch ( this.getLightingMode() )
+            {
+                case View.LightingMode.HEADLIGHT:
+                    if ( this._light ) {
+                        this._cullVisitor.addPositionedAttribute( this._light );
+                    }
+                    break;
+                case View.LightingMode.SKY_LIGHT:
+                    if ( this._light ) {
+                        this._cullVisitor.addPositionedAttribute( this._light, camera.getViewMatrix() );
+                    }
+                    break;
+                default:
+                    break;
             }
-
             this._cullVisitor.pushModelviewMatrix( camera.getViewMatrix() );
             this._cullVisitor.pushViewport( camera.getViewport() );
             this._cullVisitor.setCullSettings( camera );
@@ -20059,6 +21512,13 @@ define( 'osgViewer/Viewer',[
             this._renderStage.setClearMask( camera.getClearMask() );
             this._renderStage.setViewport( camera.getViewport() );
 
+            // Check if Frustum culling is enabled to calculate the clip planes
+            if ( this._options.getBoolean( 'enableFrustumCulling' ) === true ){
+                this._cullVisitor.setEnableFrustumCulling ( true );
+                var mvp = Matrix.create();
+                Matrix.mult( camera.getProjectionMatrix(), camera.getViewMatrix(), mvp );
+                this._cullVisitor.getFrustumPlanes( mvp, this._cullVisitor._frustum );
+            }
             //CullVisitor.prototype.handleCullCallbacksAndTraverse.call(this._cullVisitor,camera);
             this.getScene().accept( this._cullVisitor );
 
@@ -20080,6 +21540,9 @@ define( 'osgViewer/Viewer',[
         },
 
         frame: function () {
+
+            this.updateViewport();
+
             var frameTime, beginFrameTime;
             frameTime = MACROUTILS.performance.now();
             if ( this._lastFrameTime === undefined ) {
@@ -20100,7 +21563,7 @@ define( 'osgViewer/Viewer',[
 
             // setup framestamp
             this._updateVisitor.setFrameStamp( frameStamp );
-            //this._cullVisitor.setFrameStamp(this.getFrameStamp());
+            this._cullVisitor.setFrameStamp( frameStamp );
 
             // update inputs devices
             this.updateEventProxy( this._eventProxy, frameStamp );
@@ -20176,44 +21639,31 @@ define( 'osgViewer/Viewer',[
             }
 
             this.setManipulator( manipulator );
+       },
 
-            var self = this;
-            var resize = function ( /*ev*/ ) {
-                var w, h;
-                if ( self._options.fullscreen === true ) {
-                    w = window.innerWidth;
-                    h = window.innerHeight;
-                } else {
-                    w = self._canvas.clientWidth;
-                    h = self._canvas.clientHeight;
-                }
-                if ( w < 1 )
-                    w = 1;
-                if ( h < 1 )
-                    h = 1;
 
-                var camera = self.getCamera();
-                var vp = camera.getViewport();
+        // updateViewport
+        updateViewport: function() {
 
-                var prevWidth = vp.width();
-                var prevHeight = vp.height();
-                if ( self._options.fullscreen === true ) {
-                    self._canvas.width = w;
-                    self._canvas.height = h;
-                    self._canvas.style.width = w;
-                    self._canvas.style.height = h;
-                }
-                Notify.debug( 'canvas resize ' + prevWidth + 'x' + prevHeight + ' to ' + w + 'x' + h );
-                var widthChangeRatio = w / prevWidth;
-                var heightChangeRatio = h / prevHeight;
-                var aspectRatioChange = widthChangeRatio / heightChangeRatio;
-                vp.setViewport( vp.x() * widthChangeRatio, vp.y() * heightChangeRatio, vp.width() * widthChangeRatio, vp.height() * heightChangeRatio );
+            var gl = this.getGraphicContext();
+            var canvas = gl.canvas;
 
-                if ( aspectRatioChange !== 1.0 ) {
-                    Matrix.preMult( camera.getProjectionMatrix(), Matrix.makeScale( 1.0 / aspectRatioChange, 1.0, 1.0, [] ) );
-                }
-            };
-            window.addEventListener( 'resize', resize, true );
+            this.computeCanvasSize( canvas );
+
+            var camera = this.getCamera();
+            var vp = camera.getViewport();
+
+            var prevWidth = vp.width();
+            var prevHeight = vp.height();
+
+            var widthChangeRatio = canvas.width / prevWidth;
+            var heightChangeRatio = canvas.height / prevHeight;
+            var aspectRatioChange = widthChangeRatio / heightChangeRatio;
+            vp.setViewport( vp.x() * widthChangeRatio, vp.y() * heightChangeRatio, vp.width() * widthChangeRatio, vp.height() * heightChangeRatio );
+
+            if ( aspectRatioChange !== 1.0 ) {
+                Matrix.preMult( camera.getProjectionMatrix(), Matrix.makeScale( 1.0 / aspectRatioChange, 1.0, 1.0, Matrix.create() ) );
+            }
         },
 
         // intialize all input devices
@@ -20307,6 +21757,7 @@ define( 'OSG',[
 
     return openSceneGraph;
 } );
+
     //Register in the values from the outer closure for common dependencies
     //as local almond modules
     define('Q', function () {

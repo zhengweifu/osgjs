@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -700,7 +730,10 @@
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._node !== <span class="hljs-literal">undefined</span> ) {
                 <span class="hljs-keyword">var</span> bs = <span class="hljs-keyword">this</span>._node.getBound();
                 <span class="hljs-keyword">this</span>._radius = bs.radius();
-                <span class="hljs-keyword">this</span>._eye = [ <span class="hljs-number">0</span>, -bs.radius() * <span class="hljs-number">1.5</span>, <span class="hljs-number">0</span> ];
+                <span class="hljs-keyword">var</span> eye = <span class="hljs-keyword">this</span>._eye;
+                eye[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0.0</span>;
+                eye[ <span class="hljs-number">1</span> ] = -bs.radius();
+                eye[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0.0</span>;
             }
         },
         init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
@@ -712,8 +745,7 @@
             <span class="hljs-keyword">this</span>._side = <span class="hljs-keyword">new</span> OrbitManipulator.Interpolator( <span class="hljs-number">1</span> );
             <span class="hljs-keyword">this</span>._lookPosition = <span class="hljs-keyword">new</span> OrbitManipulator.Interpolator( <span class="hljs-number">2</span> );
             <span class="hljs-keyword">this</span>._stepFactor = <span class="hljs-number">1.0</span>; <span class="hljs-comment">// meaning radius*stepFactor to move</span>
-            <span class="hljs-keyword">this</span>._target = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">3</span> );
-            Vec3.init( <span class="hljs-keyword">this</span>._target );
+            <span class="hljs-keyword">this</span>._target = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
             <span class="hljs-keyword">this</span>._angleVertical = <span class="hljs-number">0.0</span>;
             <span class="hljs-keyword">this</span>._angleHorizontal = <span class="hljs-number">0.0</span>;</pre></div></div>
             
@@ -730,12 +762,12 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._tmpComputeRotation1 = Matrix.makeIdentity( [] );
-            <span class="hljs-keyword">this</span>._tmpComputeRotation2 = Matrix.makeIdentity( [] );
-            <span class="hljs-keyword">this</span>._tmpComputeRotation3 = Matrix.makeIdentity( [] );
-            <span class="hljs-keyword">this</span>._tmpGetTargetDir = Vec3.init( [] );
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._tmpComputeRotation1 = Matrix.create();
+            <span class="hljs-keyword">this</span>._tmpComputeRotation2 = Matrix.create();
+            <span class="hljs-keyword">this</span>._tmpComputeRotation3 = Matrix.create();
+            <span class="hljs-keyword">this</span>._tmpGetTargetDir = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
 
-            <span class="hljs-keyword">this</span>._rotBase = Matrix.makeIdentity( [] );
+            <span class="hljs-keyword">this</span>._rotBase = Matrix.create();
 
             <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
 
@@ -764,7 +796,7 @@
 
         getTarget: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( pos, distance )</span> {</span>
             <span class="hljs-keyword">if</span> ( distance === <span class="hljs-literal">undefined</span> ) {
-                distance = <span class="hljs-number">25</span>;
+                distance = <span class="hljs-number">25.0</span>;
             }
             <span class="hljs-keyword">var</span> dir = Vec3.mult( <span class="hljs-keyword">this</span>._direction, distance, <span class="hljs-keyword">this</span>._tmpGetTargetDir );
             Vec3.add( <span class="hljs-keyword">this</span>._eye, dir, pos );
@@ -776,10 +808,10 @@
             <span class="hljs-keyword">this</span>._target[ <span class="hljs-number">2</span> ] = pos[ <span class="hljs-number">2</span> ];
             <span class="hljs-keyword">var</span> dir = <span class="hljs-keyword">this</span>._tmpGetTargetDir;
             Vec3.sub( pos, <span class="hljs-keyword">this</span>._eye, dir );
-            dir[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0</span>;
+            dir[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0.0</span>;
             Vec3.normalize( dir, dir );
             <span class="hljs-keyword">this</span>._angleHorizontal = <span class="hljs-built_in">Math</span>.acos( dir[ <span class="hljs-number">1</span> ] );
-            <span class="hljs-keyword">if</span> ( dir[ <span class="hljs-number">0</span> ] &lt; <span class="hljs-number">0</span> ) {
+            <span class="hljs-keyword">if</span> ( dir[ <span class="hljs-number">0</span> ] &lt; <span class="hljs-number">0.0</span> ) {
                 <span class="hljs-keyword">this</span>._angleHorizontal = -<span class="hljs-keyword">this</span>._angleHorizontal;
             }
             Vec3.sub( pos, <span class="hljs-keyword">this</span>._eye, dir );
@@ -799,18 +831,21 @@
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._forward;
         },
 
-        computeRotation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( dx, dy )</span> {</span>
-            <span class="hljs-keyword">this</span>._angleVertical += dy * <span class="hljs-number">0.01</span>;
-            <span class="hljs-keyword">this</span>._angleHorizontal -= dx * <span class="hljs-number">0.01</span>;
+        computeRotation: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> upy = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> upz = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( dx, dy )</span> {</span>
+                <span class="hljs-keyword">this</span>._angleVertical += dy * <span class="hljs-number">0.01</span>;
+                <span class="hljs-keyword">this</span>._angleHorizontal -= dx * <span class="hljs-number">0.01</span>;
 
-            <span class="hljs-keyword">var</span> first = <span class="hljs-keyword">this</span>._tmpComputeRotation1;
-            <span class="hljs-keyword">var</span> second = <span class="hljs-keyword">this</span>._tmpComputeRotation2;
-            <span class="hljs-keyword">var</span> rotMat = <span class="hljs-keyword">this</span>._tmpComputeRotation3;
-            Matrix.makeRotate( <span class="hljs-keyword">this</span>._angleVertical, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, first );
-            Matrix.makeRotate( <span class="hljs-keyword">this</span>._angleHorizontal, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, second );
-            Matrix.mult( second, first, rotMat );
+                <span class="hljs-keyword">var</span> first = <span class="hljs-keyword">this</span>._tmpComputeRotation1;
+                <span class="hljs-keyword">var</span> second = <span class="hljs-keyword">this</span>._tmpComputeRotation2;
+                <span class="hljs-keyword">var</span> rotMat = <span class="hljs-keyword">this</span>._tmpComputeRotation3;
+                Matrix.makeRotate( <span class="hljs-keyword">this</span>._angleVertical, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, first );
+                Matrix.makeRotate( <span class="hljs-keyword">this</span>._angleHorizontal, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, second );
+                Matrix.mult( second, first, rotMat );
 
-            <span class="hljs-keyword">var</span> rotBase = <span class="hljs-keyword">this</span>._rotBase;</pre></div></div>
+                <span class="hljs-keyword">var</span> rotBase = <span class="hljs-keyword">this</span>._rotBase;</pre></div></div>
             
         </li>
         
@@ -825,14 +860,14 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            Matrix.preMult( rotMat, rotBase );
+            <div class="content"><div class='highlight'><pre>                Matrix.preMult( rotMat, rotBase );
 
-            <span class="hljs-keyword">this</span>._direction = Matrix.transformVec3(rotMat, [ <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span> ], <span class="hljs-keyword">this</span>._direction );
-            Vec3.normalize( <span class="hljs-keyword">this</span>._direction, <span class="hljs-keyword">this</span>._direction );
+                <span class="hljs-keyword">this</span>._direction = Matrix.transformVec3( rotMat, upy, <span class="hljs-keyword">this</span>._direction );
+                Vec3.normalize( <span class="hljs-keyword">this</span>._direction, <span class="hljs-keyword">this</span>._direction );
 
-            <span class="hljs-keyword">this</span>._up = Matrix.transformVec3( rotMat, [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> ], <span class="hljs-keyword">this</span>._up );
-        },
-
+                Matrix.transformVec3( rotMat, upz, <span class="hljs-keyword">this</span>._up );
+            };
+        } )(),
         reset: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">this</span>.init();
         },
@@ -841,40 +876,40 @@
             <span class="hljs-keyword">this</span>._stepFactor = t;
         },
 
-        update: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( nv )</span> {</span>
-            <span class="hljs-keyword">var</span> t = nv.getFrameStamp().getSimulationTime();
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._lastUpdate === <span class="hljs-literal">undefined</span> ) {
+        update: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> vec = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( nv )</span> {</span>
+                <span class="hljs-keyword">var</span> t = nv.getFrameStamp().getSimulationTime();
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._lastUpdate === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">this</span>._lastUpdate = t;
+                }
+                <span class="hljs-keyword">var</span> dt = t - <span class="hljs-keyword">this</span>._lastUpdate;
                 <span class="hljs-keyword">this</span>._lastUpdate = t;
-            }
-            <span class="hljs-keyword">var</span> dt = t - <span class="hljs-keyword">this</span>._lastUpdate;
-            <span class="hljs-keyword">this</span>._lastUpdate = t;
 
-            <span class="hljs-keyword">this</span>._forward.update();
-            <span class="hljs-keyword">this</span>._side.update();
-            <span class="hljs-keyword">var</span> delta = <span class="hljs-keyword">this</span>._lookPosition.update();
+                <span class="hljs-keyword">this</span>._forward.update();
+                <span class="hljs-keyword">this</span>._side.update();
+                <span class="hljs-keyword">var</span> delta = <span class="hljs-keyword">this</span>._lookPosition.update();
 
-            <span class="hljs-keyword">this</span>.computeRotation( -delta[ <span class="hljs-number">0</span> ] * <span class="hljs-number">0.5</span>, -delta[ <span class="hljs-number">1</span> ] * <span class="hljs-number">0.5</span> );
+                <span class="hljs-keyword">this</span>.computeRotation( -delta[ <span class="hljs-number">0</span> ] * <span class="hljs-number">0.5</span>, -delta[ <span class="hljs-number">1</span> ] * <span class="hljs-number">0.5</span> );
 
-            <span class="hljs-keyword">var</span> vec = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">2</span> );
-            vec[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._forward.getCurrent()[ <span class="hljs-number">0</span> ];
-            vec[ <span class="hljs-number">1</span> ] = <span class="hljs-keyword">this</span>._side.getCurrent()[ <span class="hljs-number">0</span> ];
-            <span class="hljs-keyword">if</span> ( Vec2.length( vec ) &gt; <span class="hljs-number">1.0</span> ) {
-                Vec2.normalize( vec, vec );
-            }
-            <span class="hljs-keyword">var</span> factor = <span class="hljs-keyword">this</span>._radius;
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._radius &lt; <span class="hljs-number">1e-3</span> ) {
-                factor = <span class="hljs-number">1.0</span>;
-            }
-            <span class="hljs-keyword">this</span>.moveForward( vec[ <span class="hljs-number">0</span> ] * factor * <span class="hljs-keyword">this</span>._stepFactor * dt );
-            <span class="hljs-keyword">this</span>.strafe( vec[ <span class="hljs-number">1</span> ] * factor * <span class="hljs-keyword">this</span>._stepFactor * dt );
+                vec[ <span class="hljs-number">0</span> ] = <span class="hljs-keyword">this</span>._forward.getCurrent()[ <span class="hljs-number">0</span> ];
+                vec[ <span class="hljs-number">1</span> ] = <span class="hljs-keyword">this</span>._side.getCurrent()[ <span class="hljs-number">0</span> ];
+                <span class="hljs-keyword">if</span> ( Vec2.length( vec ) &gt; <span class="hljs-number">1.0</span> ) {
+                    Vec2.normalize( vec, vec );
+                }
+                <span class="hljs-keyword">var</span> factor = <span class="hljs-keyword">this</span>._radius;
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._radius &lt; <span class="hljs-number">1e-3</span> ) {
+                    factor = <span class="hljs-number">1.0</span>;
+                }
+                <span class="hljs-keyword">this</span>.moveForward( vec[ <span class="hljs-number">0</span> ] * factor * <span class="hljs-keyword">this</span>._stepFactor * dt );
+                <span class="hljs-keyword">this</span>.strafe( vec[ <span class="hljs-number">1</span> ] * factor * <span class="hljs-keyword">this</span>._stepFactor * dt );
 
-            <span class="hljs-keyword">var</span> target = Vec3.add( <span class="hljs-keyword">this</span>._eye, <span class="hljs-keyword">this</span>._direction, [] );
-            <span class="hljs-keyword">this</span>._target = target;
+                Vec3.add( <span class="hljs-keyword">this</span>._eye, <span class="hljs-keyword">this</span>._direction, <span class="hljs-keyword">this</span>._target );
 
-            Matrix.makeLookAt( <span class="hljs-keyword">this</span>._eye, target, <span class="hljs-keyword">this</span>._up, <span class="hljs-keyword">this</span>._inverseMatrix );
-        },
-
-        setRotationBaseFromQuat:<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( quat )</span>{</span>
+                Matrix.makeLookAt( <span class="hljs-keyword">this</span>._eye, <span class="hljs-keyword">this</span>._target, <span class="hljs-keyword">this</span>._up, <span class="hljs-keyword">this</span>._inverseMatrix );
+            };
+        } )(),
+        setRotationBaseFromQuat: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( quat )</span> {</span>
             Matrix.makeRotateFromQuat( quat, <span class="hljs-keyword">this</span>._rotBase );
         },
 
@@ -882,17 +917,24 @@
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._inverseMatrix;
         },
 
-        moveForward: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( distance )</span> {</span>
-            <span class="hljs-keyword">var</span> d = Vec3.mult( Vec3.normalize( <span class="hljs-keyword">this</span>._direction, [] ), distance, [] );
-            <span class="hljs-keyword">this</span>._eye = Vec3.add( <span class="hljs-keyword">this</span>._eye, d, [] );
-        },
+        moveForward: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> tmp = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( distance )</span> {</span>
+                Vec3.normalize( <span class="hljs-keyword">this</span>._direction, tmp );
+                Vec3.mult( tmp, distance, tmp );
+                Vec3.add( <span class="hljs-keyword">this</span>._eye, tmp, <span class="hljs-keyword">this</span>._eye );
+            };
+        } )(),
 
-        strafe: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( distance )</span> {</span>
-            <span class="hljs-keyword">var</span> cx = Vec3.cross( <span class="hljs-keyword">this</span>._direction, <span class="hljs-keyword">this</span>._up, [] );
-            <span class="hljs-keyword">var</span> d = Vec3.mult( Vec3.normalize( cx, cx ), distance, [] );
-            <span class="hljs-keyword">this</span>._eye = Vec3.add( <span class="hljs-keyword">this</span>._eye, d, [] );
-        }
-
+        strafe: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> tmp = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( distance )</span> {</span>
+                Vec3.cross( <span class="hljs-keyword">this</span>._direction, <span class="hljs-keyword">this</span>._up, tmp );
+                Vec3.normalize( tmp, tmp );
+                Vec3.mult( tmp, distance, tmp );
+                Vec3.add( <span class="hljs-keyword">this</span>._eye, tmp, <span class="hljs-keyword">this</span>._eye );
+            };
+        } )()
     } );
 
     ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>

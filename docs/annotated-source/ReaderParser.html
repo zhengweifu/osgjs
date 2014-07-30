@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -707,6 +737,7 @@
 
     ReaderParser.parseSceneGraph = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node, options )</span> {</span>
         <span class="hljs-keyword">if</span> ( node.Version !== <span class="hljs-literal">undefined</span> &amp;&amp; node.Version &gt; <span class="hljs-number">0</span> ) {
+            MACROUTILS.time(<span class="hljs-string">'osgjs.metric:ReaderParser.parseSceneGraph'</span>);
 
             <span class="hljs-keyword">var</span> getPropertyValue = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( o )</span> {</span>
                 <span class="hljs-keyword">var</span> props = window.Object.keys( o );
@@ -740,12 +771,17 @@
             
             <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">var</span> opt = MACROUTILS.objectMix( MACROUTILS.objectMix( {}, ReaderParser.registry().getOptions() ), options || {} );
                 input.setOptions( opt );
-                <span class="hljs-keyword">return</span> input.readObject();
+                <span class="hljs-keyword">var</span> object = input.readObject();
+                MACROUTILS.timeEnd(<span class="hljs-string">'osgjs.metric:ReaderParser.parseSceneGraph'</span>);
+                <span class="hljs-keyword">return</span> object;
             } <span class="hljs-keyword">else</span> {
                 Notify.log( <span class="hljs-string">'can\'t parse scenegraph '</span> + node );
             }
         } <span class="hljs-keyword">else</span> {
-            <span class="hljs-keyword">return</span> ReaderParser.parseSceneGraphDeprecated( node );
+            MACROUTILS.time(<span class="hljs-string">'osgjs.metric:ReaderParser.parseSceneGraphDeprecated'</span>);
+            <span class="hljs-keyword">var</span> nodeOld = ReaderParser.parseSceneGraphDeprecated( node );
+            MACROUTILS.timeEnd(<span class="hljs-string">'osgjs.metric:ReaderParser.parseSceneGraphDeprecated'</span>);
+            <span class="hljs-keyword">return</span> nodeOld;
         }
         <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
     };
@@ -895,7 +931,7 @@
             setName( newnode, node );
 
             MACROUTILS.extend( newnode, node );
-            newnode.setMatrix( Matrix.copy( matrix ) );
+            Matrix.copy( matrix, newnode.getMatrix() );
             node = newnode;
         }
 
@@ -904,7 +940,7 @@
             newnode = <span class="hljs-keyword">new</span> Projection();
             setName( newnode, node );
             MACROUTILS.extend( newnode, node );
-            newnode.setProjectionMatrix( Matrix.copy( projection ) );
+            Matrix.copy( projection, newnode.setProjectionMatrix() );
             node = newnode;
         }</pre></div></div>
             

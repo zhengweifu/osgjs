@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -694,14 +724,14 @@
         convertLatLongHeightToXYZ: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( latitude, longitude, height, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
                 Notify.warn( <span class="hljs-string">'deprecated, use this signature convertLatLongHeightToXYZ( latitude, longitude, height, result )'</span> );
-                result = [];
+                result = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
             }
             <span class="hljs-keyword">var</span> sinLatitude = <span class="hljs-built_in">Math</span>.sin( latitude );
             <span class="hljs-keyword">var</span> cosLatitude = <span class="hljs-built_in">Math</span>.cos( latitude );
             <span class="hljs-keyword">var</span> N = <span class="hljs-keyword">this</span>._radiusEquator / <span class="hljs-built_in">Math</span>.sqrt( <span class="hljs-number">1.0</span> - <span class="hljs-keyword">this</span>._eccentricitySquared * sinLatitude * sinLatitude );
             <span class="hljs-keyword">var</span> X = ( N + height ) * cosLatitude * <span class="hljs-built_in">Math</span>.cos( longitude );
             <span class="hljs-keyword">var</span> Y = ( N + height ) * cosLatitude * <span class="hljs-built_in">Math</span>.sin( longitude );
-            <span class="hljs-keyword">var</span> Z = ( N * ( <span class="hljs-number">1</span> - <span class="hljs-keyword">this</span>._eccentricitySquared ) + height ) * sinLatitude;
+            <span class="hljs-keyword">var</span> Z = ( N * ( <span class="hljs-number">1.0</span> - <span class="hljs-keyword">this</span>._eccentricitySquared ) + height ) * sinLatitude;
             result[ <span class="hljs-number">0</span> ] = X;
             result[ <span class="hljs-number">1</span> ] = Y;
             result[ <span class="hljs-number">2</span> ] = Z;
@@ -710,7 +740,7 @@
         convertXYZToLatLongHeight: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( X, Y, Z, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
                 Notify.warn( <span class="hljs-string">'deprecated, use this signature convertXYZToLatLongHeight( X,  Y,  Z , result)'</span> );
-                result = [];
+                result = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
             }</pre></div></div>
             
         </li>
@@ -740,7 +770,9 @@
             <span class="hljs-keyword">var</span> sinLatitude = <span class="hljs-built_in">Math</span>.sin( latitude );
             <span class="hljs-keyword">var</span> N = <span class="hljs-keyword">this</span>._radiusEquator / <span class="hljs-built_in">Math</span>.sqrt( <span class="hljs-number">1.0</span> - <span class="hljs-keyword">this</span>._eccentricitySquared * sinLatitude * sinLatitude );
 
-            <span class="hljs-keyword">var</span> height = p / <span class="hljs-built_in">Math</span>.cos( latitude ) - N;
+            <span class="hljs-keyword">var</span> cosLat = <span class="hljs-built_in">Math</span>.cos( latitude );
+            <span class="hljs-keyword">if</span> ( cosLat === <span class="hljs-number">0</span>) cosLat = <span class="hljs-number">1</span>;
+            <span class="hljs-keyword">var</span> height = p / cosLat - N;
             result[ <span class="hljs-number">0</span> ] = latitude;
             result[ <span class="hljs-number">1</span> ] = longitude;
             result[ <span class="hljs-number">2</span> ] = height;
@@ -790,7 +822,7 @@
 
         computeCoefficients: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">var</span> flattening = ( <span class="hljs-keyword">this</span>._radiusEquator - <span class="hljs-keyword">this</span>._radiusPolar ) / <span class="hljs-keyword">this</span>._radiusEquator;
-            <span class="hljs-keyword">this</span>._eccentricitySquared = <span class="hljs-number">2</span> * flattening - flattening * flattening;
+            <span class="hljs-keyword">this</span>._eccentricitySquared = <span class="hljs-number">2.0</span> * flattening - flattening * flattening;
         },
         computeLocalToWorldTransformFromLatLongHeight: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( latitude, longitude, height, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
@@ -804,11 +836,15 @@
         },
         computeLocalToWorldTransformFromXYZ: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( X, Y, Z )</span> {</span>
             <span class="hljs-keyword">var</span> lla = <span class="hljs-keyword">this</span>.convertXYZToLatLongHeight( X, Y, Z );
-            <span class="hljs-keyword">var</span> m = Matrix.makeTranslate( X, Y, Z );
+            <span class="hljs-keyword">var</span> m = Matrix.makeTranslate( X, Y, Z, Matrix.create() );
             <span class="hljs-keyword">this</span>.computeCoordinateFrame( lla[ <span class="hljs-number">0</span> ], lla[ <span class="hljs-number">1</span> ], m );
             <span class="hljs-keyword">return</span> m;
         },
-        computeCoordinateFrame: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( latitude, longitude, localToWorld )</span> {</span></pre></div></div>
+        computeCoordinateFrame: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> up = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> east = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> north = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( latitude, longitude, localToWorld )</span> {</span></pre></div></div>
             
         </li>
         
@@ -823,7 +859,9 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> up = [ <span class="hljs-built_in">Math</span>.cos( longitude ) * <span class="hljs-built_in">Math</span>.cos( latitude ), <span class="hljs-built_in">Math</span>.sin( longitude ) * <span class="hljs-built_in">Math</span>.cos( latitude ), <span class="hljs-built_in">Math</span>.sin( latitude ) ];</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                up[ <span class="hljs-number">0</span> ] = <span class="hljs-built_in">Math</span>.cos( longitude ) * <span class="hljs-built_in">Math</span>.cos( latitude );
+                up[ <span class="hljs-number">1</span> ] = <span class="hljs-built_in">Math</span>.sin( longitude ) * <span class="hljs-built_in">Math</span>.cos( latitude );
+                up[ <span class="hljs-number">2</span> ] = <span class="hljs-built_in">Math</span>.sin( latitude );</pre></div></div>
             
         </li>
         
@@ -838,7 +876,8 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> east = [ -<span class="hljs-built_in">Math</span>.sin( longitude ), <span class="hljs-built_in">Math</span>.cos( longitude ), <span class="hljs-number">0</span> ];</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                east[ <span class="hljs-number">0</span> ] = -<span class="hljs-built_in">Math</span>.sin( longitude );
+                east[ <span class="hljs-number">1</span> ] = -<span class="hljs-built_in">Math</span>.cos( longitude );</pre></div></div>
             
         </li>
         
@@ -853,7 +892,7 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> north = Vec3.cross( up, east, [] );</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                Vec3.cross( up, east, north );</pre></div></div>
             
         </li>
         
@@ -868,18 +907,19 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            Matrix.set( localToWorld, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, east[ <span class="hljs-number">0</span> ] );
-            Matrix.set( localToWorld, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, east[ <span class="hljs-number">1</span> ] );
-            Matrix.set( localToWorld, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>, east[ <span class="hljs-number">2</span> ] );
+            <div class="content"><div class='highlight'><pre>                Matrix.set( localToWorld, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, east[ <span class="hljs-number">0</span> ] );
+                Matrix.set( localToWorld, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, east[ <span class="hljs-number">1</span> ] );
+                Matrix.set( localToWorld, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>, east[ <span class="hljs-number">2</span> ] );
 
-            Matrix.set( localToWorld, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, north[ <span class="hljs-number">0</span> ] );
-            Matrix.set( localToWorld, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, north[ <span class="hljs-number">1</span> ] );
-            Matrix.set( localToWorld, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, north[ <span class="hljs-number">2</span> ] );
+                Matrix.set( localToWorld, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, north[ <span class="hljs-number">0</span> ] );
+                Matrix.set( localToWorld, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, north[ <span class="hljs-number">1</span> ] );
+                Matrix.set( localToWorld, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, north[ <span class="hljs-number">2</span> ] );
 
-            Matrix.set( localToWorld, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>, up[ <span class="hljs-number">0</span> ] );
-            Matrix.set( localToWorld, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, up[ <span class="hljs-number">1</span> ] );
-            Matrix.set( localToWorld, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, up[ <span class="hljs-number">2</span> ] );
-        }
+                Matrix.set( localToWorld, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>, up[ <span class="hljs-number">0</span> ] );
+                Matrix.set( localToWorld, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, up[ <span class="hljs-number">1</span> ] );
+                Matrix.set( localToWorld, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, up[ <span class="hljs-number">2</span> ] );
+            };
+        } )()
     };
 
     <span class="hljs-keyword">return</span> EllipsoidModel;

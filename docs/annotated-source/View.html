@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -672,8 +702,11 @@
     <span class="hljs-string">'osg/Viewport'</span>,
     <span class="hljs-string">'osg/Matrix'</span>,
     <span class="hljs-string">'osg/Light'</span>,
+    <span class="hljs-string">'osg/WebGLCaps'</span>,
     <span class="hljs-string">'osgUtil/IntersectVisitor'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Camera, Node, FrameStamp, Material, Depth, BlendFunc, CullFace, Viewport, Matrix, Light, IntersectVisitor )</span> {</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Camera, Node, FrameStamp, Material, Depth, BlendFunc, CullFace, Viewport, Matrix, Light, WebGLCaps, IntersectVisitor )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
 
     <span class="hljs-keyword">var</span> View = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
         <span class="hljs-keyword">this</span>._graphicContext = <span class="hljs-literal">undefined</span>;
@@ -683,6 +716,8 @@
         <span class="hljs-keyword">this</span>._frameStamp = <span class="hljs-keyword">new</span> FrameStamp();
         <span class="hljs-keyword">this</span>._lightingMode = <span class="hljs-literal">undefined</span>;
         <span class="hljs-keyword">this</span>._manipulator = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._webGLCaps = <span class="hljs-literal">undefined</span>;
+
 
         <span class="hljs-keyword">this</span>.setLightingMode( View.LightingMode.HEADLIGHT );
 
@@ -705,17 +740,65 @@
         getGraphicContext: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._graphicContext;
         },
+        getWebGLCaps: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._webGLCaps;
+        },
+        initWebGLCaps: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( gl )</span> {</span>
+            <span class="hljs-keyword">this</span>._webGLCaps = <span class="hljs-keyword">new</span> WebGLCaps();
+            <span class="hljs-keyword">this</span>._webGLCaps.init( gl );
+        },
+
+        computeCanvasSize: ( <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> canvasWidth = <span class="hljs-number">0</span>;
+            <span class="hljs-keyword">var</span> canvasHeight = <span class="hljs-number">0</span>;
+
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( canvas )</span> {</span>
+
+                <span class="hljs-keyword">var</span> clientWidth, clientHeight;
+                clientWidth = canvas.clientWidth;
+                clientHeight = canvas.clientHeight;
+
+                <span class="hljs-keyword">if</span> ( clientWidth &lt; <span class="hljs-number">1</span> ) clientWidth = <span class="hljs-number">1</span>;
+                <span class="hljs-keyword">if</span> ( clientHeight &lt; <span class="hljs-number">1</span> ) clientHeight = <span class="hljs-number">1</span>;
+
+                <span class="hljs-keyword">var</span> devicePixelRatio = <span class="hljs-number">1</span>;
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._options.getBoolean( <span class="hljs-string">'useDevicePixelRatio'</span> ) ) {
+                    devicePixelRatio = window.devicePixelRatio || <span class="hljs-number">1</span>;
+                }
+
+                <span class="hljs-keyword">var</span> widthPixel = clientWidth * devicePixelRatio;
+                <span class="hljs-keyword">var</span> heightPixel = clientHeight * devicePixelRatio;
+
+                <span class="hljs-keyword">if</span> ( canvasWidth !== widthPixel ) {
+                    canvas.width = widthPixel;
+                    canvasWidth = widthPixel;
+                }
+
+                <span class="hljs-keyword">if</span> ( canvasHeight !== heightPixel ) {
+                    canvas.height = heightPixel;
+                    canvasHeight = heightPixel;
+                }
+
+            }; })(),
+
         setUpView: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( canvas )</span> {</span>
-            <span class="hljs-keyword">var</span> width = canvas.width !== <span class="hljs-number">0</span> ? canvas.width : <span class="hljs-number">800</span>;
-            <span class="hljs-keyword">var</span> height = canvas.height !== <span class="hljs-number">0</span> ? canvas.height : <span class="hljs-number">600</span>;
-            <span class="hljs-keyword">var</span> ratio = width / height;
+            <span class="hljs-keyword">this</span>.computeCanvasSize( canvas );
+
+            <span class="hljs-keyword">var</span> ratio = canvas.clientWidth / canvas.clientHeight;
+
+            <span class="hljs-keyword">var</span> width  = canvas.width;
+            <span class="hljs-keyword">var</span> height = canvas.height;
+
             <span class="hljs-keyword">this</span>._camera.setViewport( <span class="hljs-keyword">new</span> Viewport( <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, width, height ) );
+
+            <span class="hljs-keyword">this</span>._camera.setGraphicContext( <span class="hljs-keyword">this</span>._graphicContext );
             Matrix.makeLookAt( [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">10</span> ], [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> ], [ <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span> ], <span class="hljs-keyword">this</span>._camera.getViewMatrix() );
             Matrix.makePerspective( <span class="hljs-number">55</span>, ratio, <span class="hljs-number">1.0</span>, <span class="hljs-number">1000.0</span>, <span class="hljs-keyword">this</span>._camera.getProjectionMatrix() );
         },
-        <span class="hljs-comment">/** 
+
+        <span class="hljs-comment">/**
          * X = 0 at the left
-         * Y = 0 at the BOTTOM 
+         * Y = 0 at the BOTTOM
          */</span>
         computeIntersections: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( x, y, traversalMask )</span> {</span>
             <span class="hljs-comment">/*jshint bitwise: false */</span>

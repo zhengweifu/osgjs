@@ -25,6 +25,7 @@ define( [
     'osg/LightSource',
     'osg/LineWidth',
     'osg/Lod',
+    'osg/Map',
     'osg/Material',
     'osg/Math',
     'osg/Matrix',
@@ -33,6 +34,7 @@ define( [
     'osg/NodeVisitor',
     'osg/Notify',
     'osg/Object',
+    'osg/PagedLOD',
     'osg/PrimitiveSet',
     'osg/Program',
     'osg/Projection',
@@ -59,8 +61,10 @@ define( [
     'osg/Vec4',
     'osg/Viewport',
     'osgUtil/osgPool',
-    'osg/TransformEnums'
-], function( BlendColor, BlendFunc, BoundingBox, BoundingSphere, BufferArray, Camera, ComputeMatrixFromNodePath, CullFace, CullSettings, CullStack, CullVisitor, Depth, DrawArrayLengths, DrawArrays, DrawElements, EllipsoidModel, FrameBufferObject, FrameStamp, Geometry, Image, KdTree, KdTreeBuilder, Light, LightSource, LineWidth, Lod, Material, Math, Matrix, MatrixTransform, Node, NodeVisitor, Notify, Object, PrimitiveSet, Program, Projection, Quat, RenderBin, RenderStage, Shader, ShaderGenerator, Shape, Stack, State, StateAttribute, StateGraph, StateSet, Texture, TextureCubeMap, Transform, TriangleIndexFunctor, Uniform, UpdateVisitor, MACROUTILS, Vec2, Vec3, Vec4, Viewport, osgPool, TransformEnums ) {
+    'osg/TransformEnums',
+    'osg/WebGLCaps'
+
+], function( BlendColor, BlendFunc, BoundingBox, BoundingSphere, BufferArray, Camera, ComputeMatrixFromNodePath, CullFace, CullSettings, CullStack, CullVisitor, Depth, DrawArrayLengths, DrawArrays, DrawElements, EllipsoidModel, FrameBufferObject, FrameStamp, Geometry, Image, KdTree, KdTreeBuilder, Light, LightSource, LineWidth, Lod, Map, Material, Math, Matrix, MatrixTransform, Node, NodeVisitor, Notify, Object, PagedLOD, PrimitiveSet, Program, Projection, Quat, RenderBin, RenderStage, Shader, ShaderGenerator, Shape, Stack, State, StateAttribute, StateGraph, StateSet, Texture, TextureCubeMap, Transform, TriangleIndexFunctor, Uniform, UpdateVisitor, MACROUTILS, Vec2, Vec3, Vec4, Viewport, osgPool, TransformEnums, WebGLCaps ) {
 
     var osg = {};
 
@@ -92,6 +96,7 @@ define( [
     osg.LightSource = LightSource;
     osg.LineWidth = LineWidth;
     osg.Lod = Lod;
+    osg.Map = Map;
     osg.Material = Material;
     MACROUTILS.objectMix( osg, Math );
     osg.Matrix = Matrix;
@@ -100,6 +105,7 @@ define( [
     osg.NodeVisitor = NodeVisitor;
     MACROUTILS.objectMix( osg, Notify );
     osg.Object = Object;
+    osg.PagedLOD = PagedLOD;
     osg.PrimitiveSet = PrimitiveSet;
     osg.Program = Program;
     osg.Projection = Projection;
@@ -131,6 +137,8 @@ define( [
 
     osg.Transform.RELATIVE_RF = TransformEnums.RELATIVE_RF;
     osg.Transform.ABSOLUTE_RF = TransformEnums.ABSOLUTE_RF;
+
+    osg.WebGLCaps = WebGLCaps;
 
     return osg;
 } );

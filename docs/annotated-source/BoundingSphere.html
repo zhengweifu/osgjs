@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -673,7 +703,7 @@
 
     BoundingSphere.prototype = {
         init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            <span class="hljs-keyword">this</span>._center = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            Vec3.init( <span class="hljs-keyword">this</span>._center );
             <span class="hljs-keyword">this</span>._radius = -<span class="hljs-number">1</span>;
         },
         valid: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
@@ -693,73 +723,75 @@
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._radius * <span class="hljs-keyword">this</span>._radius;
         },
 
-        expandByBox: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bb )</span> {</span>
-            <span class="hljs-keyword">if</span> ( !bb.valid() )
-                <span class="hljs-keyword">return</span>;
+        expandByBox: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> v = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> newbb = <span class="hljs-keyword">new</span> BoundingBox();
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bb )</span> {</span>
+                <span class="hljs-keyword">if</span> ( !bb.valid() )
+                    <span class="hljs-keyword">return</span>;
 
-            <span class="hljs-keyword">var</span> c;
-            <span class="hljs-keyword">var</span> v = [<span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>];
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.valid() ) {
-                <span class="hljs-keyword">var</span> newbb = <span class="hljs-keyword">new</span> BoundingBox();
-                newbb._min[ <span class="hljs-number">0</span> ] = bb._min[ <span class="hljs-number">0</span> ];
-                newbb._min[ <span class="hljs-number">1</span> ] = bb._min[ <span class="hljs-number">1</span> ];
-                newbb._min[ <span class="hljs-number">2</span> ] = bb._min[ <span class="hljs-number">2</span> ];
-                newbb._max[ <span class="hljs-number">0</span> ] = bb._max[ <span class="hljs-number">0</span> ];
-                newbb._max[ <span class="hljs-number">1</span> ] = bb._max[ <span class="hljs-number">1</span> ];
-                newbb._max[ <span class="hljs-number">2</span> ] = bb._max[ <span class="hljs-number">2</span> ];
+                <span class="hljs-keyword">var</span> c;
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.valid() ) {
+                    newbb._min[ <span class="hljs-number">0</span> ] = bb._min[ <span class="hljs-number">0</span> ];
+                    newbb._min[ <span class="hljs-number">1</span> ] = bb._min[ <span class="hljs-number">1</span> ];
+                    newbb._min[ <span class="hljs-number">2</span> ] = bb._min[ <span class="hljs-number">2</span> ];
+                    newbb._max[ <span class="hljs-number">0</span> ] = bb._max[ <span class="hljs-number">0</span> ];
+                    newbb._max[ <span class="hljs-number">1</span> ] = bb._max[ <span class="hljs-number">1</span> ];
+                    newbb._max[ <span class="hljs-number">2</span> ] = bb._max[ <span class="hljs-number">2</span> ];
 
-                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">8</span>; i++ ) {
-                    Vec3.sub( bb.corner( c ), <span class="hljs-keyword">this</span>._center, v ); <span class="hljs-comment">// get the direction vector from corner</span>
-                    Vec3.normalize( v, v ); <span class="hljs-comment">// normalise it.</span>
-                    v[ <span class="hljs-number">0</span> ] *= -<span class="hljs-keyword">this</span>._radius; <span class="hljs-comment">// move the vector in the opposite direction distance radius.</span>
-                    v[ <span class="hljs-number">1</span> ] *= -<span class="hljs-keyword">this</span>._radius; <span class="hljs-comment">// move the vector in the opposite direction distance radius.</span>
-                    v[ <span class="hljs-number">2</span> ] *= -<span class="hljs-keyword">this</span>._radius; <span class="hljs-comment">// move the vector in the opposite direction distance radius.</span>
-                    v[ <span class="hljs-number">0</span> ] += <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ]; <span class="hljs-comment">// move to absolute position.</span>
-                    v[ <span class="hljs-number">1</span> ] += <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ]; <span class="hljs-comment">// move to absolute position.</span>
-                    v[ <span class="hljs-number">2</span> ] += <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ]; <span class="hljs-comment">// move to absolute position.</span>
-                    newbb.expandBy( v ); <span class="hljs-comment">// add it into the new bounding box.</span>
+                    <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">8</span>; i++ ) {
+                        Vec3.sub( bb.corner( c ), <span class="hljs-keyword">this</span>._center, v ); <span class="hljs-comment">// get the direction vector from corner</span>
+                        Vec3.normalize( v, v ); <span class="hljs-comment">// normalise it.</span>
+                        v[ <span class="hljs-number">0</span> ] *= -<span class="hljs-keyword">this</span>._radius; <span class="hljs-comment">// move the vector in the opposite direction distance radius.</span>
+                        v[ <span class="hljs-number">1</span> ] *= -<span class="hljs-keyword">this</span>._radius; <span class="hljs-comment">// move the vector in the opposite direction distance radius.</span>
+                        v[ <span class="hljs-number">2</span> ] *= -<span class="hljs-keyword">this</span>._radius; <span class="hljs-comment">// move the vector in the opposite direction distance radius.</span>
+                        v[ <span class="hljs-number">0</span> ] += <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ]; <span class="hljs-comment">// move to absolute position.</span>
+                        v[ <span class="hljs-number">1</span> ] += <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ]; <span class="hljs-comment">// move to absolute position.</span>
+                        v[ <span class="hljs-number">2</span> ] += <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ]; <span class="hljs-comment">// move to absolute position.</span>
+                        newbb.expandBy( v ); <span class="hljs-comment">// add it into the new bounding box.</span>
+                    }
+
+                    c = newbb.center();
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ] = c[ <span class="hljs-number">0</span> ];
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ] = c[ <span class="hljs-number">1</span> ];
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] = c[ <span class="hljs-number">2</span> ];
+                    <span class="hljs-keyword">this</span>._radius = newbb.radius();
+                } <span class="hljs-keyword">else</span> {
+                    c = bb.center();
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ] = c[ <span class="hljs-number">0</span> ];
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ] = c[ <span class="hljs-number">1</span> ];
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] = c[ <span class="hljs-number">2</span> ];
+                    <span class="hljs-keyword">this</span>._radius = bb.radius();
                 }
+            };
+        } )(),
 
-                c = newbb.center();
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ] = c[ <span class="hljs-number">0</span> ];
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ] = c[ <span class="hljs-number">1</span> ];
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] = c[ <span class="hljs-number">2</span> ];
-                <span class="hljs-keyword">this</span>._radius = newbb.radius();
-            } <span class="hljs-keyword">else</span> {
-                c = bb.center();
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ] = c[ <span class="hljs-number">0</span> ];
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ] = c[ <span class="hljs-number">1</span> ];
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] = c[ <span class="hljs-number">2</span> ];
-                <span class="hljs-keyword">this</span>._radius = bb.radius();
-            }
-        },
-
-        expandByVec3: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( v )</span> {</span>
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.valid() ) {
-                <span class="hljs-keyword">var</span> dv = Vec3.sub( v, <span class="hljs-keyword">this</span>.center(), [] );
-                <span class="hljs-keyword">var</span> r = Vec3.length( dv );
-                <span class="hljs-keyword">if</span> ( r &gt; <span class="hljs-keyword">this</span>.radius() ) {
-                    <span class="hljs-keyword">var</span> dr = ( r - <span class="hljs-keyword">this</span>.radius() ) * <span class="hljs-number">0.5</span>;
-                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ] += dv[ <span class="hljs-number">0</span> ] * ( dr / r );
-                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ] += dv[ <span class="hljs-number">1</span> ] * ( dr / r );
-                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] += dv[ <span class="hljs-number">2</span> ] * ( dr / r );
-                    <span class="hljs-keyword">this</span>._radius += dr;
+        expandByVec3: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> dv = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( v )</span> {</span>
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.valid() ) {
+                    Vec3.sub( v, <span class="hljs-keyword">this</span>.center(), dv );
+                    <span class="hljs-keyword">var</span> r = Vec3.length( dv );
+                    <span class="hljs-keyword">if</span> ( r &gt; <span class="hljs-keyword">this</span>.radius() ) {
+                        <span class="hljs-keyword">var</span> dr = ( r - <span class="hljs-keyword">this</span>.radius() ) * <span class="hljs-number">0.5</span>;
+                        <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ] += dv[ <span class="hljs-number">0</span> ] * ( dr / r );
+                        <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ] += dv[ <span class="hljs-number">1</span> ] * ( dr / r );
+                        <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] += dv[ <span class="hljs-number">2</span> ] * ( dr / r );
+                        <span class="hljs-keyword">this</span>._radius += dr;
+                    }
+                } <span class="hljs-keyword">else</span> {
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ] = v[ <span class="hljs-number">0</span> ];
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ] = v[ <span class="hljs-number">1</span> ];
+                    <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] = v[ <span class="hljs-number">2</span> ];
+                    <span class="hljs-keyword">this</span>._radius = <span class="hljs-number">0.0</span>;
                 }
-            } <span class="hljs-keyword">else</span> {
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">0</span> ] = v[ <span class="hljs-number">0</span> ];
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">1</span> ] = v[ <span class="hljs-number">1</span> ];
-                <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] = v[ <span class="hljs-number">2</span> ];
-                <span class="hljs-keyword">this</span>._radius = <span class="hljs-number">0.0</span>;
-            }
-        },
+            };
+        } )(),
 
         expandRadiusBySphere: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( sh )</span> {</span>
             <span class="hljs-keyword">if</span> ( sh.valid() ) {
                 <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.valid() ) {
-                    <span class="hljs-keyword">var</span> sub = Vec3.sub;
-                    <span class="hljs-keyword">var</span> length = Vec3.length;
-                    <span class="hljs-keyword">var</span> r = length( sub( sh._center,
-                        <span class="hljs-keyword">this</span>._center, [] ) ) + sh._radius;
+                    <span class="hljs-keyword">var</span> r = Vec3.distance( sh._center, <span class="hljs-keyword">this</span>._center ) + sh._radius;
                     <span class="hljs-keyword">if</span> ( r &gt; <span class="hljs-keyword">this</span>._radius ) {
                         <span class="hljs-keyword">this</span>._radius = r;
                     }</pre></div></div>
@@ -778,7 +810,7 @@
             </div>
             
             <div class="content"><div class='highlight'><pre>                } <span class="hljs-keyword">else</span> {
-                    <span class="hljs-keyword">this</span>._center = Vec3.copy( sh._center, [] );
+                    Vec3.copy( sh._center, <span class="hljs-keyword">this</span>._center );
                     <span class="hljs-keyword">this</span>._radius = sh._radius;
                 }
             }
@@ -837,8 +869,7 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> tmp = Vec3.sub( <span class="hljs-keyword">this</span>.center(), sh.center(), [] );
-            <span class="hljs-keyword">var</span> d = Vec3.length( tmp );</pre></div></div>
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> d = Vec3.distance( <span class="hljs-keyword">this</span>.center(), sh.center() );</pre></div></div>
             
         </li>
         
@@ -902,17 +933,20 @@ points on the edges of the two spheres.</p>
             <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] += ( sh._center[ <span class="hljs-number">2</span> ] - <span class="hljs-keyword">this</span>._center[ <span class="hljs-number">2</span> ] ) * ratio;
 
             <span class="hljs-keyword">this</span>._radius = newRadius;
-
         },
         contains: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( v )</span> {</span>
-            <span class="hljs-keyword">var</span> vc = Vec3.sub( v, <span class="hljs-keyword">this</span>.center(), [] );
-            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.valid() &amp;&amp; ( Vec3.length2( vc ) &lt;= <span class="hljs-keyword">this</span>.radius2() );
+            <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>.valid() )
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+            <span class="hljs-keyword">return</span> Vec3.distance2( v, <span class="hljs-keyword">this</span>.center() ) &lt;= <span class="hljs-keyword">this</span>.radius2();
         },
         intersects: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bs )</span> {</span>
-            <span class="hljs-keyword">var</span> lc = Vec3.length2( Vec3.sub( <span class="hljs-keyword">this</span>.center(),
-                bs.center(), [] ) );
-            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.valid() &amp;&amp; bs.valid() &amp;&amp;
-                ( lc &lt;= ( <span class="hljs-keyword">this</span>.radius() + bs.radius() ) * ( <span class="hljs-keyword">this</span>.radius() + bs.radius() ) );
+            <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>.valid() )
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+            <span class="hljs-keyword">if</span> ( !bs.valid() )
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+            <span class="hljs-keyword">var</span> lc = Vec3.distance2( <span class="hljs-keyword">this</span>.center(), bs.center() );
+            <span class="hljs-keyword">var</span> r = <span class="hljs-keyword">this</span>.radius() + bs.radius();
+            <span class="hljs-keyword">return</span> lc &lt;= r;
         }
     };
 

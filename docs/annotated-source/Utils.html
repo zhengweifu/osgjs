@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -663,8 +693,9 @@
             
             <div class="content"><div class='highlight'><pre>define( [
     <span class="hljs-string">'osgUtil/osgPool'</span>,
-    <span class="hljs-string">'osg/StateGraph'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( osgPool, StateGraph )</span> {</span></pre></div></div>
+    <span class="hljs-string">'osg/StateGraph'</span>,
+    <span class="hljs-string">'osg/Notify'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( osgPool, StateGraph, Notify )</span> {</span></pre></div></div>
             
         </li>
         
@@ -1074,6 +1105,60 @@ if last one is own, then all properties are own.</p>
         <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> fn.apply( window.performance, <span class="hljs-built_in">arguments</span> );
         };
+    } )();
+
+    Utils.timeStamp = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
+        <span class="hljs-keyword">var</span> fn = Notify.console.timeStamp || Notify.console.markTimeline || <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>};
+        <span class="hljs-keyword">return</span> fn.apply( Notify.console, <span class="hljs-built_in">arguments</span> );
+
+    };
+
+    <span class="hljs-keyword">var</span> times = {};
+
+    Utils.time = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
+        <span class="hljs-keyword">var</span> fn = Notify.console.time || <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( name )</span> {</span>
+            times[ name ] = Utils.performance.now();
+        };
+        <span class="hljs-keyword">return</span> fn.apply( Notify.console, <span class="hljs-built_in">arguments</span> );
+
+    };
+
+    Utils.timeEnd = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
+        <span class="hljs-keyword">var</span> fn = Notify.console.timeEnd || <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( name )</span> {</span>
+
+            <span class="hljs-keyword">if</span> ( times[ name ] === <span class="hljs-literal">undefined</span> )
+                <span class="hljs-keyword">return</span>;
+
+            <span class="hljs-keyword">var</span> now = Utils.performance.now();
+            <span class="hljs-keyword">var</span> duration = now - times[ name ];
+
+            Notify.debug( name + <span class="hljs-string">': '</span> + duration + <span class="hljs-string">'ms'</span>);
+            times[ name ] = <span class="hljs-literal">undefined</span>;
+
+        };
+        <span class="hljs-keyword">return</span> fn.apply( Notify.console, <span class="hljs-built_in">arguments</span> );
+
+    };
+
+    Utils.profile = ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
+        <span class="hljs-keyword">var</span> fn = Notify.console.profile || <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>};
+        <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> fn.apply( Notify.console, <span class="hljs-built_in">arguments</span> );
+        };
+
+    } )();
+
+    Utils.profileEnd = ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
+        <span class="hljs-keyword">var</span> fn = Notify.console.profileEnd || <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>};
+        <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> fn.apply( Notify.console, <span class="hljs-built_in">arguments</span> );
+        };
+
     } )();
 
     <span class="hljs-keyword">return</span> Utils;

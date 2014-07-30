@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -670,8 +700,10 @@
 
     <span class="hljs-comment">/** @class Matrix Operations */</span>
     <span class="hljs-keyword">var</span> Matrix = {
-        _tmp0: [],
-        _tmp1: [],
+
+        create: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> [ <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> ];
+        },
 
         valid: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix )</span> {</span>
             <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">16</span>; i++ ) {
@@ -704,8 +736,8 @@
 
         makeIdentity: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix )</span> {</span>
             <span class="hljs-keyword">if</span> ( matrix === <span class="hljs-literal">undefined</span> ) {
-                matrix = [];
-                Notify.log( <span class="hljs-string">'Matrix.makeIdentity without matrix destination is deprecated'</span> );
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                <span class="hljs-keyword">return</span> Matrix.create();
             }
             Matrix.setRow( matrix, <span class="hljs-number">0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> );
             Matrix.setRow( matrix, <span class="hljs-number">1</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> );
@@ -722,7 +754,10 @@
          */</span>
         makeTranslate: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( x, y, z, matrix )</span> {</span>
             <span class="hljs-keyword">if</span> ( matrix === <span class="hljs-literal">undefined</span> ) {
-                matrix = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                matrix = Matrix.create();
+                Matrix.setRow( matrix, <span class="hljs-number">3</span>, x, y, z, <span class="hljs-number">1.0</span> );
+                <span class="hljs-keyword">return</span> matrix;
             }
             Matrix.setRow( matrix, <span class="hljs-number">0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> );
             Matrix.setRow( matrix, <span class="hljs-number">1</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> );
@@ -869,12 +904,13 @@
         },
         multa: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a, b, r )</span> {</span>
             <span class="hljs-keyword">if</span> ( r === a ) {
-                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.preMult( a, b );
+                <span class="hljs-keyword">return</span> Matrix.preMult( a, b );
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( r === b ) {
-                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.postMult( a, b );
+                <span class="hljs-keyword">return</span> Matrix.postMult( a, b );
             } <span class="hljs-keyword">else</span> {
                 <span class="hljs-keyword">if</span> ( r === <span class="hljs-literal">undefined</span> ) {
-                    r = [];
+                    Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                    r = Matrix.create();
                 }
                 r[ <span class="hljs-number">0</span> ] = b[ <span class="hljs-number">0</span> ] * a[ <span class="hljs-number">0</span> ] + b[ <span class="hljs-number">1</span> ] * a[ <span class="hljs-number">4</span> ] + b[ <span class="hljs-number">2</span> ] * a[ <span class="hljs-number">8</span> ] + b[ <span class="hljs-number">3</span> ] * a[ <span class="hljs-number">12</span> ];
                 r[ <span class="hljs-number">1</span> ] = b[ <span class="hljs-number">0</span> ] * a[ <span class="hljs-number">1</span> ] + b[ <span class="hljs-number">1</span> ] * a[ <span class="hljs-number">5</span> ] + b[ <span class="hljs-number">2</span> ] * a[ <span class="hljs-number">9</span> ] + b[ <span class="hljs-number">3</span> ] * a[ <span class="hljs-number">13</span> ];
@@ -958,7 +994,10 @@
             <span class="hljs-keyword">return</span> r;
         },
         multOrig: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a, b, r )</span> {</span>
-            <span class="hljs-keyword">var</span> t;
+            <span class="hljs-keyword">var</span> inner1 = <span class="hljs-number">0.0</span>,
+                inner2 = <span class="hljs-number">0.0</span>,
+                inner3 = <span class="hljs-number">0.0</span>,
+                inner4 = <span class="hljs-number">0.0</span>;
             <span class="hljs-keyword">if</span> ( r === a ) {</pre></div></div>
             
         </li>
@@ -974,16 +1013,15 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                t = [];
-                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> col = <span class="hljs-number">0</span>; col &lt; <span class="hljs-number">4</span>; col++ ) {
-                    t[ <span class="hljs-number">0</span> ] = Matrix.innerProduct( b, a, <span class="hljs-number">0</span>, col );
-                    t[ <span class="hljs-number">1</span> ] = Matrix.innerProduct( b, a, <span class="hljs-number">1</span>, col );
-                    t[ <span class="hljs-number">2</span> ] = Matrix.innerProduct( b, a, <span class="hljs-number">2</span>, col );
-                    t[ <span class="hljs-number">3</span> ] = Matrix.innerProduct( b, a, <span class="hljs-number">3</span>, col );
-                    a[ <span class="hljs-number">0</span> + col ] = t[ <span class="hljs-number">0</span> ];
-                    a[ <span class="hljs-number">4</span> + col ] = t[ <span class="hljs-number">1</span> ];
-                    a[ <span class="hljs-number">8</span> + col ] = t[ <span class="hljs-number">2</span> ];
-                    a[ <span class="hljs-number">12</span> + col ] = t[ <span class="hljs-number">3</span> ];
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> col = <span class="hljs-number">0</span>; col &lt; <span class="hljs-number">4</span>; col++ ) {
+                    inner1 = Matrix.innerProduct( b, a, <span class="hljs-number">0</span>, col );
+                    inner2 = Matrix.innerProduct( b, a, <span class="hljs-number">1</span>, col );
+                    inner3 = Matrix.innerProduct( b, a, <span class="hljs-number">2</span>, col );
+                    inner4 = Matrix.innerProduct( b, a, <span class="hljs-number">3</span>, col );
+                    a[ <span class="hljs-number">0</span> + col ] = inner1;
+                    a[ <span class="hljs-number">4</span> + col ] = inner2;
+                    a[ <span class="hljs-number">8</span> + col ] = inner3;
+                    a[ <span class="hljs-number">12</span> + col ] = inner4;
                 }
                 <span class="hljs-keyword">return</span> a;</pre></div></div>
             
@@ -996,7 +1034,7 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
-              <p>return this.preMult(r, b);</p>
+              <p>return Matrix.preMult(r, b);</p>
 
             </div>
             
@@ -1015,13 +1053,12 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                t = [];
-                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> row = <span class="hljs-number">0</span>; row &lt; <span class="hljs-number">4</span>; row++ ) {
-                    t[ <span class="hljs-number">0</span> ] = Matrix.innerProduct( b, a, row, <span class="hljs-number">0</span> );
-                    t[ <span class="hljs-number">1</span> ] = Matrix.innerProduct( b, a, row, <span class="hljs-number">1</span> );
-                    t[ <span class="hljs-number">2</span> ] = Matrix.innerProduct( b, a, row, <span class="hljs-number">2</span> );
-                    t[ <span class="hljs-number">3</span> ] = Matrix.innerProduct( b, a, row, <span class="hljs-number">3</span> );
-                    <span class="hljs-keyword">this</span>.setRow( b, row, t[ <span class="hljs-number">0</span> ], t[ <span class="hljs-number">1</span> ], t[ <span class="hljs-number">2</span> ], t[ <span class="hljs-number">3</span> ] );
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> row = <span class="hljs-number">0</span>; row &lt; <span class="hljs-number">4</span>; row++ ) {
+                    inner1 = Matrix.innerProduct( b, a, row, <span class="hljs-number">0</span> );
+                    inner2 = Matrix.innerProduct( b, a, row, <span class="hljs-number">1</span> );
+                    inner3 = Matrix.innerProduct( b, a, row, <span class="hljs-number">2</span> );
+                    inner4 = Matrix.innerProduct( b, a, row, <span class="hljs-number">3</span> );
+                    Matrix.setRow( b, row, inner1, inner2, inner3, inner4 );
                 }
                 <span class="hljs-keyword">return</span> b;</pre></div></div>
             
@@ -1034,13 +1071,14 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
-              <p>return this.postMult(r, a);</p>
+              <p>return Matrix.postMult(r, a);</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>            }
             <span class="hljs-keyword">if</span> ( r === <span class="hljs-literal">undefined</span> ) {
-                r = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                r = Matrix.create();
             }
 
             <span class="hljs-keyword">var</span> s00 = b[ <span class="hljs-number">0</span> ];
@@ -1100,20 +1138,26 @@
             <span class="hljs-keyword">return</span> r;
         },
 
-        makeLookAt: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( eye, center, up, result )</span> {</span>
+        makeLookAt: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> f = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> s = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> u = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> neg = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
 
-            <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
-            }
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( eye, center, up, result )</span> {</span>
+                <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
+                    Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                    result = Matrix.create();
+                }
 
-            <span class="hljs-keyword">var</span> f = Vec3.sub( center, eye, [] );
-            Vec3.normalize( f, f );
+                Vec3.sub( center, eye, f );
+                Vec3.normalize( f, f );
 
-            <span class="hljs-keyword">var</span> s = Vec3.cross( f, up, [] );
-            Vec3.normalize( s, s );
+                Vec3.cross( f, up, s );
+                Vec3.normalize( s, s );
 
-            <span class="hljs-keyword">var</span> u = Vec3.cross( s, f, [] );
-            Vec3.normalize( u, u );</pre></div></div>
+                Vec3.cross( s, f, u );
+                Vec3.normalize( u, u );</pre></div></div>
             
         </li>
         
@@ -1132,31 +1176,31 @@ s[2], u[2], -f[2], 0.0,
             </div>
             
             <div class="content"><div class='highlight'><pre>
-            result[ <span class="hljs-number">0</span> ] = s[ <span class="hljs-number">0</span> ];
-            result[ <span class="hljs-number">1</span> ] = u[ <span class="hljs-number">0</span> ];
-            result[ <span class="hljs-number">2</span> ] = -f[ <span class="hljs-number">0</span> ];
-            result[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">4</span> ] = s[ <span class="hljs-number">1</span> ];
-            result[ <span class="hljs-number">5</span> ] = u[ <span class="hljs-number">1</span> ];
-            result[ <span class="hljs-number">6</span> ] = -f[ <span class="hljs-number">1</span> ];
-            result[ <span class="hljs-number">7</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">8</span> ] = s[ <span class="hljs-number">2</span> ];
-            result[ <span class="hljs-number">9</span> ] = u[ <span class="hljs-number">2</span> ];
-            result[ <span class="hljs-number">10</span> ] = -f[ <span class="hljs-number">2</span> ];
-            result[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0</span>;
-            result[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0</span>;
-            result[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0</span>;
-            result[ <span class="hljs-number">15</span> ] = <span class="hljs-number">1.0</span>;
+                result[ <span class="hljs-number">0</span> ] = s[ <span class="hljs-number">0</span> ];
+                result[ <span class="hljs-number">1</span> ] = u[ <span class="hljs-number">0</span> ];
+                result[ <span class="hljs-number">2</span> ] = -f[ <span class="hljs-number">0</span> ];
+                result[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">4</span> ] = s[ <span class="hljs-number">1</span> ];
+                result[ <span class="hljs-number">5</span> ] = u[ <span class="hljs-number">1</span> ];
+                result[ <span class="hljs-number">6</span> ] = -f[ <span class="hljs-number">1</span> ];
+                result[ <span class="hljs-number">7</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">8</span> ] = s[ <span class="hljs-number">2</span> ];
+                result[ <span class="hljs-number">9</span> ] = u[ <span class="hljs-number">2</span> ];
+                result[ <span class="hljs-number">10</span> ] = -f[ <span class="hljs-number">2</span> ];
+                result[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0</span>;
+                result[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0</span>;
+                result[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0</span>;
+                result[ <span class="hljs-number">15</span> ] = <span class="hljs-number">1.0</span>;
 
-            Matrix.multTranslate( result, Vec3.neg( eye, [] ), result );
-            <span class="hljs-keyword">return</span> result;
-        },
-        makeOrtho: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( left, right,
-            bottom, top,
-            zNear, zFar, result )</span> {</span>
+                Matrix.multTranslate( result, Vec3.neg( eye, neg ), result );
+                <span class="hljs-keyword">return</span> result;
+            };
+        } )(),
+        makeOrtho: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( left, right, bottom, top, zNear, zFar, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                result = Matrix.create();
             }</pre></div></div>
             
         </li>
@@ -1184,21 +1228,27 @@ we will change this convention later</p>
             <span class="hljs-keyword">return</span> result;
         },
 
-        getLookAt: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, eye, center, up, distance )</span> {</span>
-            <span class="hljs-keyword">if</span> ( distance === <span class="hljs-literal">undefined</span> ) {
-                distance = <span class="hljs-number">1.0</span>;
-            }
-            <span class="hljs-keyword">var</span> inv = [];
-            <span class="hljs-keyword">var</span> result = Matrix.inverse( matrix, inv );
-            <span class="hljs-keyword">if</span> ( !result ) {
-                Matrix.makeIdentity( inv );
-            }
-            Matrix.transformVec3( inv, [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> ], eye );
-            Matrix.transform3x3( matrix, [ <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span> ], up );
-            Matrix.transform3x3( matrix, [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span> ], center );
-            Vec3.normalize( center, center );
-            Vec3.add( Vec3.mult( center, distance, [] ), eye, center );
-        },</pre></div></div>
+        getLookAt: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> inv = [ <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> ];
+            <span class="hljs-keyword">var</span> v1 = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> v2 = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> v3 = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, -<span class="hljs-number">1.0</span> ];
+
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, eye, center, up, distance )</span> {</span>
+                <span class="hljs-keyword">if</span> ( distance === <span class="hljs-literal">undefined</span> ) {
+                    distance = <span class="hljs-number">1.0</span>;
+                }
+                <span class="hljs-keyword">var</span> result = Matrix.inverse( matrix, inv );
+                <span class="hljs-keyword">if</span> ( !result ) {
+                    Matrix.makeIdentity( inv );
+                }
+                Matrix.transformVec3( inv, v1, eye );
+                Matrix.transform3x3( matrix, v2, up );
+                Matrix.transform3x3( matrix, v3, center );
+                Vec3.normalize( center, center );
+                Vec3.add( Vec3.mult( center, distance, v1 ), eye, center );
+            };
+        } )(),</pre></div></div>
             
         </li>
         
@@ -1213,14 +1263,17 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        getRotate: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mat, quatResult )</span> {</span>
-            <span class="hljs-keyword">if</span> ( quatResult === <span class="hljs-literal">undefined</span> ) {
-                quatResult = [];
-            }
+            <div class="content"><div class='highlight'><pre>        getRotate: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> tq = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
 
-            <span class="hljs-keyword">var</span> s;
-            <span class="hljs-keyword">var</span> tq = [];
-            <span class="hljs-keyword">var</span> i, j;</pre></div></div>
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mat, quatResult )</span> {</span>
+                <span class="hljs-keyword">if</span> ( quatResult === <span class="hljs-literal">undefined</span> ) {
+                    Notify.warn( <span class="hljs-string">'no quat destination !'</span> );
+                    quatResult = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+                }
+
+                <span class="hljs-keyword">var</span> s;
+                <span class="hljs-keyword">var</span> i, j;</pre></div></div>
             
         </li>
         
@@ -1235,13 +1288,13 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> mat00 = mat[ <span class="hljs-number">4</span> * <span class="hljs-number">0</span> + <span class="hljs-number">0</span> ];
-            <span class="hljs-keyword">var</span> mat11 = mat[ <span class="hljs-number">4</span> * <span class="hljs-number">1</span> + <span class="hljs-number">1</span> ];
-            <span class="hljs-keyword">var</span> mat22 = mat[ <span class="hljs-number">4</span> * <span class="hljs-number">2</span> + <span class="hljs-number">2</span> ];
-            tq[ <span class="hljs-number">0</span> ] = <span class="hljs-number">1</span> + mat00 + mat11 + mat22;
-            tq[ <span class="hljs-number">1</span> ] = <span class="hljs-number">1</span> + mat00 - mat11 - mat22;
-            tq[ <span class="hljs-number">2</span> ] = <span class="hljs-number">1</span> - mat00 + mat11 - mat22;
-            tq[ <span class="hljs-number">3</span> ] = <span class="hljs-number">1</span> - mat00 - mat11 + mat22;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">var</span> mat00 = mat[ <span class="hljs-number">4</span> * <span class="hljs-number">0</span> + <span class="hljs-number">0</span> ];
+                <span class="hljs-keyword">var</span> mat11 = mat[ <span class="hljs-number">4</span> * <span class="hljs-number">1</span> + <span class="hljs-number">1</span> ];
+                <span class="hljs-keyword">var</span> mat22 = mat[ <span class="hljs-number">4</span> * <span class="hljs-number">2</span> + <span class="hljs-number">2</span> ];
+                tq[ <span class="hljs-number">0</span> ] = <span class="hljs-number">1.0</span> + mat00 + mat11 + mat22;
+                tq[ <span class="hljs-number">1</span> ] = <span class="hljs-number">1.0</span> + mat00 - mat11 - mat22;
+                tq[ <span class="hljs-number">2</span> ] = <span class="hljs-number">1.0</span> - mat00 + mat11 - mat22;
+                tq[ <span class="hljs-number">3</span> ] = <span class="hljs-number">1.0</span> - mat00 - mat11 + mat22;</pre></div></div>
             
         </li>
         
@@ -1256,14 +1309,14 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            j = <span class="hljs-number">0</span>;
-            <span class="hljs-keyword">for</span> ( i = <span class="hljs-number">1</span>; i &lt; <span class="hljs-number">4</span>; i++ ) {
-                <span class="hljs-keyword">if</span> ( ( tq[ i ] &gt; tq[ j ] ) ) {
-                    j = i;
-                } <span class="hljs-keyword">else</span> {
-                    j = j;
-                }
-            }</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                j = <span class="hljs-number">0</span>;
+                <span class="hljs-keyword">for</span> ( i = <span class="hljs-number">1</span>; i &lt; <span class="hljs-number">4</span>; i++ ) {
+                    <span class="hljs-keyword">if</span> ( ( tq[ i ] &gt; tq[ j ] ) ) {
+                        j = i;
+                    } <span class="hljs-keyword">else</span> {
+                        j = j;
+                    }
+                }</pre></div></div>
             
         </li>
         
@@ -1278,37 +1331,38 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">if</span> ( j === <span class="hljs-number">0</span> ) {
-                <span class="hljs-comment">/* perform instant calculation */</span>
-                quatResult[ <span class="hljs-number">3</span> ] = tq[ <span class="hljs-number">0</span> ];
-                quatResult[ <span class="hljs-number">0</span> ] = mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] - mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">1</span> ];
-                quatResult[ <span class="hljs-number">1</span> ] = mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ] - mat[ <span class="hljs-number">0</span> + <span class="hljs-number">2</span> ];
-                quatResult[ <span class="hljs-number">2</span> ] = mat[ <span class="hljs-number">0</span> + <span class="hljs-number">1</span> ] - mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ];
-            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( j === <span class="hljs-number">1</span> ) {
-                quatResult[ <span class="hljs-number">3</span> ] = mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] - mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">1</span> ];
-                quatResult[ <span class="hljs-number">0</span> ] = tq[ <span class="hljs-number">1</span> ];
-                quatResult[ <span class="hljs-number">1</span> ] = mat[ <span class="hljs-number">0</span> + <span class="hljs-number">1</span> ] + mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ];
-                quatResult[ <span class="hljs-number">2</span> ] = mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ] + mat[ <span class="hljs-number">0</span> + <span class="hljs-number">2</span> ];
-            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( j === <span class="hljs-number">2</span> ) {
-                quatResult[ <span class="hljs-number">3</span> ] = mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ] - mat[ <span class="hljs-number">0</span> + <span class="hljs-number">2</span> ];
-                quatResult[ <span class="hljs-number">0</span> ] = mat[ <span class="hljs-number">0</span> + <span class="hljs-number">1</span> ] + mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ];
-                quatResult[ <span class="hljs-number">1</span> ] = tq[ <span class="hljs-number">2</span> ];
-                quatResult[ <span class="hljs-number">2</span> ] = mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] + mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">1</span> ];
-            } <span class="hljs-keyword">else</span> <span class="hljs-comment">/* if (j==3) */</span> {
-                quatResult[ <span class="hljs-number">3</span> ] = mat[ <span class="hljs-number">0</span> + <span class="hljs-number">1</span> ] - mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ];
-                quatResult[ <span class="hljs-number">0</span> ] = mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ] + mat[ <span class="hljs-number">0</span> + <span class="hljs-number">2</span> ];
-                quatResult[ <span class="hljs-number">1</span> ] = mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] + mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">1</span> ];
-                quatResult[ <span class="hljs-number">2</span> ] = tq[ <span class="hljs-number">3</span> ];
-            }
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> ( j === <span class="hljs-number">0</span> ) {
+                    <span class="hljs-comment">/* perform instant calculation */</span>
+                    quatResult[ <span class="hljs-number">3</span> ] = tq[ <span class="hljs-number">0</span> ];
+                    quatResult[ <span class="hljs-number">0</span> ] = mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] - mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">1</span> ];
+                    quatResult[ <span class="hljs-number">1</span> ] = mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ] - mat[ <span class="hljs-number">0</span> + <span class="hljs-number">2</span> ];
+                    quatResult[ <span class="hljs-number">2</span> ] = mat[ <span class="hljs-number">0</span> + <span class="hljs-number">1</span> ] - mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ];
+                } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( j === <span class="hljs-number">1</span> ) {
+                    quatResult[ <span class="hljs-number">3</span> ] = mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] - mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">1</span> ];
+                    quatResult[ <span class="hljs-number">0</span> ] = tq[ <span class="hljs-number">1</span> ];
+                    quatResult[ <span class="hljs-number">1</span> ] = mat[ <span class="hljs-number">0</span> + <span class="hljs-number">1</span> ] + mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ];
+                    quatResult[ <span class="hljs-number">2</span> ] = mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ] + mat[ <span class="hljs-number">0</span> + <span class="hljs-number">2</span> ];
+                } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( j === <span class="hljs-number">2</span> ) {
+                    quatResult[ <span class="hljs-number">3</span> ] = mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ] - mat[ <span class="hljs-number">0</span> + <span class="hljs-number">2</span> ];
+                    quatResult[ <span class="hljs-number">0</span> ] = mat[ <span class="hljs-number">0</span> + <span class="hljs-number">1</span> ] + mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ];
+                    quatResult[ <span class="hljs-number">1</span> ] = tq[ <span class="hljs-number">2</span> ];
+                    quatResult[ <span class="hljs-number">2</span> ] = mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] + mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">1</span> ];
+                } <span class="hljs-keyword">else</span> <span class="hljs-comment">/* if (j==3) */</span> {
+                    quatResult[ <span class="hljs-number">3</span> ] = mat[ <span class="hljs-number">0</span> + <span class="hljs-number">1</span> ] - mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ];
+                    quatResult[ <span class="hljs-number">0</span> ] = mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">0</span> ] + mat[ <span class="hljs-number">0</span> + <span class="hljs-number">2</span> ];
+                    quatResult[ <span class="hljs-number">1</span> ] = mat[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] + mat[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">1</span> ];
+                    quatResult[ <span class="hljs-number">2</span> ] = tq[ <span class="hljs-number">3</span> ];
+                }
 
-            s = <span class="hljs-built_in">Math</span>.sqrt( <span class="hljs-number">0.25</span> / tq[ j ] );
-            quatResult[ <span class="hljs-number">3</span> ] *= s;
-            quatResult[ <span class="hljs-number">0</span> ] *= s;
-            quatResult[ <span class="hljs-number">1</span> ] *= s;
-            quatResult[ <span class="hljs-number">2</span> ] *= s;
+                s = <span class="hljs-built_in">Math</span>.sqrt( <span class="hljs-number">0.25</span> / tq[ j ] );
+                quatResult[ <span class="hljs-number">3</span> ] *= s;
+                quatResult[ <span class="hljs-number">0</span> ] *= s;
+                quatResult[ <span class="hljs-number">1</span> ] *= s;
+                quatResult[ <span class="hljs-number">2</span> ] *= s;
 
-            <span class="hljs-keyword">return</span> quatResult;
-        },</pre></div></div>
+                <span class="hljs-keyword">return</span> quatResult;
+            };
+        } )(),</pre></div></div>
             
         </li>
         
@@ -1366,7 +1420,8 @@ we will change this convention later</p>
             
             <div class="content"><div class='highlight'><pre>        multTranslate: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mat, translate, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                result = Matrix.create();
             }
             <span class="hljs-keyword">if</span> ( result !== mat ) {
                 Matrix.copy( mat, result );
@@ -1401,8 +1456,8 @@ we will change this convention later</p>
 
         makeRotate: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( angle, x, y, z, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                Notify.log( <span class="hljs-string">'makeRotate without given matrix destination is deprecated'</span> );
-                result = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                result = Matrix.create();
             }
 
             <span class="hljs-keyword">var</span> mag = <span class="hljs-built_in">Math</span>.sqrt( x * x + y * y + z * z );
@@ -1460,7 +1515,8 @@ we will change this convention later</p>
 
         transform3x3: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( m, v, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                result = Matrix.create();
             }
             result[ <span class="hljs-number">0</span> ] = m[ <span class="hljs-number">0</span> ] * v[ <span class="hljs-number">0</span> ] + m[ <span class="hljs-number">1</span> ] * v[ <span class="hljs-number">1</span> ] + m[ <span class="hljs-number">2</span> ] * v[ <span class="hljs-number">2</span> ];
             result[ <span class="hljs-number">1</span> ] = m[ <span class="hljs-number">4</span> ] * v[ <span class="hljs-number">0</span> ] + m[ <span class="hljs-number">5</span> ] * v[ <span class="hljs-number">1</span> ] + m[ <span class="hljs-number">6</span> ] * v[ <span class="hljs-number">2</span> ];
@@ -1468,54 +1524,64 @@ we will change this convention later</p>
             <span class="hljs-keyword">return</span> result;
         },
 
-        transformVec3: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, vector, result )</span> {</span>
-            <span class="hljs-keyword">var</span> d = <span class="hljs-number">1.0</span> / ( matrix[ <span class="hljs-number">3</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">7</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">11</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">15</span> ] );
+        transformVec3: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> tmpVec = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
 
-            <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                Notify.warn( <span class="hljs-string">'deprecated, Matrix.transformVec3 needs a third parameter as result'</span> );
-                result = [];
-            }
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, vector, result )</span> {</span>
+                <span class="hljs-keyword">var</span> d = <span class="hljs-number">1.0</span> / ( matrix[ <span class="hljs-number">3</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">7</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">11</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">15</span> ] );
 
-            <span class="hljs-keyword">var</span> tmp;
-            <span class="hljs-keyword">if</span> ( result === vector ) {
-                tmp = [];
-            } <span class="hljs-keyword">else</span> {
-                tmp = result;
-            }
-            tmp[ <span class="hljs-number">0</span> ] = ( matrix[ <span class="hljs-number">0</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">4</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">8</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">12</span> ] ) * d;
-            tmp[ <span class="hljs-number">1</span> ] = ( matrix[ <span class="hljs-number">1</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">5</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">9</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">13</span> ] ) * d;
-            tmp[ <span class="hljs-number">2</span> ] = ( matrix[ <span class="hljs-number">2</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">6</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">10</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">14</span> ] ) * d;
+                <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
+                    Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                    result = Matrix.create();
+                }
 
-            <span class="hljs-keyword">if</span> ( result === vector ) {
-                Vec3.copy( tmp, result );
-            }
-            <span class="hljs-keyword">return</span> result;
-        },
+                <span class="hljs-keyword">var</span> tmp;
+                <span class="hljs-keyword">if</span> ( result === vector ) {
+                    tmp = tmpVec;
+                } <span class="hljs-keyword">else</span> {
+                    tmp = result;
+                }
+                tmp[ <span class="hljs-number">0</span> ] = ( matrix[ <span class="hljs-number">0</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">4</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">8</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">12</span> ] ) * d;
+                tmp[ <span class="hljs-number">1</span> ] = ( matrix[ <span class="hljs-number">1</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">5</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">9</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">13</span> ] ) * d;
+                tmp[ <span class="hljs-number">2</span> ] = ( matrix[ <span class="hljs-number">2</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">6</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">10</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">14</span> ] ) * d;
 
-        transformVec4: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, vector, result )</span> {</span>
-            <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
-            }
-            <span class="hljs-keyword">var</span> tmp;
-            <span class="hljs-keyword">if</span> ( result === vector ) {
-                tmp = [];
-            } <span class="hljs-keyword">else</span> {
-                tmp = result;
-            }
-            tmp[ <span class="hljs-number">0</span> ] = ( matrix[ <span class="hljs-number">0</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">1</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">2</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">3</span> ] * vector[ <span class="hljs-number">3</span> ] );
-            tmp[ <span class="hljs-number">1</span> ] = ( matrix[ <span class="hljs-number">4</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">5</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">6</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">7</span> ] * vector[ <span class="hljs-number">3</span> ] );
-            tmp[ <span class="hljs-number">2</span> ] = ( matrix[ <span class="hljs-number">8</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">9</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">10</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">11</span> ] * vector[ <span class="hljs-number">3</span> ] );
-            tmp[ <span class="hljs-number">3</span> ] = ( matrix[ <span class="hljs-number">12</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">13</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">14</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">15</span> ] * vector[ <span class="hljs-number">3</span> ] );
+                <span class="hljs-keyword">if</span> ( result === vector ) {
+                    Vec3.copy( tmp, result );
+                }
+                <span class="hljs-keyword">return</span> result;
+            };
+        } )(),
 
-            <span class="hljs-keyword">if</span> ( result === vector ) {
-                Vec4.copy( tmp, result );
-            }
-            <span class="hljs-keyword">return</span> result;
-        },
+        transformVec4: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> tmpVec = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, vector, result )</span> {</span>
+                <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
+                    Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                    result = Matrix.create();
+                }
+                <span class="hljs-keyword">var</span> tmp;
+                <span class="hljs-keyword">if</span> ( result === vector ) {
+                    tmp = tmpVec;
+                } <span class="hljs-keyword">else</span> {
+                    tmp = result;
+                }
+                tmp[ <span class="hljs-number">0</span> ] = ( matrix[ <span class="hljs-number">0</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">1</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">2</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">3</span> ] * vector[ <span class="hljs-number">3</span> ] );
+                tmp[ <span class="hljs-number">1</span> ] = ( matrix[ <span class="hljs-number">4</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">5</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">6</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">7</span> ] * vector[ <span class="hljs-number">3</span> ] );
+                tmp[ <span class="hljs-number">2</span> ] = ( matrix[ <span class="hljs-number">8</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">9</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">10</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">11</span> ] * vector[ <span class="hljs-number">3</span> ] );
+                tmp[ <span class="hljs-number">3</span> ] = ( matrix[ <span class="hljs-number">12</span> ] * vector[ <span class="hljs-number">0</span> ] + matrix[ <span class="hljs-number">13</span> ] * vector[ <span class="hljs-number">1</span> ] + matrix[ <span class="hljs-number">14</span> ] * vector[ <span class="hljs-number">2</span> ] + matrix[ <span class="hljs-number">15</span> ] * vector[ <span class="hljs-number">3</span> ] );
+
+                <span class="hljs-keyword">if</span> ( result === vector ) {
+                    Vec4.copy( tmp, result );
+                }
+                <span class="hljs-keyword">return</span> result;
+            };
+        } )(),
 
         copy: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                result = Matrix.create();
             }
             result[ <span class="hljs-number">0</span> ] = matrix[ <span class="hljs-number">0</span> ];
             result[ <span class="hljs-number">1</span> ] = matrix[ <span class="hljs-number">1</span> ];
@@ -1536,18 +1602,22 @@ we will change this convention later</p>
             <span class="hljs-keyword">return</span> result;
         },
 
-        inverse: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, result )</span> {</span>
-            <span class="hljs-keyword">if</span> ( result === matrix ) {
-                Matrix.copy( matrix, Matrix._tmp1 );
-                matrix = Matrix._tmp1;
-            }
+        inverse: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> tmp = [ <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> ];
 
-            <span class="hljs-keyword">if</span> ( matrix[ <span class="hljs-number">3</span> ] === <span class="hljs-number">0.0</span> &amp;&amp; matrix[ <span class="hljs-number">7</span> ] === <span class="hljs-number">0.0</span> &amp;&amp; matrix[ <span class="hljs-number">11</span> ] === <span class="hljs-number">0.0</span> &amp;&amp; matrix[ <span class="hljs-number">15</span> ] === <span class="hljs-number">1.0</span> ) {
-                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.inverse4x3( matrix, result );
-            } <span class="hljs-keyword">else</span> {
-                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.inverse4x4( matrix, result );
-            }
-        },
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, result )</span> {</span>
+                <span class="hljs-keyword">if</span> ( result === matrix ) {
+                    Matrix.copy( matrix, tmp );
+                    matrix = tmp;
+                }
+
+                <span class="hljs-keyword">if</span> ( matrix[ <span class="hljs-number">3</span> ] === <span class="hljs-number">0.0</span> &amp;&amp; matrix[ <span class="hljs-number">7</span> ] === <span class="hljs-number">0.0</span> &amp;&amp; matrix[ <span class="hljs-number">11</span> ] === <span class="hljs-number">0.0</span> &amp;&amp; matrix[ <span class="hljs-number">15</span> ] === <span class="hljs-number">1.0</span> ) {
+                    <span class="hljs-keyword">return</span> Matrix.inverse4x3( matrix, result );
+                } <span class="hljs-keyword">else</span> {
+                    <span class="hljs-keyword">return</span> Matrix.inverse4x4( matrix, result );
+                }
+            };
+        } )(),
 
         <span class="hljs-comment">/**
          *  if a result argument is given the return of the function is true or false
@@ -1577,15 +1647,15 @@ we will change this convention later</p>
             <span class="hljs-keyword">var</span> tmp19 = matrix[ <span class="hljs-number">12</span> ] * matrix[ <span class="hljs-number">1</span> ];
             <span class="hljs-keyword">var</span> tmp20 = matrix[ <span class="hljs-number">0</span> ] * matrix[ <span class="hljs-number">9</span> ];
             <span class="hljs-keyword">var</span> tmp21 = matrix[ <span class="hljs-number">8</span> ] * matrix[ <span class="hljs-number">1</span> ];
-            <span class="hljs-keyword">var</span> tmp22= matrix[ <span class="hljs-number">0</span> ] * matrix[ <span class="hljs-number">5</span> ];
-            <span class="hljs-keyword">var</span> tmp23= matrix[ <span class="hljs-number">4</span> ] * matrix[ <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">var</span> tmp22 = matrix[ <span class="hljs-number">0</span> ] * matrix[ <span class="hljs-number">5</span> ];
+            <span class="hljs-keyword">var</span> tmp23 = matrix[ <span class="hljs-number">4</span> ] * matrix[ <span class="hljs-number">1</span> ];
 
             <span class="hljs-keyword">var</span> t0 = ( ( tmp0 * matrix[ <span class="hljs-number">5</span> ] + tmp3 * matrix[ <span class="hljs-number">9</span> ] + tmp4 * matrix[ <span class="hljs-number">13</span> ] ) -
                 ( tmp1 * matrix[ <span class="hljs-number">5</span> ] + tmp2 * matrix[ <span class="hljs-number">9</span> ] + tmp5 * matrix[ <span class="hljs-number">13</span> ] ) );
-            <span class="hljs-keyword">var</span> t1 = ( ( tmp1 * matrix[ <span class="hljs-number">1</span> ] + tmp6  * matrix[ <span class="hljs-number">9</span> ] + tmp9 * matrix[ <span class="hljs-number">13</span> ] ) -
+            <span class="hljs-keyword">var</span> t1 = ( ( tmp1 * matrix[ <span class="hljs-number">1</span> ] + tmp6 * matrix[ <span class="hljs-number">9</span> ] + tmp9 * matrix[ <span class="hljs-number">13</span> ] ) -
                 ( tmp0 * matrix[ <span class="hljs-number">1</span> ] + tmp7 * matrix[ <span class="hljs-number">9</span> ] + tmp8 * matrix[ <span class="hljs-number">13</span> ] ) );
             <span class="hljs-keyword">var</span> t2 = ( ( tmp2 * matrix[ <span class="hljs-number">1</span> ] + tmp7 * matrix[ <span class="hljs-number">5</span> ] + tmp10 * matrix[ <span class="hljs-number">13</span> ] ) -
-                ( tmp3 * matrix[ <span class="hljs-number">1</span> ] + tmp6  * matrix[ <span class="hljs-number">5</span> ] + tmp11 * matrix[ <span class="hljs-number">13</span> ] ) );
+                ( tmp3 * matrix[ <span class="hljs-number">1</span> ] + tmp6 * matrix[ <span class="hljs-number">5</span> ] + tmp11 * matrix[ <span class="hljs-number">13</span> ] ) );
             <span class="hljs-keyword">var</span> t3 = ( ( tmp5 * matrix[ <span class="hljs-number">1</span> ] + tmp8 * matrix[ <span class="hljs-number">5</span> ] + tmp11 * matrix[ <span class="hljs-number">9</span> ] ) -
                 ( tmp4 * matrix[ <span class="hljs-number">1</span> ] + tmp9 * matrix[ <span class="hljs-number">5</span> ] + tmp10 * matrix[ <span class="hljs-number">9</span> ] ) );
 
@@ -1604,29 +1674,29 @@ we will change this convention later</p>
             <span class="hljs-keyword">var</span> out10 = d * ( ( tmp1 * matrix[ <span class="hljs-number">4</span> ] + tmp2 * matrix[ <span class="hljs-number">8</span> ] + tmp5 * matrix[ <span class="hljs-number">12</span> ] ) -
                 ( tmp0 * matrix[ <span class="hljs-number">4</span> ] + tmp3 * matrix[ <span class="hljs-number">8</span> ] + tmp4 * matrix[ <span class="hljs-number">12</span> ] ) );
             <span class="hljs-keyword">var</span> out11 = d * ( ( tmp0 * matrix[ <span class="hljs-number">0</span> ] + tmp7 * matrix[ <span class="hljs-number">8</span> ] + tmp8 * matrix[ <span class="hljs-number">12</span> ] ) -
-                ( tmp1 * matrix[ <span class="hljs-number">0</span> ] + tmp6  * matrix[ <span class="hljs-number">8</span> ] + tmp9 * matrix[ <span class="hljs-number">12</span> ] ) );
-            <span class="hljs-keyword">var</span> out12 = d * ( ( tmp3 * matrix[ <span class="hljs-number">0</span> ] + tmp6  * matrix[ <span class="hljs-number">4</span> ] + tmp11 * matrix[ <span class="hljs-number">12</span> ] ) -
+                ( tmp1 * matrix[ <span class="hljs-number">0</span> ] + tmp6 * matrix[ <span class="hljs-number">8</span> ] + tmp9 * matrix[ <span class="hljs-number">12</span> ] ) );
+            <span class="hljs-keyword">var</span> out12 = d * ( ( tmp3 * matrix[ <span class="hljs-number">0</span> ] + tmp6 * matrix[ <span class="hljs-number">4</span> ] + tmp11 * matrix[ <span class="hljs-number">12</span> ] ) -
                 ( tmp2 * matrix[ <span class="hljs-number">0</span> ] + tmp7 * matrix[ <span class="hljs-number">4</span> ] + tmp10 * matrix[ <span class="hljs-number">12</span> ] ) );
             <span class="hljs-keyword">var</span> out13 = d * ( ( tmp4 * matrix[ <span class="hljs-number">0</span> ] + tmp9 * matrix[ <span class="hljs-number">4</span> ] + tmp10 * matrix[ <span class="hljs-number">8</span> ] ) -
                 ( tmp5 * matrix[ <span class="hljs-number">0</span> ] + tmp8 * matrix[ <span class="hljs-number">4</span> ] + tmp11 * matrix[ <span class="hljs-number">8</span> ] ) );
 
             <span class="hljs-keyword">var</span> out20 = d * ( ( tmp12 * matrix[ <span class="hljs-number">7</span> ] + tmp15 * matrix[ <span class="hljs-number">11</span> ] + tmp16 * matrix[ <span class="hljs-number">15</span> ] ) -
-                ( tmp13 * matrix[ <span class="hljs-number">7</span> ] + tmp14* matrix[ <span class="hljs-number">11</span> ] + tmp17 * matrix[ <span class="hljs-number">15</span> ] ) );
+                ( tmp13 * matrix[ <span class="hljs-number">7</span> ] + tmp14 * matrix[ <span class="hljs-number">11</span> ] + tmp17 * matrix[ <span class="hljs-number">15</span> ] ) );
             <span class="hljs-keyword">var</span> out21 = d * ( ( tmp13 * matrix[ <span class="hljs-number">3</span> ] + tmp18 * matrix[ <span class="hljs-number">11</span> ] + tmp21 * matrix[ <span class="hljs-number">15</span> ] ) -
                 ( tmp12 * matrix[ <span class="hljs-number">3</span> ] + tmp19 * matrix[ <span class="hljs-number">11</span> ] + tmp20 * matrix[ <span class="hljs-number">15</span> ] ) );
-            <span class="hljs-keyword">var</span> out22 = d * ( ( tmp14* matrix[ <span class="hljs-number">3</span> ] + tmp19 * matrix[ <span class="hljs-number">7</span> ] + tmp22* matrix[ <span class="hljs-number">15</span> ] ) -
-                ( tmp15 * matrix[ <span class="hljs-number">3</span> ] + tmp18 * matrix[ <span class="hljs-number">7</span> ] + tmp23* matrix[ <span class="hljs-number">15</span> ] ) );
-            <span class="hljs-keyword">var</span> out23 = d * ( ( tmp17 * matrix[ <span class="hljs-number">3</span> ] + tmp20 * matrix[ <span class="hljs-number">7</span> ] + tmp23* matrix[ <span class="hljs-number">11</span> ] ) -
-                ( tmp16 * matrix[ <span class="hljs-number">3</span> ] + tmp21 * matrix[ <span class="hljs-number">7</span> ] + tmp22* matrix[ <span class="hljs-number">11</span> ] ) );
+            <span class="hljs-keyword">var</span> out22 = d * ( ( tmp14 * matrix[ <span class="hljs-number">3</span> ] + tmp19 * matrix[ <span class="hljs-number">7</span> ] + tmp22 * matrix[ <span class="hljs-number">15</span> ] ) -
+                ( tmp15 * matrix[ <span class="hljs-number">3</span> ] + tmp18 * matrix[ <span class="hljs-number">7</span> ] + tmp23 * matrix[ <span class="hljs-number">15</span> ] ) );
+            <span class="hljs-keyword">var</span> out23 = d * ( ( tmp17 * matrix[ <span class="hljs-number">3</span> ] + tmp20 * matrix[ <span class="hljs-number">7</span> ] + tmp23 * matrix[ <span class="hljs-number">11</span> ] ) -
+                ( tmp16 * matrix[ <span class="hljs-number">3</span> ] + tmp21 * matrix[ <span class="hljs-number">7</span> ] + tmp22 * matrix[ <span class="hljs-number">11</span> ] ) );
 
-            <span class="hljs-keyword">var</span> out30 = d * ( ( tmp14* matrix[ <span class="hljs-number">10</span> ] + tmp17 * matrix[ <span class="hljs-number">14</span> ] + tmp13 * matrix[ <span class="hljs-number">6</span> ] ) -
+            <span class="hljs-keyword">var</span> out30 = d * ( ( tmp14 * matrix[ <span class="hljs-number">10</span> ] + tmp17 * matrix[ <span class="hljs-number">14</span> ] + tmp13 * matrix[ <span class="hljs-number">6</span> ] ) -
                 ( tmp16 * matrix[ <span class="hljs-number">14</span> ] + tmp12 * matrix[ <span class="hljs-number">6</span> ] + tmp15 * matrix[ <span class="hljs-number">10</span> ] ) );
             <span class="hljs-keyword">var</span> out31 = d * ( ( tmp20 * matrix[ <span class="hljs-number">14</span> ] + tmp12 * matrix[ <span class="hljs-number">2</span> ] + tmp19 * matrix[ <span class="hljs-number">10</span> ] ) -
                 ( tmp18 * matrix[ <span class="hljs-number">10</span> ] + tmp21 * matrix[ <span class="hljs-number">14</span> ] + tmp13 * matrix[ <span class="hljs-number">2</span> ] ) );
-            <span class="hljs-keyword">var</span> out32 = d * ( ( tmp18 * matrix[ <span class="hljs-number">6</span> ] + tmp23* matrix[ <span class="hljs-number">14</span> ] + tmp15 * matrix[ <span class="hljs-number">2</span> ] ) -
-                ( tmp22* matrix[ <span class="hljs-number">14</span> ] + tmp14 * matrix[ <span class="hljs-number">2</span> ] + tmp19 * matrix[ <span class="hljs-number">6</span> ] ) );
-            <span class="hljs-keyword">var</span> out33 = d * ( ( tmp22* matrix[ <span class="hljs-number">10</span> ] + tmp16 * matrix[ <span class="hljs-number">2</span> ] + tmp21 * matrix[ <span class="hljs-number">6</span> ] ) -
-                ( tmp20 * matrix[ <span class="hljs-number">6</span> ] + tmp23* matrix[ <span class="hljs-number">10</span> ] + tmp17 * matrix[ <span class="hljs-number">2</span> ] ) );
+            <span class="hljs-keyword">var</span> out32 = d * ( ( tmp18 * matrix[ <span class="hljs-number">6</span> ] + tmp23 * matrix[ <span class="hljs-number">14</span> ] + tmp15 * matrix[ <span class="hljs-number">2</span> ] ) -
+                ( tmp22 * matrix[ <span class="hljs-number">14</span> ] + tmp14 * matrix[ <span class="hljs-number">2</span> ] + tmp19 * matrix[ <span class="hljs-number">6</span> ] ) );
+            <span class="hljs-keyword">var</span> out33 = d * ( ( tmp22 * matrix[ <span class="hljs-number">10</span> ] + tmp16 * matrix[ <span class="hljs-number">2</span> ] + tmp21 * matrix[ <span class="hljs-number">6</span> ] ) -
+                ( tmp20 * matrix[ <span class="hljs-number">6</span> ] + tmp23 * matrix[ <span class="hljs-number">10</span> ] + tmp17 * matrix[ <span class="hljs-number">2</span> ] ) );
 
             result[ <span class="hljs-number">0</span> ] = out00;
             result[ <span class="hljs-number">1</span> ] = out01;
@@ -1688,7 +1758,10 @@ we will change this convention later</p>
       This problem is simplified if [px py pz s] = [0 0 0 1], which will happen if mat was composed only of rotations, scales, and translations (which is common).  In this case, we can ignore corr entirely which saves on a lot of computations.
     */</span>
 
-        inverse4x3: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, result )</span> {</span></pre></div></div>
+        inverse4x3: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> inv = [ <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> ];
+
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, result )</span> {</span></pre></div></div>
             
         </li>
         
@@ -1703,17 +1776,17 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> r00 = matrix[ <span class="hljs-number">0</span> ];
-            <span class="hljs-keyword">var</span> r01 = matrix[ <span class="hljs-number">1</span> ];
-            <span class="hljs-keyword">var</span> r02 = matrix[ <span class="hljs-number">2</span> ];
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">var</span> r00 = matrix[ <span class="hljs-number">0</span> ];
+                <span class="hljs-keyword">var</span> r01 = matrix[ <span class="hljs-number">1</span> ];
+                <span class="hljs-keyword">var</span> r02 = matrix[ <span class="hljs-number">2</span> ];
 
-            <span class="hljs-keyword">var</span> r10 = matrix[ <span class="hljs-number">4</span> ];
-            <span class="hljs-keyword">var</span> r11 = matrix[ <span class="hljs-number">5</span> ];
-            <span class="hljs-keyword">var</span> r12 = matrix[ <span class="hljs-number">6</span> ];
+                <span class="hljs-keyword">var</span> r10 = matrix[ <span class="hljs-number">4</span> ];
+                <span class="hljs-keyword">var</span> r11 = matrix[ <span class="hljs-number">5</span> ];
+                <span class="hljs-keyword">var</span> r12 = matrix[ <span class="hljs-number">6</span> ];
 
-            <span class="hljs-keyword">var</span> r20 = matrix[ <span class="hljs-number">8</span> ];
-            <span class="hljs-keyword">var</span> r21 = matrix[ <span class="hljs-number">9</span> ];
-            <span class="hljs-keyword">var</span> r22 = matrix[ <span class="hljs-number">10</span> ];</pre></div></div>
+                <span class="hljs-keyword">var</span> r20 = matrix[ <span class="hljs-number">8</span> ];
+                <span class="hljs-keyword">var</span> r21 = matrix[ <span class="hljs-number">9</span> ];
+                <span class="hljs-keyword">var</span> r22 = matrix[ <span class="hljs-number">10</span> ];</pre></div></div>
             
         </li>
         
@@ -1728,9 +1801,9 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            result[ <span class="hljs-number">0</span> ] = r11 * r22 - r12 * r21;
-            result[ <span class="hljs-number">1</span> ] = r02 * r21 - r01 * r22;
-            result[ <span class="hljs-number">2</span> ] = r01 * r12 - r02 * r11;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                result[ <span class="hljs-number">0</span> ] = r11 * r22 - r12 * r21;
+                result[ <span class="hljs-number">1</span> ] = r02 * r21 - r01 * r22;
+                result[ <span class="hljs-number">2</span> ] = r01 * r12 - r02 * r11;</pre></div></div>
             
         </li>
         
@@ -1745,10 +1818,10 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> oneOverDet = <span class="hljs-number">1.0</span> / ( r00 * result[ <span class="hljs-number">0</span> ] + r10 * result[ <span class="hljs-number">1</span> ] + r20 * result[ <span class="hljs-number">2</span> ] );
-            r00 *= oneOverDet;
-            r10 *= oneOverDet;
-            r20 *= oneOverDet; <span class="hljs-comment">// Saves on later computations</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">var</span> oneOverDet = <span class="hljs-number">1.0</span> / ( r00 * result[ <span class="hljs-number">0</span> ] + r10 * result[ <span class="hljs-number">1</span> ] + r20 * result[ <span class="hljs-number">2</span> ] );
+                r00 *= oneOverDet;
+                r10 *= oneOverDet;
+                r20 *= oneOverDet; <span class="hljs-comment">// Saves on later computations</span></pre></div></div>
             
         </li>
         
@@ -1763,45 +1836,44 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            result[ <span class="hljs-number">0</span> ] *= oneOverDet;
-            result[ <span class="hljs-number">1</span> ] *= oneOverDet;
-            result[ <span class="hljs-number">2</span> ] *= oneOverDet;
-            result[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">4</span> ] = r12 * r20 - r10 * r22; <span class="hljs-comment">// Have already been divided by det</span>
-            result[ <span class="hljs-number">5</span> ] = r00 * r22 - r02 * r20; <span class="hljs-comment">// same</span>
-            result[ <span class="hljs-number">6</span> ] = r02 * r10 - r00 * r12; <span class="hljs-comment">// same</span>
-            result[ <span class="hljs-number">7</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">8</span> ] = r10 * r21 - r11 * r20; <span class="hljs-comment">// Have already been divided by det</span>
-            result[ <span class="hljs-number">9</span> ] = r01 * r20 - r00 * r21; <span class="hljs-comment">// same</span>
-            result[ <span class="hljs-number">10</span> ] = r00 * r11 - r01 * r10; <span class="hljs-comment">// same</span>
-            result[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">15</span> ] = <span class="hljs-number">1.0</span>;
+            <div class="content"><div class='highlight'><pre>                result[ <span class="hljs-number">0</span> ] *= oneOverDet;
+                result[ <span class="hljs-number">1</span> ] *= oneOverDet;
+                result[ <span class="hljs-number">2</span> ] *= oneOverDet;
+                result[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">4</span> ] = r12 * r20 - r10 * r22; <span class="hljs-comment">// Have already been divided by det</span>
+                result[ <span class="hljs-number">5</span> ] = r00 * r22 - r02 * r20; <span class="hljs-comment">// same</span>
+                result[ <span class="hljs-number">6</span> ] = r02 * r10 - r00 * r12; <span class="hljs-comment">// same</span>
+                result[ <span class="hljs-number">7</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">8</span> ] = r10 * r21 - r11 * r20; <span class="hljs-comment">// Have already been divided by det</span>
+                result[ <span class="hljs-number">9</span> ] = r01 * r20 - r00 * r21; <span class="hljs-comment">// same</span>
+                result[ <span class="hljs-number">10</span> ] = r00 * r11 - r01 * r10; <span class="hljs-comment">// same</span>
+                result[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">15</span> ] = <span class="hljs-number">1.0</span>;
 
-            <span class="hljs-keyword">var</span> tx, ty, tz;
+                <span class="hljs-keyword">var</span> tx, ty, tz;
 
-            <span class="hljs-keyword">var</span> d = matrix[ <span class="hljs-number">15</span> ];
-            <span class="hljs-keyword">var</span> dm = d - <span class="hljs-number">1.0</span>;
-            <span class="hljs-keyword">if</span> ( dm * dm &gt; <span class="hljs-number">1.0e-6</span> ) <span class="hljs-comment">// Involves perspective, so we must</span>
-            { <span class="hljs-comment">// compute the full inverse</span>
+                <span class="hljs-keyword">var</span> d = matrix[ <span class="hljs-number">15</span> ];
+                <span class="hljs-keyword">var</span> dm = d - <span class="hljs-number">1.0</span>;
+                <span class="hljs-keyword">if</span> ( dm * dm &gt; <span class="hljs-number">1.0e-6</span> ) <span class="hljs-comment">// Involves perspective, so we must</span>
+                { <span class="hljs-comment">// compute the full inverse</span>
 
-                <span class="hljs-keyword">var</span> inv = Matrix._tmp0;
-                result[ <span class="hljs-number">12</span> ] = result[ <span class="hljs-number">13</span> ] = result[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0.0</span>;
+                    result[ <span class="hljs-number">12</span> ] = result[ <span class="hljs-number">13</span> ] = result[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0.0</span>;
 
-                <span class="hljs-keyword">var</span> a = matrix[ <span class="hljs-number">3</span> ];
-                <span class="hljs-keyword">var</span> b = matrix[ <span class="hljs-number">7</span> ];
-                <span class="hljs-keyword">var</span> c = matrix[ <span class="hljs-number">11</span> ];
-                <span class="hljs-keyword">var</span> px = result[ <span class="hljs-number">0</span> ] * a + result[ <span class="hljs-number">1</span> ] * b + result[ <span class="hljs-number">2</span> ] * c;
-                <span class="hljs-keyword">var</span> py = result[ <span class="hljs-number">4</span> ] * a + result[ <span class="hljs-number">5</span> ] * b + result[ <span class="hljs-number">6</span> ] * c;
-                <span class="hljs-keyword">var</span> pz = result[ <span class="hljs-number">8</span> ] * a + result[ <span class="hljs-number">9</span> ] * b + result[ <span class="hljs-number">10</span> ] * c;
+                    <span class="hljs-keyword">var</span> a = matrix[ <span class="hljs-number">3</span> ];
+                    <span class="hljs-keyword">var</span> b = matrix[ <span class="hljs-number">7</span> ];
+                    <span class="hljs-keyword">var</span> c = matrix[ <span class="hljs-number">11</span> ];
+                    <span class="hljs-keyword">var</span> px = result[ <span class="hljs-number">0</span> ] * a + result[ <span class="hljs-number">1</span> ] * b + result[ <span class="hljs-number">2</span> ] * c;
+                    <span class="hljs-keyword">var</span> py = result[ <span class="hljs-number">4</span> ] * a + result[ <span class="hljs-number">5</span> ] * b + result[ <span class="hljs-number">6</span> ] * c;
+                    <span class="hljs-keyword">var</span> pz = result[ <span class="hljs-number">8</span> ] * a + result[ <span class="hljs-number">9</span> ] * b + result[ <span class="hljs-number">10</span> ] * c;
 
-                tx = matrix[ <span class="hljs-number">12</span> ];
-                ty = matrix[ <span class="hljs-number">13</span> ];
-                tz = matrix[ <span class="hljs-number">14</span> ];
-                <span class="hljs-keyword">var</span> oneOverS = <span class="hljs-number">1.0</span> / ( d - ( tx * px + ty * py + tz * pz ) );
+                    tx = matrix[ <span class="hljs-number">12</span> ];
+                    ty = matrix[ <span class="hljs-number">13</span> ];
+                    tz = matrix[ <span class="hljs-number">14</span> ];
+                    <span class="hljs-keyword">var</span> oneOverS = <span class="hljs-number">1.0</span> / ( d - ( tx * px + ty * py + tz * pz ) );
 
-                tx *= oneOverS;
-                ty *= oneOverS;
-                tz *= oneOverS; <span class="hljs-comment">// Reduces number of calculations later on</span></pre></div></div>
+                    tx *= oneOverS;
+                    ty *= oneOverS;
+                    tz *= oneOverS; <span class="hljs-comment">// Reduces number of calculations later on</span></pre></div></div>
             
         </li>
         
@@ -1816,29 +1888,29 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                inv[ <span class="hljs-number">0</span> ] = tx * px + <span class="hljs-number">1.0</span>;
-                inv[ <span class="hljs-number">1</span> ] = ty * px;
-                inv[ <span class="hljs-number">2</span> ] = tz * px;
-                inv[ <span class="hljs-number">3</span> ] = -px * oneOverS;
-                inv[ <span class="hljs-number">4</span> ] = tx * py;
-                inv[ <span class="hljs-number">5</span> ] = ty * py + <span class="hljs-number">1.0</span>;
-                inv[ <span class="hljs-number">6</span> ] = tz * py;
-                inv[ <span class="hljs-number">7</span> ] = -py * oneOverS;
-                inv[ <span class="hljs-number">8</span> ] = tx * pz;
-                inv[ <span class="hljs-number">9</span> ] = ty * pz;
-                inv[ <span class="hljs-number">10</span> ] = tz * pz + <span class="hljs-number">1.0</span>;
-                inv[ <span class="hljs-number">11</span> ] = -pz * oneOverS;
-                inv[ <span class="hljs-number">12</span> ] = -tx;
-                inv[ <span class="hljs-number">13</span> ] = -ty;
-                inv[ <span class="hljs-number">14</span> ] = -tz;
-                inv[ <span class="hljs-number">15</span> ] = oneOverS;
+            <div class="content"><div class='highlight'><pre>                    inv[ <span class="hljs-number">0</span> ] = tx * px + <span class="hljs-number">1.0</span>;
+                    inv[ <span class="hljs-number">1</span> ] = ty * px;
+                    inv[ <span class="hljs-number">2</span> ] = tz * px;
+                    inv[ <span class="hljs-number">3</span> ] = -px * oneOverS;
+                    inv[ <span class="hljs-number">4</span> ] = tx * py;
+                    inv[ <span class="hljs-number">5</span> ] = ty * py + <span class="hljs-number">1.0</span>;
+                    inv[ <span class="hljs-number">6</span> ] = tz * py;
+                    inv[ <span class="hljs-number">7</span> ] = -py * oneOverS;
+                    inv[ <span class="hljs-number">8</span> ] = tx * pz;
+                    inv[ <span class="hljs-number">9</span> ] = ty * pz;
+                    inv[ <span class="hljs-number">10</span> ] = tz * pz + <span class="hljs-number">1.0</span>;
+                    inv[ <span class="hljs-number">11</span> ] = -pz * oneOverS;
+                    inv[ <span class="hljs-number">12</span> ] = -tx;
+                    inv[ <span class="hljs-number">13</span> ] = -ty;
+                    inv[ <span class="hljs-number">14</span> ] = -tz;
+                    inv[ <span class="hljs-number">15</span> ] = oneOverS;
 
-                Matrix.preMult( result, inv ); <span class="hljs-comment">// Finish computing full inverse of mat</span>
-            } <span class="hljs-keyword">else</span> {
+                    Matrix.preMult( result, inv ); <span class="hljs-comment">// Finish computing full inverse of mat</span>
+                } <span class="hljs-keyword">else</span> {
 
-                tx = matrix[ <span class="hljs-number">12</span> ];
-                ty = matrix[ <span class="hljs-number">13</span> ];
-                tz = matrix[ <span class="hljs-number">14</span> ];</pre></div></div>
+                    tx = matrix[ <span class="hljs-number">12</span> ];
+                    ty = matrix[ <span class="hljs-number">13</span> ];
+                    tz = matrix[ <span class="hljs-number">14</span> ];</pre></div></div>
             
         </li>
         
@@ -1853,13 +1925,13 @@ we will change this convention later</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                result[ <span class="hljs-number">12</span> ] = -( tx * result[ <span class="hljs-number">0</span> ] + ty * result[ <span class="hljs-number">4</span> ] + tz * result[ <span class="hljs-number">8</span> ] );
-                result[ <span class="hljs-number">13</span> ] = -( tx * result[ <span class="hljs-number">1</span> ] + ty * result[ <span class="hljs-number">5</span> ] + tz * result[ <span class="hljs-number">9</span> ] );
-                result[ <span class="hljs-number">14</span> ] = -( tx * result[ <span class="hljs-number">2</span> ] + ty * result[ <span class="hljs-number">6</span> ] + tz * result[ <span class="hljs-number">10</span> ] );
-            }
-            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
-
-        },
+            <div class="content"><div class='highlight'><pre>                    result[ <span class="hljs-number">12</span> ] = -( tx * result[ <span class="hljs-number">0</span> ] + ty * result[ <span class="hljs-number">4</span> ] + tz * result[ <span class="hljs-number">8</span> ] );
+                    result[ <span class="hljs-number">13</span> ] = -( tx * result[ <span class="hljs-number">1</span> ] + ty * result[ <span class="hljs-number">5</span> ] + tz * result[ <span class="hljs-number">9</span> ] );
+                    result[ <span class="hljs-number">14</span> ] = -( tx * result[ <span class="hljs-number">2</span> ] + ty * result[ <span class="hljs-number">6</span> ] + tz * result[ <span class="hljs-number">10</span> ] );
+                }
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+            };
+        } )(),
 
         transpose: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mat, dest )</span> {</span></pre></div></div>
             
@@ -1921,7 +1993,8 @@ If we are transposing ourselves we can skip a few steps but have to cache some v
 
         makePerspective: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( fovy, aspect, znear, zfar, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                result = Matrix.create();
             }
             <span class="hljs-keyword">var</span> ymax = znear * <span class="hljs-built_in">Math</span>.tan( fovy * <span class="hljs-built_in">Math</span>.PI / <span class="hljs-number">360.0</span> );
             <span class="hljs-keyword">var</span> ymin = -ymax;
@@ -1936,7 +2009,7 @@ If we are transposing ourselves we can skip a few steps but have to cache some v
             <span class="hljs-keyword">var</span> left = <span class="hljs-number">0.0</span>;
             <span class="hljs-keyword">var</span> top = <span class="hljs-number">0.0</span>;
             <span class="hljs-keyword">var</span> bottom = <span class="hljs-number">0.0</span>;
-            <span class="hljs-keyword">var</span> zNear,zFar;
+            <span class="hljs-keyword">var</span> zNear, zFar;
 
             <span class="hljs-keyword">if</span> ( matrix[ <span class="hljs-number">0</span> * <span class="hljs-number">4</span> + <span class="hljs-number">3</span> ] !== <span class="hljs-number">0.0</span> || matrix[ <span class="hljs-number">1</span> * <span class="hljs-number">4</span> + <span class="hljs-number">3</span> ] !== <span class="hljs-number">0.0</span> || matrix[ <span class="hljs-number">2</span> * <span class="hljs-number">4</span> + <span class="hljs-number">3</span> ] !== -<span class="hljs-number">1.0</span> || matrix[ <span class="hljs-number">3</span> * <span class="hljs-number">4</span> + <span class="hljs-number">3</span> ] !== <span class="hljs-number">0.0</span> ) {
                 <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
@@ -1978,7 +2051,7 @@ because zNear and zFar are references and they may point to the same variable.</
             <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
         },
 
-        getPerspective: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, result )</span> {</span>
+        getPerspective: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">var</span> c = {
                 <span class="hljs-string">'right'</span>: <span class="hljs-number">0</span>,
                 <span class="hljs-string">'left'</span>: <span class="hljs-number">0</span>,
@@ -1986,7 +2059,8 @@ because zNear and zFar are references and they may point to the same variable.</
                 <span class="hljs-string">'bottom'</span>: <span class="hljs-number">0</span>,
                 <span class="hljs-string">'zNear'</span>: <span class="hljs-number">0</span>,
                 <span class="hljs-string">'zFar'</span>: <span class="hljs-number">0</span>
-            };</pre></div></div>
+            };
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, result )</span> {</span></pre></div></div>
             
         </li>
         
@@ -2001,24 +2075,26 @@ because zNear and zFar are references and they may point to the same variable.</
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> r = <span class="hljs-keyword">this</span>.getFrustum( matrix, c );
-            <span class="hljs-keyword">if</span> ( r ) {
-                result.fovy = <span class="hljs-number">180</span> / <span class="hljs-built_in">Math</span>.PI * ( <span class="hljs-built_in">Math</span>.atan( c.top / c.zNear ) - <span class="hljs-built_in">Math</span>.atan( c.bottom / c.zNear ) );
-                result.aspectRatio = ( c.right - c.left ) / ( c.top - c.bottom );
-            }
-            result.zNear = c.zNear;
-            result.zFar = c.zFar;
-            <span class="hljs-keyword">return</span> result;
-        },
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">var</span> r = Matrix.getFrustum( matrix, c );
+                <span class="hljs-keyword">if</span> ( r ) {
+                    result.fovy = <span class="hljs-number">180</span> / <span class="hljs-built_in">Math</span>.PI * ( <span class="hljs-built_in">Math</span>.atan( c.top / c.zNear ) - <span class="hljs-built_in">Math</span>.atan( c.bottom / c.zNear ) );
+                    result.aspectRatio = ( c.right - c.left ) / ( c.top - c.bottom );
+                }
+                result.zNear = c.zNear;
+                result.zFar = c.zFar;
+                <span class="hljs-keyword">return</span> result;
+            };
+        } )(),
 
         makeScale: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( x, y, z, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                result = Matrix.create();
             }
-            <span class="hljs-keyword">this</span>.setRow( result, <span class="hljs-number">0</span>, x, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
-            <span class="hljs-keyword">this</span>.setRow( result, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, y, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
-            <span class="hljs-keyword">this</span>.setRow( result, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, z, <span class="hljs-number">0</span> );
-            <span class="hljs-keyword">this</span>.setRow( result, <span class="hljs-number">3</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> );
+            Matrix.setRow( result, <span class="hljs-number">0</span>, x, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> );
+            Matrix.setRow( result, <span class="hljs-number">1</span>, <span class="hljs-number">0.0</span>, y, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> );
+            Matrix.setRow( result, <span class="hljs-number">2</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, z, <span class="hljs-number">0.0</span> );
+            Matrix.setRow( result, <span class="hljs-number">3</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> );
             <span class="hljs-keyword">return</span> result;
         },</pre></div></div>
             
@@ -2061,28 +2137,27 @@ var zfar = projectionMatrix[ 12 + 2 ] / ( projectionMatrix[ 8 + 2 ] + 1.0 );</p>
             <span class="hljs-keyword">return</span> vectorsArray;
         },
 
-        makeFrustum: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( left, right,
-            bottom, top,
-            znear, zfar, result )</span> {</span>
+        makeFrustum: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( left, right, bottom, top, znear, zfar, result )</span> {</span>
             <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                result = [];
+                Notify.warn( <span class="hljs-string">'no matrix destination !'</span> );
+                result = Matrix.create();
             }
-            <span class="hljs-keyword">var</span> X = <span class="hljs-number">2</span> * znear / ( right - left );
-            <span class="hljs-keyword">var</span> Y = <span class="hljs-number">2</span> * znear / ( top - bottom );
+            <span class="hljs-keyword">var</span> X = <span class="hljs-number">2.0</span> * znear / ( right - left );
+            <span class="hljs-keyword">var</span> Y = <span class="hljs-number">2.0</span> * znear / ( top - bottom );
             <span class="hljs-keyword">var</span> A = ( right + left ) / ( right - left );
             <span class="hljs-keyword">var</span> B = ( top + bottom ) / ( top - bottom );
             <span class="hljs-keyword">var</span> C = -( zfar + znear ) / ( zfar - znear );
-            <span class="hljs-keyword">var</span> D = -<span class="hljs-number">2</span> * zfar * znear / ( zfar - znear );
-            <span class="hljs-keyword">this</span>.setRow( result, <span class="hljs-number">0</span>, X, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
-            <span class="hljs-keyword">this</span>.setRow( result, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, Y, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
-            <span class="hljs-keyword">this</span>.setRow( result, <span class="hljs-number">2</span>, A, B, C, -<span class="hljs-number">1</span> );
-            <span class="hljs-keyword">this</span>.setRow( result, <span class="hljs-number">3</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, D, <span class="hljs-number">0</span> );
+            <span class="hljs-keyword">var</span> D = -<span class="hljs-number">2.0</span> * zfar * znear / ( zfar - znear );
+            Matrix.setRow( result, <span class="hljs-number">0</span>, X, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> );
+            Matrix.setRow( result, <span class="hljs-number">1</span>, <span class="hljs-number">0.0</span>, Y, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> );
+            Matrix.setRow( result, <span class="hljs-number">2</span>, A, B, C, -<span class="hljs-number">1.0</span> );
+            Matrix.setRow( result, <span class="hljs-number">3</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, D, <span class="hljs-number">0.0</span> );
             <span class="hljs-keyword">return</span> result;
         },
 
         makeRotateFromQuat: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( quat, result )</span> {</span>
-            <span class="hljs-keyword">this</span>.makeIdentity( result );
-            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.setRotateFromQuat( result, quat );
+            Matrix.makeIdentity( result );
+            <span class="hljs-keyword">return</span> Matrix.setRotateFromQuat( result, quat );
         },
 
         setRotateFromQuat: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, quat )</span> {</span>

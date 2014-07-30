@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -671,9 +701,11 @@
     <span class="hljs-string">'osg/Matrix'</span>,
     <span class="hljs-string">'osg/ComputeMatrixFromNodePath'</span>,
     <span class="hljs-string">'osg/TransformEnums'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Object, BoundingBox, BoundingSphere, StateSet, NodeVisitor, Matrix, ComputeMatrixFromNodePath, TransformEnums )</span> {</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Object, BoundingBox, BoundingSphere, StateSet, NodeVisitor, Matrix, ComputeMatrixFromNodePath, TransformEnums )</span> {</span><span class="hljs-pi">
 
-        <span class="hljs-comment">/**
+    'use strict'</span>;
+
+    <span class="hljs-comment">/**
      *  Node that can contains child node
      *  @class Node
      */</span>
@@ -690,6 +722,8 @@
         <span class="hljs-keyword">this</span>.boundingSphereComputed = <span class="hljs-literal">false</span>;
         <span class="hljs-keyword">this</span>._updateCallbacks = [];
         <span class="hljs-keyword">this</span>._cullCallback = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">this</span>._cullingActive = <span class="hljs-literal">true</span>;
+        <span class="hljs-keyword">this</span>._numChildrenWithCullingDisabled = <span class="hljs-number">0</span>;
     };
 
     <span class="hljs-comment">/** @lends Node.prototype */</span>
@@ -725,7 +759,7 @@
         setNodeMask: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( mask )</span> {</span>
             <span class="hljs-keyword">this</span>.nodeMask = mask;
         },
-        getNodeMask: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( )</span> {</span>
+        getNodeMask: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.nodeMask;
         },
         setStateSet: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( s )</span> {</span>
@@ -755,7 +789,10 @@
         @param Oject callback
      */</span>
         setUpdateCallback: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( cb )</span> {</span>
-            <span class="hljs-keyword">this</span>._updateCallbacks[ <span class="hljs-number">0</span> ] = cb;
+            <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._updateCallbacks.length )
+                <span class="hljs-keyword">this</span>.addUpdateCallback( cb );
+            <span class="hljs-keyword">else</span>
+                <span class="hljs-keyword">this</span>._updateCallbacks[ <span class="hljs-number">0</span> ] = cb;
         },
         <span class="hljs-comment">/** Get update node callback, called during update traversal.
         @type Oject
@@ -842,7 +879,7 @@
                 <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = children.length; i &lt; l; i++ ) {
                     children[ i ].removeParent( <span class="hljs-keyword">this</span> );
                 }
-                <span class="hljs-keyword">this</span>.children.splice( <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>.children.length );
+                children.length = <span class="hljs-number">0</span>;
                 <span class="hljs-keyword">this</span>.dirtyBound();
             }
         },</pre></div></div>
@@ -861,10 +898,13 @@
             </div>
             
             <div class="content"><div class='highlight'><pre>        removeChild: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( child )</span> {</span>
-            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = <span class="hljs-keyword">this</span>.children.length; i &lt; l; i++ ) {
-                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.children[ i ] === child ) {
+            <span class="hljs-keyword">var</span> children = <span class="hljs-keyword">this</span>.children;
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = children.length; i &lt; l; i++ ) {
+                <span class="hljs-keyword">if</span> ( children[ i ] === child ) {
                     child.removeParent( <span class="hljs-keyword">this</span> );
-                    <span class="hljs-keyword">this</span>.children.splice( i, <span class="hljs-number">1</span> );
+                    children.splice( i, <span class="hljs-number">1</span> );
+                    i--;
+                    l--;
                     <span class="hljs-keyword">this</span>.dirtyBound();
                 }
             }
@@ -953,14 +993,55 @@
             <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = collected.nodePaths.length; i &lt; l; i++ ) {
                 <span class="hljs-keyword">var</span> np = collected.nodePaths[ i ];
                 <span class="hljs-keyword">if</span> ( np.length === <span class="hljs-number">0</span> ) {
-                    matrixList.push( Matrix.makeIdentity( [] ) );
+                    matrixList.push( Matrix.create() );
                 } <span class="hljs-keyword">else</span> {
                     matrixList.push( ComputeMatrixFromNodePath.computeLocalToWorld( np ) );
                 }
             }
             <span class="hljs-keyword">return</span> matrixList;
-        }
+        },
 
+        setCullingActive: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( value )</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._cullingActive === value ) <span class="hljs-keyword">return</span>;
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._numChildrenWithCullingDisabled === <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-keyword">this</span>.parents.length &gt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">var</span> delta = <span class="hljs-number">0</span>;
+                <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>._cullingActive )--delta;
+                <span class="hljs-keyword">if</span> ( !value )++delta;
+                <span class="hljs-keyword">if</span> ( delta !== <span class="hljs-number">0</span> ) {
+                    <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, k = <span class="hljs-keyword">this</span>.parents.length; i &lt; k; i++ ) {
+                        <span class="hljs-keyword">this</span>.parents[ i ].setNumChildrenWithCullingDisabled( <span class="hljs-keyword">this</span>.parents[ i ].getNumChildrenWithCullingDisabled() + delta );
+                    }
+                }
+            }
+            <span class="hljs-keyword">this</span>._cullingActive = value;
+        },
+
+        getCullingActive: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._cullingActive;
+        },
+
+        isCullingActive: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._numChildrenWithCullingDisabled === <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-keyword">this</span>._cullingActive &amp;&amp; <span class="hljs-keyword">this</span>.getBound().valid();
+        },
+
+        setNumChildrenWithCullingDisabled: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( num )</span> {</span>
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._numChildrenWithCullingDisabled === num ) <span class="hljs-keyword">return</span>;
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._cullingActive &amp;&amp; <span class="hljs-keyword">this</span>.parents.length &gt; <span class="hljs-number">0</span> ) {
+                <span class="hljs-keyword">var</span> delta = <span class="hljs-number">0</span>;
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._numChildrenWithCullingDisabled &gt; <span class="hljs-number">0</span> )--delta;
+                <span class="hljs-keyword">if</span> ( num &gt; <span class="hljs-number">0</span> )++delta;
+                <span class="hljs-keyword">if</span> ( delta !== <span class="hljs-number">0</span> ) {
+                    <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, k = <span class="hljs-keyword">this</span>.parents.length; i &lt; k; i++ ) {
+                        <span class="hljs-keyword">this</span>.parents[ i ].setNumChildrenWithCullingDisabled( <span class="hljs-keyword">this</span>.parents[ i ].getNumChildrenWithCullingDisabled() + delta );
+                    }
+                }
+            }
+            <span class="hljs-keyword">this</span>._numChildrenWithCullingDisabled = num;
+        },
+
+        getNumChildrenWithCullingDisabled: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._numChildrenWithCullingDisabled;
+        }
 
     } ), <span class="hljs-string">'osg'</span>, <span class="hljs-string">'Node'</span> );
     MACROUTILS.setTypeID( Node );

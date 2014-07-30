@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -679,40 +709,67 @@
     <span class="hljs-string">'osgViewer/stats'</span>
 ], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, MACROUTILS, UpdateVisitor, CullVisitor, osgUtil, View, RenderStage, StateGraph, Matrix, State, OrbitManipulator, EventProxy, WebGLUtils, WebGLDebugUtils, Stats )</span> {</span>
 
-    ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span></pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-2">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-2">&#182;</a>
-              </div>
-              <p>install an html console logger for mobile</p>
 
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> optionsURL = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+    <span class="hljs-keyword">var</span> OptionsDefault = {
+        <span class="hljs-string">'antialias'</span>: <span class="hljs-literal">true</span>,
+        <span class="hljs-string">'useDevicePixelRatio'</span>: <span class="hljs-literal">true</span>,
+        <span class="hljs-string">'fullscreen'</span>: <span class="hljs-literal">true</span>,
+        <span class="hljs-string">'enableFrustumCulling'</span>: <span class="hljs-literal">false</span>
+    };
+
+
+    <span class="hljs-keyword">var</span> Options = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( defaults )</span> {</span>
+
+        <span class="hljs-built_in">Object</span>.keys( defaults ).forEach( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( key )</span> {</span>
+            <span class="hljs-keyword">this</span>[ key ] = defaults[ key ];
+        }.bind( <span class="hljs-keyword">this</span> ) );
+
+    };
+
+    Options.prototype = {
+        get: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( key )</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>[key];
+        },
+        getBoolean: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( key )</span> {</span>
+            <span class="hljs-keyword">var</span> val = <span class="hljs-keyword">this</span>.getString( key );
+            <span class="hljs-keyword">if</span> ( val ) <span class="hljs-keyword">return</span> <span class="hljs-built_in">Boolean</span>( <span class="hljs-built_in">JSON</span>.parse(val) );
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+        },
+
+        getNumber: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( key )</span> {</span>
+            <span class="hljs-keyword">var</span> val = <span class="hljs-keyword">this</span>[ key ];
+            <span class="hljs-keyword">if</span> ( val ) <span class="hljs-keyword">return</span> <span class="hljs-built_in">Number</span>( <span class="hljs-built_in">JSON</span>.parse(val));
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+        },
+
+        getString: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( key )</span> {</span>
+            <span class="hljs-keyword">var</span> val = <span class="hljs-keyword">this</span>[ key ];
+            <span class="hljs-keyword">if</span> ( val ) <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>[ key ].toString();
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+        }
+
+    };
+
+    <span class="hljs-keyword">var</span> OptionsURL = ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">var</span> options = {};
+        ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( options )</span> {</span>
             <span class="hljs-keyword">var</span> vars = [],
                 hash;
-            <span class="hljs-keyword">var</span> hashes = window.location.href.slice( window.location.href.indexOf( <span class="hljs-string">'?'</span> ) + <span class="hljs-number">1</span> ).split( <span class="hljs-string">'&amp;'</span> );
+            <span class="hljs-keyword">var</span> indexOptions = window.location.href.indexOf( <span class="hljs-string">'?'</span> );
+            <span class="hljs-keyword">if</span> ( indexOptions &lt; <span class="hljs-number">0</span> ) <span class="hljs-keyword">return</span>;
+
+            <span class="hljs-keyword">var</span> hashes = window.location.href.slice( indexOptions + <span class="hljs-number">1</span> ).split( <span class="hljs-string">'&amp;'</span> );
             <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; hashes.length; i++ ) {
                 hash = hashes[ i ].split( <span class="hljs-string">'='</span> );
-                <span class="hljs-keyword">var</span> element = hash[ <span class="hljs-number">0</span> ].toLowerCase();
+                <span class="hljs-keyword">var</span> element = hash[ <span class="hljs-number">0</span> ];
                 vars.push( element );
                 <span class="hljs-keyword">var</span> result = hash[ <span class="hljs-number">1</span> ];
                 <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
                     result = <span class="hljs-string">'1'</span>;
                 }
-                vars[ element ] = result.toLowerCase();
-
+                options[ element ] = result;
             }
-            <span class="hljs-keyword">return</span> vars;
-        };
-
-        <span class="hljs-keyword">var</span> options = optionsURL();
+        } )( options );
 
         <span class="hljs-keyword">if</span> ( options.log !== <span class="hljs-literal">undefined</span> ) {
             <span class="hljs-keyword">var</span> level = options.log.toLowerCase();
@@ -764,17 +821,27 @@
             }
         }
 
+        <span class="hljs-keyword">return</span> options;
     } )();
 
-    <span class="hljs-keyword">var</span> Viewer = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( canvas, options, error )</span> {</span>
-        View.call( <span class="hljs-keyword">this</span> );
+    <span class="hljs-keyword">var</span> Viewer = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( canvas, userOptions, error )</span> {</span>
+        View.call( <span class="hljs-keyword">this</span> );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>use default options</p>
 
-        <span class="hljs-keyword">if</span> ( options === <span class="hljs-literal">undefined</span> ) {
-            options = {
-                antialias: <span class="hljs-literal">true</span>
-            };
-        }
-        <span class="hljs-keyword">this</span>._options = options;</pre></div></div>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> options = <span class="hljs-keyword">new</span> Options( OptionsDefault );
+        <span class="hljs-keyword">if</span> ( userOptions ) {</pre></div></div>
             
         </li>
         
@@ -785,13 +852,46 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
+              <p>user options override by user options</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            MACROUTILS.objectMix( options, userOptions );
+        }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>if url options override url options</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        MACROUTILS.objectMix( options, OptionsURL );
+
+        <span class="hljs-keyword">this</span>._options = options;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
               <h1 id="fixme-see-tojiro-s-blog-for-webgl-lost-context-stuffs">FIXME see tojiro’s blog for webgl lost context stuffs</h1>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> ( options.SimulateWebGLLostContext ) {
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> ( options.get( <span class="hljs-string">'SimulateWebGLLostContext'</span>) ) {
             canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas( canvas );
-            canvas.loseContextInNCalls( options.SimulateWebGLLostContext );
+            canvas.loseContextInNCalls( options.get( <span class="hljs-string">'SimulateWebGLLostContext'</span> ) );
         }
 
         <span class="hljs-keyword">var</span> gl = WebGLUtils.setupWebGL( canvas, options, error );
@@ -806,56 +906,18 @@
         }, <span class="hljs-literal">false</span> );
 
 
-        <span class="hljs-keyword">if</span> ( Notify.reportWebGLError || options.reportWebGLError ) {
+        <span class="hljs-keyword">if</span> ( Notify.reportWebGLError || options.get( <span class="hljs-string">'reportWebGLError'</span>) ) {
             gl = WebGLDebugUtils.makeDebugContext( gl );
         }
 
-
         <span class="hljs-keyword">if</span> ( gl ) {
             <span class="hljs-keyword">this</span>.setGraphicContext( gl );
+            <span class="hljs-keyword">this</span>.initWebGLCaps( gl );
+
             MACROUTILS.init();
-            <span class="hljs-keyword">this</span>._canvas = canvas;
             <span class="hljs-keyword">this</span>._frameRate = <span class="hljs-number">60.0</span>;
             osgUtil.UpdateVisitor = UpdateVisitor;
-            osgUtil.CullVisitor = CullVisitor;
-            <span class="hljs-keyword">this</span>._urlOptions = <span class="hljs-literal">true</span>;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-4">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
-              </div>
-              <p>default argument for mouse binding</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> eventsBackend = <span class="hljs-keyword">this</span>._options.EventBackend || {};
-            <span class="hljs-keyword">this</span>._options.EventBackend = eventsBackend;
-
-            eventsBackend.StandardMouseKeyboard = <span class="hljs-keyword">this</span>._options.EventBackend.StandardMouseKeyboard || {};
-            <span class="hljs-keyword">var</span> mouseEventNode = eventsBackend.StandardMouseKeyboard.mouseEventNode || options.mouseEventNode || canvas;
-            eventsBackend.StandardMouseKeyboard.mouseEventNode = mouseEventNode;
-            eventsBackend.StandardMouseKeyboard.keyboardEventNode = eventsBackend.StandardMouseKeyboard.keyboardEventNode || document;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-5">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
-              </div>
-              <p>hammer</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>            eventsBackend.Hammer = eventsBackend.Hammer || {};
-            eventsBackend.Hammer.eventNode = eventsBackend.Hammer.eventNode || options.mouseEventNode || canvas;</pre></div></div>
+            osgUtil.CullVisitor = CullVisitor;</pre></div></div>
             
         </li>
         
@@ -866,13 +928,51 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
+              <p>default argument for mouse binding</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> defaultMouseEventNode = options.mouseEventNode || canvas;
+
+            <span class="hljs-keyword">var</span> eventsBackend = options.EventBackend || {};
+            <span class="hljs-keyword">if</span> ( !options.EventBackend )  options.EventBackend = eventsBackend;
+            eventsBackend.StandardMouseKeyboard = options.EventBackend.StandardMouseKeyboard || {};
+            <span class="hljs-keyword">var</span> mouseEventNode = eventsBackend.StandardMouseKeyboard.mouseEventNode || defaultMouseEventNode;
+            eventsBackend.StandardMouseKeyboard.mouseEventNode = mouseEventNode;
+            eventsBackend.StandardMouseKeyboard.keyboardEventNode = eventsBackend.StandardMouseKeyboard.keyboardEventNode || document;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>hammer</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            eventsBackend.Hammer = eventsBackend.Hammer || {};
+            eventsBackend.Hammer.eventNode = eventsBackend.Hammer.eventNode || defaultMouseEventNode;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
               <p>gamepade</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>            eventsBackend.GamePad = eventsBackend.GamePad || {};
 
-            <span class="hljs-keyword">this</span>.setUpView( canvas );
+            <span class="hljs-keyword">this</span>.setUpView( gl.canvas );
         } <span class="hljs-keyword">else</span> {
             <span class="hljs-keyword">throw</span> <span class="hljs-string">'No WebGL implementation found'</span>;
         }
@@ -898,14 +998,26 @@
             gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, <span class="hljs-literal">true</span> );
 
             <span class="hljs-keyword">this</span>._updateVisitor = <span class="hljs-keyword">new</span> osgUtil.UpdateVisitor();
-            <span class="hljs-keyword">this</span>._cullVisitor = <span class="hljs-keyword">new</span> osgUtil.CullVisitor();
+            <span class="hljs-keyword">this</span>._cullVisitor = <span class="hljs-keyword">new</span> osgUtil.CullVisitor();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>It should be done in RenderStage</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._cullVisitor.setCamera( <span class="hljs-keyword">this</span>.getCamera() );
             <span class="hljs-keyword">this</span>._renderStage = <span class="hljs-keyword">new</span> RenderStage();
             <span class="hljs-keyword">this</span>._stateGraph = <span class="hljs-keyword">new</span> StateGraph();
 
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._urlOptions ) {
-                <span class="hljs-keyword">this</span>.parseOptions();
-            }
+            <span class="hljs-keyword">this</span>.parseOptions();
 
             <span class="hljs-keyword">this</span>.getCamera().setClearColor( [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ] );
             <span class="hljs-keyword">this</span>._eventProxy = <span class="hljs-keyword">this</span>.initEventProxy( <span class="hljs-keyword">this</span>._options );
@@ -915,11 +1027,11 @@
         </li>
         
         
-        <li id="section-7">
+        <li id="section-10">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p>would have more sense to be in view
 but I would need to put cull and draw on lower Object
@@ -929,58 +1041,11 @@ in View or a new Renderer object</p>
             
             <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._state;
         },
+
         parseOptions: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
 
-            <span class="hljs-keyword">var</span> optionsURL = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-                <span class="hljs-keyword">var</span> vars = [],
-                    hash;
-                <span class="hljs-keyword">var</span> hashes = window.location.href.slice( window.location.href.indexOf( <span class="hljs-string">'?'</span> ) + <span class="hljs-number">1</span> ).split( <span class="hljs-string">'&amp;'</span> );
-                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; hashes.length; i++ ) {
-                    hash = hashes[ i ].split( <span class="hljs-string">'='</span> );
-                    <span class="hljs-keyword">var</span> element = hash[ <span class="hljs-number">0</span> ].toLowerCase();
-                    vars.push( element );
-                    <span class="hljs-keyword">var</span> result = hash[ <span class="hljs-number">1</span> ];
-                    <span class="hljs-keyword">if</span> ( result === <span class="hljs-literal">undefined</span> ) {
-                        result = <span class="hljs-string">'1'</span>;
-                    }
-                    vars[ element ] = result.toLowerCase();
-
-                }
-                <span class="hljs-keyword">return</span> vars;
-            };
-
-            <span class="hljs-keyword">var</span> options = optionsURL();
-
-            <span class="hljs-keyword">if</span> ( options.stats === <span class="hljs-string">'1'</span> ) {
-                <span class="hljs-keyword">this</span>.initStats( options );
-            }
-
-            <span class="hljs-keyword">var</span> gl = <span class="hljs-keyword">this</span>.getGraphicContext();</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-8">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
-              </div>
-              <p>not the best way to do it</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">if</span> ( options[<span class="hljs-string">'depth_test'</span>] === <span class="hljs-string">'0'</span> ) {
-                <span class="hljs-keyword">this</span>.getGraphicContext().disable( gl.DEPTH_TEST );
-            }
-            <span class="hljs-keyword">if</span> ( options[<span class="hljs-string">'blend'</span>] === <span class="hljs-string">'0'</span> ) {
-                <span class="hljs-keyword">this</span>.getGraphicContext().disable( gl.BLEND );
-            }
-            <span class="hljs-keyword">if</span> ( options[<span class="hljs-string">'cull_face'</span>] === <span class="hljs-string">'0'</span> ) {
-                <span class="hljs-keyword">this</span>.getGraphicContext().disable( gl.CULL_FACE );
-            }
-            <span class="hljs-keyword">if</span> ( options[<span class="hljs-string">'light'</span>] === <span class="hljs-string">'0'</span> ) {
-                <span class="hljs-keyword">this</span>.setLightingMode( View.LightingMode.NO_LIGHT );
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._options.stats ) {
+                <span class="hljs-keyword">this</span>.initStats( <span class="hljs-keyword">this</span>._options );
             }
 
         },
@@ -993,11 +1058,11 @@ in View or a new Renderer object</p>
         </li>
         
         
-        <li id="section-9">
+        <li id="section-11">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <p>var fontsize = 14;</p>
 
@@ -1030,11 +1095,11 @@ in View or a new Renderer object</p>
         </li>
         
         
-        <li id="section-10">
+        <li id="section-12">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-10">&#182;</a>
+                <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
               <p>elementToAppend = ‘body’;</p>
 
@@ -1047,11 +1112,11 @@ in View or a new Renderer object</p>
         </li>
         
         
-        <li id="section-11">
+        <li id="section-13">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-11">&#182;</a>
+                <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
               <p>jQuery(dom).appendTo(elementToAppend);</p>
 
@@ -1155,11 +1220,11 @@ in View or a new Renderer object</p>
         </li>
         
         
-        <li id="section-12">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-12">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <p>this part of code should be called for each view
 right now, we dont support multi view</p>
@@ -1179,11 +1244,11 @@ right now, we dont support multi view</p>
         </li>
         
         
-        <li id="section-13">
+        <li id="section-15">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>update bound</p>
 
@@ -1191,13 +1256,23 @@ right now, we dont support multi view</p>
             
             <div class="content"><div class='highlight'><pre>            camera.getBound();
 
-            <span class="hljs-keyword">var</span> identity = Matrix.makeIdentity( [] );
+            <span class="hljs-keyword">var</span> identity = Matrix.create();
             <span class="hljs-keyword">this</span>._cullVisitor.pushModelviewMatrix( identity );
-
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._light ) {
-                <span class="hljs-keyword">this</span>._cullVisitor.addPositionedAttribute( <span class="hljs-keyword">this</span>._light );
+            <span class="hljs-keyword">switch</span> ( <span class="hljs-keyword">this</span>.getLightingMode() )
+            {
+                <span class="hljs-keyword">case</span> View.LightingMode.HEADLIGHT:
+                    <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._light ) {
+                        <span class="hljs-keyword">this</span>._cullVisitor.addPositionedAttribute( <span class="hljs-keyword">this</span>._light );
+                    }
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-keyword">case</span> View.LightingMode.SKY_LIGHT:
+                    <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._light ) {
+                        <span class="hljs-keyword">this</span>._cullVisitor.addPositionedAttribute( <span class="hljs-keyword">this</span>._light, camera.getViewMatrix() );
+                    }
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-keyword">default</span>:
+                    <span class="hljs-keyword">break</span>;
             }
-
             <span class="hljs-keyword">this</span>._cullVisitor.pushModelviewMatrix( camera.getViewMatrix() );
             <span class="hljs-keyword">this</span>._cullVisitor.pushViewport( camera.getViewport() );
             <span class="hljs-keyword">this</span>._cullVisitor.setCullSettings( camera );
@@ -1210,11 +1285,31 @@ right now, we dont support multi view</p>
         </li>
         
         
-        <li id="section-14">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Check if Frustum culling is enabled to calculate the clip planes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._options.getBoolean( <span class="hljs-string">'enableFrustumCulling'</span> ) === <span class="hljs-literal">true</span> ){
+                <span class="hljs-keyword">this</span>._cullVisitor.setEnableFrustumCulling ( <span class="hljs-literal">true</span> );
+                <span class="hljs-keyword">var</span> mvp = Matrix.create();
+                Matrix.mult( camera.getProjectionMatrix(), camera.getViewMatrix(), mvp );
+                <span class="hljs-keyword">this</span>._cullVisitor.getFrustumPlanes( mvp, <span class="hljs-keyword">this</span>._cullVisitor._frustum );
+            }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
               <p>CullVisitor.prototype.handleCullCallbacksAndTraverse.call(this._cullVisitor,camera);</p>
 
@@ -1225,11 +1320,11 @@ right now, we dont support multi view</p>
         </li>
         
         
-        <li id="section-15">
+        <li id="section-18">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
+                <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
               <p>fix projection matrix if camera has near/far auto compute</p>
 
@@ -1249,11 +1344,11 @@ right now, we dont support multi view</p>
         </li>
         
         
-        <li id="section-16">
+        <li id="section-19">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
               <p>noticed that we accumulate lot of stack, maybe because of the stateGraph</p>
 
@@ -1264,6 +1359,9 @@ right now, we dont support multi view</p>
         },
 
         frame: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
+            <span class="hljs-keyword">this</span>.updateViewport();
+
             <span class="hljs-keyword">var</span> frameTime, beginFrameTime;
             frameTime = MACROUTILS.performance.now();
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._lastFrameTime === <span class="hljs-literal">undefined</span> ) {
@@ -1285,39 +1383,27 @@ right now, we dont support multi view</p>
         </li>
         
         
-        <li id="section-17">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p>setup framestamp</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._updateVisitor.setFrameStamp( frameStamp );</pre></div></div>
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._updateVisitor.setFrameStamp( frameStamp );
+            <span class="hljs-keyword">this</span>._cullVisitor.setFrameStamp( frameStamp );</pre></div></div>
             
         </li>
         
         
-        <li id="section-18">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
-              </div>
-              <p>this._cullVisitor.setFrameStamp(this.getFrameStamp());</p>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-19">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p>update inputs devices</p>
 
@@ -1328,11 +1414,11 @@ right now, we dont support multi view</p>
         </li>
         
         
-        <li id="section-20">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>Update Manipulator/Event
 should be merged with the update of game pad below</p>
@@ -1349,11 +1435,11 @@ should be merged with the update of game pad below</p>
         </li>
         
         
-        <li id="section-21">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <p>time the update</p>
 
@@ -1420,11 +1506,11 @@ should be merged with the update of game pad below</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p>for backward compatibility</p>
 
@@ -1434,42 +1520,52 @@ should be merged with the update of game pad below</p>
             }
 
             <span class="hljs-keyword">this</span>.setManipulator( manipulator );
+       },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>updateViewport</p>
 
-            <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
-            <span class="hljs-keyword">var</span> resize = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*ev*/</span> )</span> {</span>
-                <span class="hljs-keyword">var</span> w = window.innerWidth;
-                <span class="hljs-keyword">var</span> h = window.innerHeight;
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        updateViewport: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
 
-                <span class="hljs-keyword">var</span> camera = self.getCamera();
-                <span class="hljs-keyword">var</span> vp = camera.getViewport();
+            <span class="hljs-keyword">var</span> gl = <span class="hljs-keyword">this</span>.getGraphicContext();
+            <span class="hljs-keyword">var</span> canvas = gl.canvas;
 
-                <span class="hljs-keyword">var</span> prevWidth = vp.width();
-                <span class="hljs-keyword">var</span> prevHeight = vp.height();
-                self._canvas.width = w;
-                self._canvas.height = h;
-                self._canvas.style.width = w;
-                self._canvas.style.height = h;
-                Notify.debug( <span class="hljs-string">'window resize '</span> + prevWidth + <span class="hljs-string">'x'</span> + prevHeight + <span class="hljs-string">' to '</span> + w + <span class="hljs-string">'x'</span> + h );
-                <span class="hljs-keyword">var</span> widthChangeRatio = w / prevWidth;
-                <span class="hljs-keyword">var</span> heightChangeRatio = h / prevHeight;
-                <span class="hljs-keyword">var</span> aspectRatioChange = widthChangeRatio / heightChangeRatio;
-                vp.setViewport( vp.x() * widthChangeRatio, vp.y() * heightChangeRatio, vp.width() * widthChangeRatio, vp.height() * heightChangeRatio );
+            <span class="hljs-keyword">this</span>.computeCanvasSize( canvas );
 
-                <span class="hljs-keyword">if</span> ( aspectRatioChange !== <span class="hljs-number">1.0</span> ) {
-                    Matrix.preMult( camera.getProjectionMatrix(), Matrix.makeScale( <span class="hljs-number">1.0</span> / aspectRatioChange, <span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>, [] ) );
-                }
-            };
-            window.onresize = resize;
+            <span class="hljs-keyword">var</span> camera = <span class="hljs-keyword">this</span>.getCamera();
+            <span class="hljs-keyword">var</span> vp = camera.getViewport();
+
+            <span class="hljs-keyword">var</span> prevWidth = vp.width();
+            <span class="hljs-keyword">var</span> prevHeight = vp.height();
+
+            <span class="hljs-keyword">var</span> widthChangeRatio = canvas.width / prevWidth;
+            <span class="hljs-keyword">var</span> heightChangeRatio = canvas.height / prevHeight;
+            <span class="hljs-keyword">var</span> aspectRatioChange = widthChangeRatio / heightChangeRatio;
+            vp.setViewport( vp.x() * widthChangeRatio, vp.y() * heightChangeRatio, vp.width() * widthChangeRatio, vp.height() * heightChangeRatio );
+
+            <span class="hljs-keyword">if</span> ( aspectRatioChange !== <span class="hljs-number">1.0</span> ) {
+                Matrix.preMult( camera.getProjectionMatrix(), Matrix.makeScale( <span class="hljs-number">1.0</span> / aspectRatioChange, <span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>, Matrix.create() ) );
+            }
         },</pre></div></div>
             
         </li>
         
         
-        <li id="section-23">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p>intialize all input devices</p>
 
@@ -1485,11 +1581,11 @@ should be merged with the update of game pad below</p>
         </li>
         
         
-        <li id="section-24">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>loop on each devices and try to initialize it</p>
 
@@ -1502,11 +1598,11 @@ should be merged with the update of game pad below</p>
         </li>
         
         
-        <li id="section-25">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <p>check if the config has a require</p>
 

@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -663,7 +693,11 @@
             
             <div class="content"><div class='highlight'><pre><span class="hljs-comment">/* jshint ignore:start */</span>
 
-define( [], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span></pre></div></div>
+define( [
+
+    <span class="hljs-string">'osg/Notify'</span>
+
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify )</span> {</span></pre></div></div>
             
         </li>
         
@@ -695,16 +729,6 @@ found in the LICENSE file.</p>
             
             <div class="content"><div class='highlight'><pre>
     <span class="hljs-keyword">var</span> WebGLDebugUtils = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-
-        <span class="hljs-comment">/**
-         * Wrapped logging function.
-         * @param {string} msg Message to log.
-         */</span>
-        <span class="hljs-keyword">var</span> log = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( msg )</span> {</span>
-            <span class="hljs-keyword">if</span> ( window.console &amp;&amp; window.console.log ) {
-                window.console.log( msg );
-            }
-        };
 
         <span class="hljs-comment">/**
          * Which arguements are enums.
@@ -1110,7 +1134,7 @@ found in the LICENSE file.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
-              <p>log(“wrap prop: “ + propertyName);</p>
+              <p>Notify.log(“wrap prop: “ + propertyName);</p>
 
             </div>
             
@@ -1143,7 +1167,7 @@ one value?</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
-              <p>log(“set: “ + propertyName);</p>
+              <p>Notify.log(“set: “ + propertyName);</p>
 
             </div>
             
@@ -1175,7 +1199,7 @@ one value?</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
-              <p>log(“wrap fn: “ + functionName);</p>
+              <p>Notify.log(“wrap fn: “ + functionName);</p>
 
             </div>
             
@@ -1191,7 +1215,7 @@ one value?</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
-              <p>log(“call: “ + functionName);</p>
+              <p>Notify.log(“call: “ + functionName);</p>
 
             </div>
             
@@ -1210,7 +1234,7 @@ one value?</p>
          * @param {!function(err, funcName, args): void} opt_onErrorFunc
          *        The function to call when gl.getError returns an
          *        error. If not specified the default function calls
-         *        console.log with a message.
+         *        Notify.log with a message.
          */</span>
         <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">makeDebugContext</span><span class="hljs-params">( ctx, opt_onErrorFunc )</span> {</span>
             init( ctx );
@@ -1234,7 +1258,7 @@ one value?</p>
                     argStr += ( ( ii === <span class="hljs-number">0</span> ) ? <span class="hljs-string">''</span> : <span class="hljs-string">', '</span> ) +
                         glFunctionArgToString( functionName, ii, args[ ii ] );
                 }
-                log( <span class="hljs-string">"WebGL error "</span> + glEnumToString( err ) + <span class="hljs-string">" in "</span> + functionName +
+                Notify.log( <span class="hljs-string">"WebGL error "</span> + glEnumToString( err ) + <span class="hljs-string">" in "</span> + functionName +
                     <span class="hljs-string">"("</span> + argStr + <span class="hljs-string">")"</span> );
             };</pre></div></div>
             
@@ -1550,7 +1574,7 @@ but wraps all functions.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
-              <p>log(“numCallbacks:” + callbacks.length);</p>
+              <p>Notify.log(“numCallbacks:” + callbacks.length);</p>
 
             </div>
             
@@ -1565,7 +1589,7 @@ but wraps all functions.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
-              <p>log(“calling callback:” + ii);</p>
+              <p>Notify.log(“calling callback:” + ii);</p>
 
             </div>
             
@@ -1692,7 +1716,7 @@ but wraps all functions.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
-              <p>log(“calling:” + functionName);
+              <p>Notify.log(“calling:” + functionName);
 Only call the functions if the context is not lost.</p>
 
             </div>
@@ -2002,7 +2026,7 @@ Only call the functions if the context is not lost.</p>
              * @param {!WebGLRenderingContext} ctx The webgl context to wrap.
              * @param {!function(err, funcName, args): void} opt_onErrorFunc The function
              *     to call when gl.getError returns an error. If not specified the default
-             *     function calls console.log with a message.
+             *     function calls Notify.log with a message.
              */</span>
             <span class="hljs-string">'makeDebugContext'</span>: makeDebugContext,
 

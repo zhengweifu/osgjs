@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -664,8 +694,9 @@
             <div class="content"><div class='highlight'><pre>define( [
     <span class="hljs-string">'osg/Utils'</span>,
     <span class="hljs-string">'osg/Notify'</span>,
-    <span class="hljs-string">'osg/StateAttribute'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Notify, StateAttribute )</span> {</span>
+    <span class="hljs-string">'osg/StateAttribute'</span>,
+    <span class="hljs-string">'osg/Map'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Notify, StateAttribute, Map )</span> {</span>
 
     <span class="hljs-comment">/**
      * Program encapsulate an vertex and fragment shader
@@ -724,6 +755,7 @@
                 <span class="hljs-keyword">this</span>.program = gl.createProgram();
                 gl.attachShader( <span class="hljs-keyword">this</span>.program, <span class="hljs-keyword">this</span>.vertex.shader );
                 gl.attachShader( <span class="hljs-keyword">this</span>.program, <span class="hljs-keyword">this</span>.fragment.shader );
+                MACROUTILS.timeStamp( <span class="hljs-string">'osgjs.metrics:linkShader'</span> );
                 gl.linkProgram( <span class="hljs-keyword">this</span>.program );
                 gl.validateProgram( <span class="hljs-keyword">this</span>.program );
                 <span class="hljs-keyword">if</span> ( !gl.getProgramParameter( <span class="hljs-keyword">this</span>.program, gl.LINK_STATUS ) &amp;&amp; !gl.isContextLost() ) {
@@ -747,10 +779,8 @@
             <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">return</span>;
                 }
 
-                <span class="hljs-keyword">this</span>.uniformsCache = {};
-                <span class="hljs-keyword">this</span>.uniformsCache.uniformKeys = [];
-                <span class="hljs-keyword">this</span>.attributesCache = {};
-                <span class="hljs-keyword">this</span>.attributesCache.attributeKeys = [];
+                <span class="hljs-keyword">this</span>.uniformsCache = <span class="hljs-keyword">new</span> Map();
+                <span class="hljs-keyword">this</span>.attributesCache = <span class="hljs-keyword">new</span> Map();
 
                 <span class="hljs-keyword">this</span>.cacheUniformList( gl, <span class="hljs-keyword">this</span>.vertex.text );
                 <span class="hljs-keyword">this</span>.cacheUniformList( gl, <span class="hljs-keyword">this</span>.fragment.text );
@@ -765,14 +795,15 @@
 
         cacheUniformList: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( gl, str )</span> {</span>
             <span class="hljs-keyword">var</span> r = str.match( <span class="hljs-regexp">/uniform\s+\w+\s+\w+/g</span> );
+            <span class="hljs-keyword">var</span> map = <span class="hljs-keyword">this</span>.uniformsCache;
             <span class="hljs-keyword">if</span> ( r !== <span class="hljs-literal">null</span> ) {
                 <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = r.length; i &lt; l; i++ ) {
                     <span class="hljs-keyword">var</span> uniform = r[ i ].match( <span class="hljs-regexp">/uniform\s+\w+\s+(\w+)/</span> )[ <span class="hljs-number">1</span> ];
                     <span class="hljs-keyword">var</span> location = gl.getUniformLocation( <span class="hljs-keyword">this</span>.program, uniform );
                     <span class="hljs-keyword">if</span> ( location !== <span class="hljs-literal">undefined</span> &amp;&amp; location !== <span class="hljs-literal">null</span> ) {
-                        <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.uniformsCache[ uniform ] === <span class="hljs-literal">undefined</span> ) {
-                            <span class="hljs-keyword">this</span>.uniformsCache[ uniform ] = location;
-                            <span class="hljs-keyword">this</span>.uniformsCache.uniformKeys.push( uniform );
+                        <span class="hljs-keyword">if</span> ( map[ uniform ] === <span class="hljs-literal">undefined</span> ) {
+                            map[ uniform ] = location;
+                            <span class="hljs-keyword">this</span>.uniformsCache.dirty();
                         }
                     }
                 }
@@ -781,14 +812,15 @@
 
         cacheAttributeList: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( gl, str )</span> {</span>
             <span class="hljs-keyword">var</span> r = str.match( <span class="hljs-regexp">/attribute\s+\w+\s+\w+/g</span> );
+            <span class="hljs-keyword">var</span> map = <span class="hljs-keyword">this</span>.attributesCache;
             <span class="hljs-keyword">if</span> ( r !== <span class="hljs-literal">null</span> ) {
                 <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = r.length; i &lt; l; i++ ) {
                     <span class="hljs-keyword">var</span> attr = r[ i ].match( <span class="hljs-regexp">/attribute\s+\w+\s+(\w+)/</span> )[ <span class="hljs-number">1</span> ];
                     <span class="hljs-keyword">var</span> location = gl.getAttribLocation( <span class="hljs-keyword">this</span>.program, attr );
                     <span class="hljs-keyword">if</span> ( location !== -<span class="hljs-number">1</span> &amp;&amp; location !== <span class="hljs-literal">undefined</span> ) {
-                        <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.attributesCache[ attr ] === <span class="hljs-literal">undefined</span> ) {
-                            <span class="hljs-keyword">this</span>.attributesCache[ attr ] = location;
-                            <span class="hljs-keyword">this</span>.attributesCache.attributeKeys.push( attr );
+                        <span class="hljs-keyword">if</span> ( map[ attr ] === <span class="hljs-literal">undefined</span> ) {
+                            map[ attr ] = location;
+                            <span class="hljs-keyword">this</span>.attributesCache.dirty();
                         }
                     }
                 }
@@ -797,7 +829,7 @@
     } ), <span class="hljs-string">'osg'</span>, <span class="hljs-string">'Program'</span> );
 
     Program.create = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( vShader, fShader )</span> {</span>
-        console.log( <span class="hljs-string">'Program.create is deprecated use new Program(vertex, fragment) instead'</span> );
+        Notify.log( <span class="hljs-string">'Program.create is deprecated use new Program(vertex, fragment) instead'</span> );
         <span class="hljs-keyword">var</span> program = <span class="hljs-keyword">new</span> Program( vShader, fShader );
         <span class="hljs-keyword">return</span> program;
     };

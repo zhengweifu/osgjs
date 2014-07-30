@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -631,11 +666,6 @@
               
               <a class="source" href="Q.html">
                 Q.js
-              </a>
-            
-              
-              <a class="source" href="vr.html">
-                vr.js
               </a>
             
           </div>
@@ -760,6 +790,10 @@
             <span class="hljs-keyword">this</span>.releaseButton();
             <span class="hljs-keyword">this</span>.setMode( <span class="hljs-literal">undefined</span> );
         },
+        mouseout: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*ev */</span> )</span> {</span>
+            <span class="hljs-keyword">this</span>.releaseButton();
+            <span class="hljs-keyword">this</span>.setMode( <span class="hljs-literal">undefined</span> );
+        },
         mousewheel: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( ev, intDelta <span class="hljs-comment">/*, deltaX, deltaY */</span>)</span> {</span>
             <span class="hljs-keyword">var</span> manipulator = <span class="hljs-keyword">this</span>._manipulator;
             ev.preventDefault();
@@ -777,7 +811,7 @@
         keydown: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( ev )</span> {</span>
             <span class="hljs-keyword">if</span> ( ev.keyCode === <span class="hljs-number">32</span> ) {
                 <span class="hljs-keyword">this</span>._manipulator.computeHomePosition();
-
+                ev.preventDefault();
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( ev.keyCode === <span class="hljs-keyword">this</span>._panKey &amp;&amp;
                 <span class="hljs-keyword">this</span>.getMode() !== OrbitManipulatorEnums.PAN ) {
                 <span class="hljs-keyword">this</span>.setMode( OrbitManipulatorEnums.PAN );

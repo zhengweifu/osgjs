@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -667,8 +697,10 @@
     <span class="hljs-string">'osg/Matrix'</span>,
     <span class="hljs-string">'osg/Vec3'</span>,
     <span class="hljs-string">'osg/TransformEnums'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Node, Matrix, Vec3, TransformEnums )</span> {</span>
-        <span class="hljs-comment">/**
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Node, Matrix, Vec3, TransformEnums )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
+    <span class="hljs-comment">/**
      * Transform - base class for Transform type node ( Camera, MatrixTransform )
      * @class Transform
      * @inherits Node
@@ -687,52 +719,46 @@
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.referenceFrame;
         },
 
-        computeBound: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bsphere )</span> {</span>
-            Node.prototype.computeBound.call( <span class="hljs-keyword">this</span>, bsphere );
-            <span class="hljs-keyword">if</span> ( !bsphere.valid() ) {
+        computeBound: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> xdash = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> ydash = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> zdash = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( bsphere )</span> {</span>
+                Node.prototype.computeBound.call( <span class="hljs-keyword">this</span>, bsphere );
+                <span class="hljs-keyword">if</span> ( !bsphere.valid() ) {
+                    <span class="hljs-keyword">return</span> bsphere;
+                }
+                <span class="hljs-keyword">var</span> sphCenter = bsphere._center;
+                <span class="hljs-keyword">var</span> sphRadius = bsphere._radius;
+
+                <span class="hljs-keyword">var</span> matrix = Matrix.create();
+                <span class="hljs-keyword">this</span>.computeLocalToWorldMatrix( matrix );
+
+                Vec3.copy( sphCenter, xdash );
+                xdash[ <span class="hljs-number">0</span> ] += sphRadius;
+                Matrix.transformVec3( matrix, xdash, xdash );
+
+                Vec3.copy( sphCenter, ydash );
+                ydash[ <span class="hljs-number">1</span> ] += sphRadius;
+                Matrix.transformVec3( matrix, ydash, ydash );
+
+                Vec3.copy( sphCenter, zdash );
+                zdash[ <span class="hljs-number">2</span> ] += sphRadius;
+                Matrix.transformVec3( matrix, zdash, zdash );
+
+                Matrix.transformVec3( matrix, sphCenter, sphCenter );
+
+                <span class="hljs-keyword">var</span> lenXdash = Vec3.distance( xdash, sphCenter );
+                <span class="hljs-keyword">var</span> lenYdash = Vec3.distance( ydash, sphCenter );
+                <span class="hljs-keyword">var</span> lenZdash = Vec3.distance( zdash, sphCenter );
+
+                <span class="hljs-keyword">if</span> ( lenXdash &gt; lenYdash )
+                    bsphere._radius = lenXdash &gt; lenZdash ? lenXdash : lenZdash;
+                <span class="hljs-keyword">else</span>
+                    bsphere._radius = lenYdash &gt; lenZdash ? lenYdash : lenZdash;
                 <span class="hljs-keyword">return</span> bsphere;
-            }
-            <span class="hljs-keyword">var</span> matrix = Matrix.makeIdentity( [] );
-            <span class="hljs-keyword">this</span>.computeLocalToWorldMatrix( matrix );
-
-            <span class="hljs-keyword">var</span> xdash = Vec3.copy( bsphere._center, [] );
-            xdash[ <span class="hljs-number">0</span> ] += bsphere._radius;
-            Matrix.transformVec3( matrix, xdash, xdash );
-
-            <span class="hljs-keyword">var</span> ydash = Vec3.copy( bsphere._center, [] );
-            ydash[ <span class="hljs-number">1</span> ] += bsphere._radius;
-            Matrix.transformVec3( matrix, ydash, ydash );
-
-            <span class="hljs-keyword">var</span> zdash = Vec3.copy( bsphere._center, [] );
-            zdash[ <span class="hljs-number">2</span> ] += bsphere._radius;
-            Matrix.transformVec3( matrix, zdash, zdash );
-
-            Matrix.transformVec3( matrix, bsphere._center, bsphere._center );
-
-            Vec3.sub( xdash,
-                bsphere._center,
-                xdash );
-            <span class="hljs-keyword">var</span> lenXdash = Vec3.length( xdash );
-
-            Vec3.sub( ydash,
-                bsphere._center,
-                ydash );
-            <span class="hljs-keyword">var</span> lenYdash = Vec3.length( ydash );
-
-            Vec3.sub( zdash,
-                bsphere._center,
-                zdash );
-            <span class="hljs-keyword">var</span> lenZdash = Vec3.length( zdash );
-
-            bsphere._radius = lenXdash;
-            <span class="hljs-keyword">if</span> ( bsphere._radius &lt; lenYdash ) {
-                bsphere._radius = lenYdash;
-            }
-            <span class="hljs-keyword">if</span> ( bsphere._radius &lt; lenZdash ) {
-                bsphere._radius = lenZdash;
-            }
-            <span class="hljs-keyword">return</span> bsphere;
-        }
+            };
+        } )()
     } );
 
     <span class="hljs-keyword">return</span> Transform;

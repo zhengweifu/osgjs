@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -661,9 +691,7 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-comment">/*global define */</span>
-
-define( [
+            <div class="content"><div class='highlight'><pre>define( [
     <span class="hljs-string">'osg/Notify'</span>,
     <span class="hljs-string">'osg/StateAttribute'</span>,
     <span class="hljs-string">'osg/Vec3'</span>,
@@ -674,15 +702,26 @@ define( [
     <span class="hljs-string">'osg/DrawArrays'</span>,
     <span class="hljs-string">'osg/DrawElements'</span>,
     <span class="hljs-string">'osg/Program'</span>,
-    <span class="hljs-string">'osg/Shader'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, StateAttribute, Vec3, Uniform, BufferArray, Geometry, PrimitiveSet, DrawArrays, DrawElements, Program, Shader )</span> {</span>
+    <span class="hljs-string">'osg/Shader'</span>,
+    <span class="hljs-string">'osg/Utils'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, StateAttribute, Vec3, Uniform, BufferArray, Geometry, PrimitiveSet, DrawArrays, DrawElements, Program, Shader, MACROUTILS )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
 
     <span class="hljs-comment">/**
      * Create a Textured Box on the given center with given size
      * @name createTexturedBox
      */</span>
-    <span class="hljs-keyword">var</span> createTexturedBoxGeometry = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( centerx, centery, centerz,
-        sizex, sizey, sizez )</span> {</span>
+    <span class="hljs-keyword">var</span> createTexturedBoxGeometry = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( cx, cy, cz,
+        sx, sy, sz )</span> {</span>
+
+        <span class="hljs-keyword">var</span> centerx = cx !== <span class="hljs-literal">undefined</span> ? cx : <span class="hljs-number">0.0</span>;
+        <span class="hljs-keyword">var</span> centery = cy !== <span class="hljs-literal">undefined</span> ? cy : <span class="hljs-number">0.0</span>;
+        <span class="hljs-keyword">var</span> centerz = cz !== <span class="hljs-literal">undefined</span> ? cz : <span class="hljs-number">0.0</span>;
+
+        <span class="hljs-keyword">var</span> sizex = sx !== <span class="hljs-literal">undefined</span> ? sx : <span class="hljs-number">1.0</span>;
+        <span class="hljs-keyword">var</span> sizey = sy !== <span class="hljs-literal">undefined</span> ? sy : <span class="hljs-number">1.0</span>;
+        <span class="hljs-keyword">var</span> sizez = sz !== <span class="hljs-literal">undefined</span> ? sz : <span class="hljs-number">1.0</span>;
 
         <span class="hljs-keyword">var</span> g = <span class="hljs-keyword">new</span> Geometry();
         <span class="hljs-keyword">var</span> dx, dy, dz;
@@ -690,9 +729,9 @@ define( [
         dy = sizey / <span class="hljs-number">2.0</span>;
         dz = sizez / <span class="hljs-number">2.0</span>;
 
-        <span class="hljs-keyword">var</span> vertexes = [];
-        <span class="hljs-keyword">var</span> uv = [];
-        <span class="hljs-keyword">var</span> normal = [];</pre></div></div>
+        <span class="hljs-keyword">var</span> vertexes = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">72</span> );
+        <span class="hljs-keyword">var</span> uv = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">48</span> );
+        <span class="hljs-keyword">var</span> normal = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">72</span> );</pre></div></div>
             
         </li>
         
@@ -710,38 +749,38 @@ define( [
             <div class="content"><div class='highlight'><pre>        vertexes[ <span class="hljs-number">0</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">1</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">2</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">1</span> ] = -<span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">1</span> ] = <span class="hljs-number">1</span>;
+        normal[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">1</span> ] = -<span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">1</span> ] = <span class="hljs-number">1.0</span>;
 
         vertexes[ <span class="hljs-number">3</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">4</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">5</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">4</span> ] = -<span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">5</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">4</span> ] = -<span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">5</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">2</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">6</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">7</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">8</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">6</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">7</span> ] = -<span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">8</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">4</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">5</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">6</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">7</span> ] = -<span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">8</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">4</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">5</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">9</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">10</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">11</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">9</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">10</span> ] = -<span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">6</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">7</span> ] = <span class="hljs-number">1</span>;</pre></div></div>
+        normal[ <span class="hljs-number">9</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">10</span> ] = -<span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">6</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">7</span> ] = <span class="hljs-number">1.0</span>;</pre></div></div>
             
         </li>
         
@@ -759,38 +798,38 @@ define( [
             <div class="content"><div class='highlight'><pre>        vertexes[ <span class="hljs-number">12</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">13</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">14</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">13</span> ] = <span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">8</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">9</span> ] = <span class="hljs-number">1</span>;
+        normal[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">13</span> ] = <span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">8</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">9</span> ] = <span class="hljs-number">1.0</span>;
 
         vertexes[ <span class="hljs-number">15</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">16</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">17</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">15</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">16</span> ] = <span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">17</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">10</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">15</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">16</span> ] = <span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">17</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">10</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">18</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">19</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">20</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">18</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">19</span> ] = <span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">20</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">12</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">18</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">19</span> ] = <span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">20</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">12</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">21</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">22</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">23</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">21</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">22</span> ] = <span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">23</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">14</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">15</span> ] = <span class="hljs-number">1</span>;</pre></div></div>
+        normal[ <span class="hljs-number">21</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">22</span> ] = <span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">23</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">14</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">15</span> ] = <span class="hljs-number">1.0</span>;</pre></div></div>
             
         </li>
         
@@ -808,38 +847,38 @@ define( [
             <div class="content"><div class='highlight'><pre>        vertexes[ <span class="hljs-number">24</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">25</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">26</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">24</span> ] = <span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">25</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">26</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">16</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">17</span> ] = <span class="hljs-number">1</span>;
+        normal[ <span class="hljs-number">24</span> ] = <span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">25</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">26</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">16</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">17</span> ] = <span class="hljs-number">1.0</span>;
 
         vertexes[ <span class="hljs-number">27</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">28</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">29</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">27</span> ] = <span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">28</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">29</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">18</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">19</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">27</span> ] = <span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">28</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">29</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">18</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">19</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">30</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">31</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">32</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">30</span> ] = <span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">31</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">32</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">20</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">21</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">30</span> ] = <span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">31</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">32</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">20</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">21</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">33</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">34</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">35</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">33</span> ] = <span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">34</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">35</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">22</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">23</span> ] = <span class="hljs-number">1</span>;</pre></div></div>
+        normal[ <span class="hljs-number">33</span> ] = <span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">34</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">35</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">22</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">23</span> ] = <span class="hljs-number">1.0</span>;</pre></div></div>
             
         </li>
         
@@ -857,38 +896,38 @@ define( [
             <div class="content"><div class='highlight'><pre>        vertexes[ <span class="hljs-number">36</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">37</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">38</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">36</span> ] = -<span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">37</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">38</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">24</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">25</span> ] = <span class="hljs-number">1</span>;
+        normal[ <span class="hljs-number">36</span> ] = -<span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">37</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">38</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">24</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">25</span> ] = <span class="hljs-number">1.0</span>;
 
         vertexes[ <span class="hljs-number">39</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">40</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">41</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">39</span> ] = -<span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">40</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">41</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">26</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">27</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">39</span> ] = -<span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">40</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">41</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">26</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">27</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">42</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">43</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">44</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">42</span> ] = -<span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">43</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">44</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">28</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">29</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">42</span> ] = -<span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">43</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">44</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">28</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">29</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">45</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">46</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">47</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">45</span> ] = -<span class="hljs-number">1</span>;
-        normal[ <span class="hljs-number">46</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">47</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">30</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">31</span> ] = <span class="hljs-number">1</span>;</pre></div></div>
+        normal[ <span class="hljs-number">45</span> ] = -<span class="hljs-number">1.0</span>;
+        normal[ <span class="hljs-number">46</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">47</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">30</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">31</span> ] = <span class="hljs-number">1.0</span>;</pre></div></div>
             
         </li>
         
@@ -907,38 +946,38 @@ define( [
             <div class="content"><div class='highlight'><pre>        vertexes[ <span class="hljs-number">48</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">49</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">50</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">48</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">49</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">50</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">32</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">33</span> ] = <span class="hljs-number">1</span>;
+        normal[ <span class="hljs-number">48</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">49</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">50</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">32</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">33</span> ] = <span class="hljs-number">1.0</span>;
 
         vertexes[ <span class="hljs-number">51</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">52</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">53</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">51</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">52</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">53</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">34</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">35</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">51</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">52</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">53</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">34</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">35</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">54</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">55</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">56</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">54</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">55</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">56</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">36</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">37</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">54</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">55</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">56</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">36</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">37</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">57</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">58</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">59</span> ] = centerz + dz;
-        normal[ <span class="hljs-number">57</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">58</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">59</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">38</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">39</span> ] = <span class="hljs-number">1</span>;</pre></div></div>
+        normal[ <span class="hljs-number">57</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">58</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">59</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">38</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">39</span> ] = <span class="hljs-number">1.0</span>;</pre></div></div>
             
         </li>
         
@@ -957,40 +996,40 @@ define( [
             <div class="content"><div class='highlight'><pre>        vertexes[ <span class="hljs-number">60</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">61</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">62</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">60</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">61</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">62</span> ] = -<span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">40</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">41</span> ] = <span class="hljs-number">1</span>;
+        normal[ <span class="hljs-number">60</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">61</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">62</span> ] = -<span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">40</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">41</span> ] = <span class="hljs-number">1.0</span>;
 
         vertexes[ <span class="hljs-number">63</span> ] = centerx + dx;
         vertexes[ <span class="hljs-number">64</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">65</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">63</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">64</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">65</span> ] = -<span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">42</span> ] = <span class="hljs-number">0</span>;
-        uv[ <span class="hljs-number">43</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">63</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">64</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">65</span> ] = -<span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">42</span> ] = <span class="hljs-number">0.0</span>;
+        uv[ <span class="hljs-number">43</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">66</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">67</span> ] = centery - dy;
         vertexes[ <span class="hljs-number">68</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">66</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">67</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">68</span> ] = -<span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">44</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">45</span> ] = <span class="hljs-number">0</span>;
+        normal[ <span class="hljs-number">66</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">67</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">68</span> ] = -<span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">44</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">45</span> ] = <span class="hljs-number">0.0</span>;
 
         vertexes[ <span class="hljs-number">69</span> ] = centerx - dx;
         vertexes[ <span class="hljs-number">70</span> ] = centery + dy;
         vertexes[ <span class="hljs-number">71</span> ] = centerz - dz;
-        normal[ <span class="hljs-number">69</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">70</span> ] = <span class="hljs-number">0</span>;
-        normal[ <span class="hljs-number">71</span> ] = -<span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">46</span> ] = <span class="hljs-number">1</span>;
-        uv[ <span class="hljs-number">47</span> ] = <span class="hljs-number">1</span>;
+        normal[ <span class="hljs-number">69</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">70</span> ] = <span class="hljs-number">0.0</span>;
+        normal[ <span class="hljs-number">71</span> ] = -<span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">46</span> ] = <span class="hljs-number">1.0</span>;
+        uv[ <span class="hljs-number">47</span> ] = <span class="hljs-number">1.0</span>;
 
-        <span class="hljs-keyword">var</span> indexes = [];
+        <span class="hljs-keyword">var</span> indexes = <span class="hljs-keyword">new</span> MACROUTILS.Uint16Array( <span class="hljs-number">36</span> );
         indexes[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0</span>;
         indexes[ <span class="hljs-number">1</span> ] = <span class="hljs-number">1</span>;
         indexes[ <span class="hljs-number">2</span> ] = <span class="hljs-number">2</span>;
@@ -1050,13 +1089,13 @@ define( [
         <span class="hljs-keyword">if</span> ( r === <span class="hljs-literal">undefined</span> &amp;&amp; t === <span class="hljs-literal">undefined</span> ) {
             r = l;
             t = b;
-            l = <span class="hljs-number">0</span>;
-            b = <span class="hljs-number">0</span>;
+            l = <span class="hljs-number">0.0</span>;
+            b = <span class="hljs-number">0.0</span>;
         }
 
         <span class="hljs-keyword">var</span> g = <span class="hljs-keyword">new</span> Geometry();
 
-        <span class="hljs-keyword">var</span> vertexes = [];
+        <span class="hljs-keyword">var</span> vertexes = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">12</span> );
         vertexes[ <span class="hljs-number">0</span> ] = cornerx + hx;
         vertexes[ <span class="hljs-number">1</span> ] = cornery + hy;
         vertexes[ <span class="hljs-number">2</span> ] = cornerz + hz;
@@ -1080,7 +1119,7 @@ define( [
             t = <span class="hljs-number">1.0</span>;
         }
 
-        <span class="hljs-keyword">var</span> uvs = [];
+        <span class="hljs-keyword">var</span> uvs = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">8</span> );
         uvs[ <span class="hljs-number">0</span> ] = l;
         uvs[ <span class="hljs-number">1</span> ] = t;
 
@@ -1093,8 +1132,8 @@ define( [
         uvs[ <span class="hljs-number">6</span> ] = r;
         uvs[ <span class="hljs-number">7</span> ] = t;
 
-        <span class="hljs-keyword">var</span> n = Vec3.cross( [ wx, wy, wz ], [ hx, hy, hz ], [] );
-        <span class="hljs-keyword">var</span> normal = [];
+        <span class="hljs-keyword">var</span> n = Vec3.cross( [ wx, wy, wz ], [ hx, hy, hz ], [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ] );
+        <span class="hljs-keyword">var</span> normal = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">12</span> );
         normal[ <span class="hljs-number">0</span> ] = n[ <span class="hljs-number">0</span> ];
         normal[ <span class="hljs-number">1</span> ] = n[ <span class="hljs-number">1</span> ];
         normal[ <span class="hljs-number">2</span> ] = n[ <span class="hljs-number">2</span> ];
@@ -1112,7 +1151,7 @@ define( [
         normal[ <span class="hljs-number">11</span> ] = n[ <span class="hljs-number">2</span> ];
 
 
-        <span class="hljs-keyword">var</span> indexes = [];
+        <span class="hljs-keyword">var</span> indexes = <span class="hljs-keyword">new</span> MACROUTILS.Uint16Array( <span class="hljs-number">6</span> );
         indexes[ <span class="hljs-number">0</span> ] = <span class="hljs-number">0</span>;
         indexes[ <span class="hljs-number">1</span> ] = <span class="hljs-number">1</span>;
         indexes[ <span class="hljs-number">2</span> ] = <span class="hljs-number">2</span>;
@@ -1196,25 +1235,60 @@ define( [
 
         <span class="hljs-keyword">var</span> g = <span class="hljs-keyword">new</span> Geometry();
 
-        <span class="hljs-keyword">var</span> vertexes = [];
-        vertexes.push( <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
-        vertexes.push( size, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
+        <span class="hljs-keyword">var</span> vertexes = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">18</span> );
+        vertexes[ <span class="hljs-number">3</span> ] = size;
+        vertexes[ <span class="hljs-number">10</span> ] = size;
+        vertexes[ <span class="hljs-number">17</span> ] = size;
 
-        vertexes.push( <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
-        vertexes.push( <span class="hljs-number">0</span>, size, <span class="hljs-number">0</span> );
+        <span class="hljs-keyword">var</span> colors = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">24</span> );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>red color</p>
 
-        vertexes.push( <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
-        vertexes.push( <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, size );
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        colors[ <span class="hljs-number">0</span> ] = colors[ <span class="hljs-number">3</span> ] = <span class="hljs-number">1.0</span>;
+        colors[ <span class="hljs-number">4</span> ] = colors[ <span class="hljs-number">4</span> + <span class="hljs-number">3</span> ] = <span class="hljs-number">1.0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>green color</p>
 
-        <span class="hljs-keyword">var</span> colors = [];
-        colors.push( <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1.0</span> );
-        colors.push( <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1.0</span> );
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        colors[ <span class="hljs-number">4</span> * <span class="hljs-number">2</span> + <span class="hljs-number">1</span> ] = colors[ <span class="hljs-number">4</span> * <span class="hljs-number">2</span> + <span class="hljs-number">3</span> ] = <span class="hljs-number">1.0</span>;
+        colors[ <span class="hljs-number">4</span> * <span class="hljs-number">3</span> + <span class="hljs-number">1</span> ] = colors[ <span class="hljs-number">4</span> * <span class="hljs-number">3</span> + <span class="hljs-number">3</span> ] = <span class="hljs-number">1.0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>blue color</p>
 
-        colors.push( <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1.0</span> );
-        colors.push( <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1.0</span> );
-
-        colors.push( <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1.0</span> );
-        colors.push( <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1.0</span> );
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        colors[ <span class="hljs-number">4</span> * <span class="hljs-number">4</span> + <span class="hljs-number">2</span> ] = colors[ <span class="hljs-number">4</span> * <span class="hljs-number">4</span> + <span class="hljs-number">3</span> ] = <span class="hljs-number">1.0</span>;
+        colors[ <span class="hljs-number">4</span> * <span class="hljs-number">5</span> + <span class="hljs-number">2</span> ] = colors[ <span class="hljs-number">4</span> * <span class="hljs-number">5</span> + <span class="hljs-number">3</span> ] = <span class="hljs-number">1.0</span>;
 
         g.getAttributes().Vertex = <span class="hljs-keyword">new</span> BufferArray( BufferArray.ARRAY_BUFFER, vertexes, <span class="hljs-number">3</span> );
         g.getAttributes().Color = <span class="hljs-keyword">new</span> BufferArray( BufferArray.ARRAY_BUFFER, colors, <span class="hljs-number">4</span> );
@@ -1232,131 +1306,137 @@ define( [
      * @author Darrell Esau
      */</span>
     <span class="hljs-keyword">var</span> createTexturedSphere = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength )</span> {</span>
-        radius = radius || <span class="hljs-number">50</span>;
+        radius = radius || <span class="hljs-number">50.0</span>;
 
-        phiStart = phiStart !== <span class="hljs-literal">undefined</span> ? phiStart : <span class="hljs-number">0</span>;
+        phiStart = phiStart !== <span class="hljs-literal">undefined</span> ? phiStart : <span class="hljs-number">0.0</span>;
         phiLength = phiLength !== <span class="hljs-literal">undefined</span> ? phiLength : <span class="hljs-built_in">Math</span>.PI * <span class="hljs-number">2</span>;
 
-        thetaStart = thetaStart !== <span class="hljs-literal">undefined</span> ? thetaStart : <span class="hljs-number">0</span>;
+        thetaStart = thetaStart !== <span class="hljs-literal">undefined</span> ? thetaStart : <span class="hljs-number">0.0</span>;
         thetaLength = thetaLength !== <span class="hljs-literal">undefined</span> ? thetaLength : <span class="hljs-built_in">Math</span>.PI;
 
         <span class="hljs-keyword">var</span> segmentsX = <span class="hljs-built_in">Math</span>.max( <span class="hljs-number">3</span>, <span class="hljs-built_in">Math</span>.floor( widthSegments ) || <span class="hljs-number">8</span> );
         <span class="hljs-keyword">var</span> segmentsY = <span class="hljs-built_in">Math</span>.max( <span class="hljs-number">2</span>, <span class="hljs-built_in">Math</span>.floor( heightSegments ) || <span class="hljs-number">6</span> );
 
-        <span class="hljs-keyword">var</span> x, y, vertices = [],
-            uvs = [],
-            allVertices = [];
+        <span class="hljs-keyword">var</span> useDrawArrays = ( ( segmentsX * segmentsY ) / <span class="hljs-number">3</span> ) &gt;= <span class="hljs-number">65536</span>;
+        <span class="hljs-keyword">var</span> nbPrim = useDrawArrays ? segmentsX * segmentsY * <span class="hljs-number">6</span> : segmentsX * segmentsY * <span class="hljs-number">4</span>;
+        <span class="hljs-keyword">var</span> fullVerticesList = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( nbPrim * <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> fullNormalsList = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( nbPrim * <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> fullUVList = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( nbPrim * <span class="hljs-number">2</span> );
+        <span class="hljs-keyword">var</span> indexes = !useDrawArrays ? <span class="hljs-keyword">new</span> MACROUTILS.Uint16Array( segmentsX * segmentsY * <span class="hljs-number">6</span> ) : <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">var</span> vtxCount = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">var</span> triCount = <span class="hljs-number">0</span>;
 
-        <span class="hljs-keyword">for</span> ( y = <span class="hljs-number">0</span>; y &lt;= segmentsY; y++ ) {
-            <span class="hljs-keyword">var</span> verticesRow = [];
-            <span class="hljs-keyword">var</span> uvsRow = [];
+        <span class="hljs-keyword">var</span> v1 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> v2 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> v3 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> v4 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> n1 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> n2 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> n3 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> n4 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">3</span> );
+        <span class="hljs-keyword">var</span> uv1 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">2</span> );
+        <span class="hljs-keyword">var</span> uv2 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">2</span> );
+        <span class="hljs-keyword">var</span> uv3 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">2</span> );
+        <span class="hljs-keyword">var</span> uv4 = <span class="hljs-keyword">new</span> MACROUTILS.Float32Array( <span class="hljs-number">2</span> );
+        <span class="hljs-keyword">var</span> getCoordAndUvSphere = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( u, v, coord, norm, uv )</span> {</span>
+            coord[ <span class="hljs-number">0</span> ] = -radius * <span class="hljs-built_in">Math</span>.cos( phiStart + u * phiLength ) * <span class="hljs-built_in">Math</span>.sin( thetaStart + v * thetaLength );
+            coord[ <span class="hljs-number">1</span> ] = radius * <span class="hljs-built_in">Math</span>.cos( thetaStart + v * thetaLength );
+            coord[ <span class="hljs-number">2</span> ] = radius * <span class="hljs-built_in">Math</span>.sin( phiStart + u * phiLength ) * <span class="hljs-built_in">Math</span>.sin( thetaStart + v * thetaLength );
+            Vec3.normalize( coord, norm );
+            uv[ <span class="hljs-number">0</span> ] = u;
+            uv[ <span class="hljs-number">1</span> ] = <span class="hljs-number">1</span> - v;
+        };
+        <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> y = <span class="hljs-number">0</span>; y &lt; segmentsY; y++ ) {
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> x = <span class="hljs-number">0</span>; x &lt; segmentsX; x++ ) {
+                getCoordAndUvSphere( ( x + <span class="hljs-number">1</span> ) / segmentsX, y / segmentsY, v1, n1, uv1 );
+                getCoordAndUvSphere( x / segmentsX, y / segmentsY, v2, n2, uv2 );
+                getCoordAndUvSphere( x / segmentsX, ( y + <span class="hljs-number">1</span> ) / segmentsY, v3, n3, uv3 );
+                getCoordAndUvSphere( ( x + <span class="hljs-number">1</span> ) / segmentsX, ( y + <span class="hljs-number">1</span> ) / segmentsY, v4, n4, uv4 );
 
-            <span class="hljs-keyword">for</span> ( x = <span class="hljs-number">0</span>; x &lt;= segmentsX; x++ ) {
-                <span class="hljs-keyword">var</span> u = x / segmentsX;
-                <span class="hljs-keyword">var</span> v = y / segmentsY;
+                <span class="hljs-keyword">var</span> idv = vtxCount * <span class="hljs-number">3</span>;
+                fullVerticesList[ idv ] = v1[ <span class="hljs-number">0</span> ];
+                fullVerticesList[ idv + <span class="hljs-number">1</span> ] = v1[ <span class="hljs-number">1</span> ];
+                fullVerticesList[ idv + <span class="hljs-number">2</span> ] = v1[ <span class="hljs-number">2</span> ];
+                fullVerticesList[ idv + <span class="hljs-number">3</span> ] = v2[ <span class="hljs-number">0</span> ];
+                fullVerticesList[ idv + <span class="hljs-number">4</span> ] = v2[ <span class="hljs-number">1</span> ];
+                fullVerticesList[ idv + <span class="hljs-number">5</span> ] = v2[ <span class="hljs-number">2</span> ];
+                fullVerticesList[ idv + <span class="hljs-number">6</span> ] = v3[ <span class="hljs-number">0</span> ];
+                fullVerticesList[ idv + <span class="hljs-number">7</span> ] = v3[ <span class="hljs-number">1</span> ];
+                fullVerticesList[ idv + <span class="hljs-number">8</span> ] = v3[ <span class="hljs-number">2</span> ];
 
-                <span class="hljs-keyword">var</span> vertex = {};
-                vertex.x = -radius * <span class="hljs-built_in">Math</span>.cos( phiStart + u * phiLength ) * <span class="hljs-built_in">Math</span>.sin( thetaStart + v * thetaLength );
-                vertex.y = radius * <span class="hljs-built_in">Math</span>.cos( thetaStart + v * thetaLength );
-                vertex.z = radius * <span class="hljs-built_in">Math</span>.sin( phiStart + u * phiLength ) * <span class="hljs-built_in">Math</span>.sin( thetaStart + v * thetaLength );
+                fullNormalsList[ idv ] = n1[ <span class="hljs-number">0</span> ];
+                fullNormalsList[ idv + <span class="hljs-number">1</span> ] = n1[ <span class="hljs-number">1</span> ];
+                fullNormalsList[ idv + <span class="hljs-number">2</span> ] = n1[ <span class="hljs-number">2</span> ];
+                fullNormalsList[ idv + <span class="hljs-number">3</span> ] = n2[ <span class="hljs-number">0</span> ];
+                fullNormalsList[ idv + <span class="hljs-number">4</span> ] = n2[ <span class="hljs-number">1</span> ];
+                fullNormalsList[ idv + <span class="hljs-number">5</span> ] = n2[ <span class="hljs-number">2</span> ];
+                fullNormalsList[ idv + <span class="hljs-number">6</span> ] = n3[ <span class="hljs-number">0</span> ];
+                fullNormalsList[ idv + <span class="hljs-number">7</span> ] = n3[ <span class="hljs-number">1</span> ];
+                fullNormalsList[ idv + <span class="hljs-number">8</span> ] = n3[ <span class="hljs-number">2</span> ];
 
-                allVertices.push( vertex );
+                <span class="hljs-keyword">var</span> idu = vtxCount * <span class="hljs-number">2</span>;
+                fullUVList[ idu ] = uv1[ <span class="hljs-number">0</span> ];
+                fullUVList[ idu + <span class="hljs-number">1</span> ] = uv1[ <span class="hljs-number">1</span> ];
+                fullUVList[ idu + <span class="hljs-number">2</span> ] = uv2[ <span class="hljs-number">0</span> ];
+                fullUVList[ idu + <span class="hljs-number">3</span> ] = uv2[ <span class="hljs-number">1</span> ];
+                fullUVList[ idu + <span class="hljs-number">4</span> ] = uv3[ <span class="hljs-number">0</span> ];
+                fullUVList[ idu + <span class="hljs-number">5</span> ] = uv3[ <span class="hljs-number">1</span> ];
 
-                verticesRow.push( allVertices.length - <span class="hljs-number">1</span> );
-                uvsRow.push( {
-                    u: u,
-                    v: <span class="hljs-number">1</span> - v
-                } );
-
-            }
-
-            vertices.push( verticesRow );
-            uvs.push( uvsRow );
-        }
-
-        <span class="hljs-keyword">var</span> fullVerticesList = [];
-        <span class="hljs-keyword">var</span> fullNormalsList = [];
-        <span class="hljs-keyword">var</span> fullUVList = [];
-        <span class="hljs-keyword">var</span> indexes = [];
-        <span class="hljs-keyword">var</span> vtxCount = <span class="hljs-number">0</span>;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-8">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
-              </div>
-              <h1 id="fixme-quick-fix-to-enable-bigger-mesh">FIXME quick fix to enable bigger mesh</h1>
-<p>however we should check if the OES_element_index_uint
-has been enabled</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> useDrawArrays = ( allVertices.length / <span class="hljs-number">3</span> ) &gt;= <span class="hljs-number">65536</span>;
-
-        <span class="hljs-keyword">for</span> ( y = <span class="hljs-number">0</span>; y &lt; segmentsY; y++ ) {
-            <span class="hljs-keyword">for</span> ( x = <span class="hljs-number">0</span>; x &lt; segmentsX; x++ ) {
-
-                <span class="hljs-keyword">var</span> v1 = vertices[ y ][ x + <span class="hljs-number">1</span> ];
-                <span class="hljs-keyword">var</span> v2 = vertices[ y ][ x ];
-                <span class="hljs-keyword">var</span> v3 = vertices[ y + <span class="hljs-number">1</span> ][ x ];
-                <span class="hljs-keyword">var</span> v4 = vertices[ y + <span class="hljs-number">1</span> ][ x + <span class="hljs-number">1</span> ];
-
-                <span class="hljs-keyword">var</span> vtx1 = allVertices[ v1 ];
-                <span class="hljs-keyword">var</span> vtx2 = allVertices[ v2 ];
-                <span class="hljs-keyword">var</span> vtx3 = allVertices[ v3 ];
-                <span class="hljs-keyword">var</span> vtx4 = allVertices[ v4 ];
-
-                <span class="hljs-keyword">var</span> n1 = Vec3.normalize( [ vtx1.x, vtx1.y, vtx1.z ], [] );
-                <span class="hljs-keyword">var</span> n2 = Vec3.normalize( [ vtx2.x, vtx2.y, vtx2.z ], [] );
-                <span class="hljs-keyword">var</span> n3 = Vec3.normalize( [ vtx3.x, vtx3.y, vtx3.z ], [] );
-                <span class="hljs-keyword">var</span> n4 = Vec3.normalize( [ vtx4.x, vtx4.y, vtx4.z ], [] );
-
-                <span class="hljs-keyword">var</span> uv1 = uvs[ y ][ x + <span class="hljs-number">1</span> ];
-                <span class="hljs-keyword">var</span> uv2 = uvs[ y ][ x ];
-                <span class="hljs-keyword">var</span> uv3 = uvs[ y + <span class="hljs-number">1</span> ][ x ];
-                <span class="hljs-keyword">var</span> uv4 = uvs[ y + <span class="hljs-number">1</span> ][ x + <span class="hljs-number">1</span> ];
-
-                fullVerticesList.push( vtx1.x, vtx1.y, vtx1.z );
-                fullVerticesList.push( vtx2.x, vtx2.y, vtx2.z );
-                fullVerticesList.push( vtx3.x, vtx3.y, vtx3.z );
-
-                fullNormalsList.push( n1[ <span class="hljs-number">0</span> ], n1[ <span class="hljs-number">1</span> ], n1[ <span class="hljs-number">2</span> ] );
-                fullNormalsList.push( n2[ <span class="hljs-number">0</span> ], n2[ <span class="hljs-number">1</span> ], n2[ <span class="hljs-number">2</span> ] );
-                fullNormalsList.push( n3[ <span class="hljs-number">0</span> ], n3[ <span class="hljs-number">1</span> ], n3[ <span class="hljs-number">2</span> ] );
-
-                fullUVList.push( uv1.u, uv1.v );
-                fullUVList.push( uv2.u, uv2.v );
-                fullUVList.push( uv3.u, uv3.v );
-
+                vtxCount += <span class="hljs-number">3</span>;
                 <span class="hljs-keyword">if</span> ( useDrawArrays ) {
-                    fullVerticesList.push( vtx1.x, vtx1.y, vtx1.z );
-                    fullVerticesList.push( vtx3.x, vtx3.y, vtx3.z );
-                    fullVerticesList.push( vtx4.x, vtx4.y, vtx4.z );
+                    idv = vtxCount * <span class="hljs-number">3</span>;
+                    fullVerticesList[ idv ] = v1[ <span class="hljs-number">0</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">1</span> ] = v1[ <span class="hljs-number">1</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">2</span> ] = v1[ <span class="hljs-number">2</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">3</span> ] = v3[ <span class="hljs-number">0</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">4</span> ] = v3[ <span class="hljs-number">1</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">5</span> ] = v3[ <span class="hljs-number">2</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">6</span> ] = v4[ <span class="hljs-number">0</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">7</span> ] = v4[ <span class="hljs-number">1</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">8</span> ] = v4[ <span class="hljs-number">2</span> ];
 
-                    fullNormalsList.push( n1[ <span class="hljs-number">0</span> ], n1[ <span class="hljs-number">1</span> ], n1[ <span class="hljs-number">2</span> ] );
-                    fullNormalsList.push( n3[ <span class="hljs-number">0</span> ], n3[ <span class="hljs-number">1</span> ], n3[ <span class="hljs-number">2</span> ] );
-                    fullNormalsList.push( n4[ <span class="hljs-number">0</span> ], n4[ <span class="hljs-number">1</span> ], n4[ <span class="hljs-number">2</span> ] );
+                    fullNormalsList[ idv ] = n1[ <span class="hljs-number">0</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">1</span> ] = n1[ <span class="hljs-number">1</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">2</span> ] = n1[ <span class="hljs-number">2</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">3</span> ] = n3[ <span class="hljs-number">0</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">4</span> ] = n3[ <span class="hljs-number">1</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">5</span> ] = n3[ <span class="hljs-number">2</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">6</span> ] = n4[ <span class="hljs-number">0</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">7</span> ] = n4[ <span class="hljs-number">1</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">8</span> ] = n4[ <span class="hljs-number">2</span> ];
 
-                    fullUVList.push( uv1.u, uv1.v );
-                    fullUVList.push( uv3.u, uv3.v );
-                    fullUVList.push( uv4.u, uv4.v );
+                    idu = vtxCount * <span class="hljs-number">2</span>;
+                    fullUVList[ idu ] = uv1[ <span class="hljs-number">0</span> ];
+                    fullUVList[ idu + <span class="hljs-number">1</span> ] = uv1[ <span class="hljs-number">1</span> ];
+                    fullUVList[ idu + <span class="hljs-number">2</span> ] = uv3[ <span class="hljs-number">0</span> ];
+                    fullUVList[ idu + <span class="hljs-number">3</span> ] = uv3[ <span class="hljs-number">1</span> ];
+                    fullUVList[ idu + <span class="hljs-number">4</span> ] = uv4[ <span class="hljs-number">0</span> ];
+                    fullUVList[ idu + <span class="hljs-number">5</span> ] = uv4[ <span class="hljs-number">1</span> ];
+                    vtxCount += <span class="hljs-number">3</span>;
                 } <span class="hljs-keyword">else</span> {
-                    fullVerticesList.push( vtx4.x, vtx4.y, vtx4.z );
-                    fullNormalsList.push( n4[ <span class="hljs-number">0</span> ], n4[ <span class="hljs-number">1</span> ], n4[ <span class="hljs-number">2</span> ] );
-                    fullUVList.push( uv4.u, uv4.v );
+                    idv = vtxCount * <span class="hljs-number">3</span>;
+                    fullVerticesList[ idv ] = v4[ <span class="hljs-number">0</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">1</span> ] = v4[ <span class="hljs-number">1</span> ];
+                    fullVerticesList[ idv + <span class="hljs-number">2</span> ] = v4[ <span class="hljs-number">2</span> ];
 
-                    vtxCount += <span class="hljs-number">4</span>;
-                    <span class="hljs-keyword">var</span> tristart = vtxCount - <span class="hljs-number">4</span>;
-                    indexes.push( tristart );
-                    indexes.push( tristart + <span class="hljs-number">1</span> );
-                    indexes.push( tristart + <span class="hljs-number">2</span> );
-                    indexes.push( tristart );
-                    indexes.push( tristart + <span class="hljs-number">2</span> );
-                    indexes.push( tristart + <span class="hljs-number">3</span> );
+                    fullNormalsList[ idv ] = n4[ <span class="hljs-number">0</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">1</span> ] = n4[ <span class="hljs-number">1</span> ];
+                    fullNormalsList[ idv + <span class="hljs-number">2</span> ] = n4[ <span class="hljs-number">2</span> ];
+
+                    idu = vtxCount * <span class="hljs-number">2</span>;
+                    fullUVList[ idu ] = uv4[ <span class="hljs-number">0</span> ];
+                    fullUVList[ idu + <span class="hljs-number">1</span> ] = uv4[ <span class="hljs-number">1</span> ];
+
+                    <span class="hljs-keyword">var</span> iStart = triCount * <span class="hljs-number">3</span>;
+                    <span class="hljs-keyword">var</span> tristart = vtxCount - <span class="hljs-number">3</span>;
+                    indexes[ iStart ] = tristart;
+                    indexes[ iStart + <span class="hljs-number">1</span> ] = tristart + <span class="hljs-number">1</span>;
+                    indexes[ iStart + <span class="hljs-number">2</span> ] = tristart + <span class="hljs-number">2</span>;
+                    indexes[ iStart + <span class="hljs-number">3</span> ] = tristart;
+                    indexes[ iStart + <span class="hljs-number">4</span> ] = tristart + <span class="hljs-number">2</span>;
+                    indexes[ iStart + <span class="hljs-number">5</span> ] = tristart + <span class="hljs-number">3</span>;
+                    triCount += <span class="hljs-number">2</span>;
+                    vtxCount += <span class="hljs-number">1</span>;
                 }
             }
         }

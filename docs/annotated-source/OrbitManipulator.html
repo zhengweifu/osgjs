@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -678,8 +708,7 @@
      */</span>
     <span class="hljs-keyword">var</span> OrbitManipulator = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
         Manipulator.call( <span class="hljs-keyword">this</span> );
-        <span class="hljs-keyword">this</span>._tmpInverse = Matrix.makeIdentity( [] );
-        <span class="hljs-keyword">this</span>._tmpHomePosition = Vec3.init( [] );
+        <span class="hljs-keyword">this</span>._homePosition = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
         <span class="hljs-keyword">this</span>.init();
     };
 
@@ -759,11 +788,15 @@
     <span class="hljs-comment">/** @lends OrbitManipulator.prototype */</span>
     OrbitManipulator.prototype = MACROUTILS.objectInehrit( Manipulator.prototype, {
         init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            <span class="hljs-keyword">this</span>._distance = <span class="hljs-number">25</span>;
-            <span class="hljs-keyword">this</span>._target = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">3</span> );
+            <span class="hljs-keyword">this</span>._distance = <span class="hljs-number">25.0</span>;
+            <span class="hljs-keyword">this</span>._target = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">this</span>._upz = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span> ];
             Vec3.init( <span class="hljs-keyword">this</span>._target );
 
-            <span class="hljs-keyword">this</span>._rotation = Matrix.mult( Matrix.makeRotate( <span class="hljs-built_in">Math</span>.PI, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, [] ), Matrix.makeRotate( -<span class="hljs-built_in">Math</span>.PI / <span class="hljs-number">10.0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, [] ), [] );
+            <span class="hljs-keyword">var</span> rot1 = Matrix.makeRotate( <span class="hljs-built_in">Math</span>.PI, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, Matrix.create() );
+            <span class="hljs-keyword">var</span> rot2 = Matrix.makeRotate( -<span class="hljs-built_in">Math</span>.PI / <span class="hljs-number">10.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, Matrix.create() );
+            <span class="hljs-keyword">this</span>._rotation = Matrix.create();
+            Matrix.mult( rot1, rot2, <span class="hljs-keyword">this</span>._rotation );
             <span class="hljs-keyword">this</span>._time = <span class="hljs-number">0.0</span>;
 
             <span class="hljs-keyword">this</span>._rotate = <span class="hljs-keyword">new</span> OrbitManipulator.Interpolator( <span class="hljs-number">2</span> );
@@ -777,11 +810,11 @@
             <span class="hljs-keyword">this</span>._buttonup = <span class="hljs-literal">true</span>;
 
             <span class="hljs-keyword">this</span>._scale = <span class="hljs-number">10.0</span>;
-            <span class="hljs-keyword">this</span>._maxDistance = <span class="hljs-number">0</span>;
-            <span class="hljs-keyword">this</span>._minDistance = <span class="hljs-number">0</span>;
+            <span class="hljs-keyword">this</span>._maxDistance = <span class="hljs-number">0.0</span>;
+            <span class="hljs-keyword">this</span>._minDistance = <span class="hljs-number">0.0</span>;
             <span class="hljs-keyword">this</span>._scaleMouseMotion = <span class="hljs-number">1.0</span>;
 
-            <span class="hljs-keyword">this</span>._inverseMatrix = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">16</span> );
+            <span class="hljs-keyword">this</span>._inverseMatrix = Matrix.create();
             <span class="hljs-keyword">this</span>._rotateKey = <span class="hljs-number">65</span>; <span class="hljs-comment">// a</span>
             <span class="hljs-keyword">this</span>._zoomKey = <span class="hljs-number">83</span>; <span class="hljs-comment">// s</span>
             <span class="hljs-keyword">this</span>._panKey = <span class="hljs-number">68</span>; <span class="hljs-comment">// d</span></pre></div></div>
@@ -815,23 +848,26 @@
         },
         setTarget: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( target )</span> {</span>
             Vec3.copy( target, <span class="hljs-keyword">this</span>._target );
-            <span class="hljs-keyword">var</span> eyePos = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">3</span> );
+            <span class="hljs-keyword">var</span> eyePos = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
             <span class="hljs-keyword">this</span>.getEyePosition( eyePos );
             <span class="hljs-keyword">this</span>._distance = Vec3.distance( eyePos, target );
         },
-        setEyePosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( eye )</span> {</span>
-            <span class="hljs-keyword">var</span> result = <span class="hljs-keyword">this</span>._rotation;
-            <span class="hljs-keyword">var</span> center = <span class="hljs-keyword">this</span>._target;
-            <span class="hljs-keyword">var</span> up = [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> ];
+        setEyePosition: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> f = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> s = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> u = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( eye )</span> {</span>
+                <span class="hljs-keyword">var</span> result = <span class="hljs-keyword">this</span>._rotation;
+                <span class="hljs-keyword">var</span> center = <span class="hljs-keyword">this</span>._target;
 
-            <span class="hljs-keyword">var</span> f = Vec3.sub( eye, center, [] );
-            Vec3.normalize( f, f );
+                Vec3.sub( eye, center, f );
+                Vec3.normalize( f, f );
 
-            <span class="hljs-keyword">var</span> s = Vec3.cross( f, up, [] );
-            Vec3.normalize( s, s );
+                Vec3.cross( f, <span class="hljs-keyword">this</span>._upz, s );
+                Vec3.normalize( s, s );
 
-            <span class="hljs-keyword">var</span> u = Vec3.cross( s, f, [] );
-            Vec3.normalize( u, u );</pre></div></div>
+                Vec3.cross( s, f, u );
+                Vec3.normalize( u, u );</pre></div></div>
             
         </li>
         
@@ -849,25 +885,26 @@ s[2], f[2], u[2], 0.0,
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            result[ <span class="hljs-number">0</span> ] = s[ <span class="hljs-number">0</span> ];
-            result[ <span class="hljs-number">1</span> ] = f[ <span class="hljs-number">0</span> ];
-            result[ <span class="hljs-number">2</span> ] = u[ <span class="hljs-number">0</span> ];
-            result[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">4</span> ] = s[ <span class="hljs-number">1</span> ];
-            result[ <span class="hljs-number">5</span> ] = f[ <span class="hljs-number">1</span> ];
-            result[ <span class="hljs-number">6</span> ] = u[ <span class="hljs-number">1</span> ];
-            result[ <span class="hljs-number">7</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">8</span> ] = s[ <span class="hljs-number">2</span> ];
-            result[ <span class="hljs-number">9</span> ] = f[ <span class="hljs-number">2</span> ];
-            result[ <span class="hljs-number">10</span> ] = u[ <span class="hljs-number">2</span> ];
-            result[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0.0</span>;
-            result[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0</span>;
-            result[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0</span>;
-            result[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0</span>;
-            result[ <span class="hljs-number">15</span> ] = <span class="hljs-number">1.0</span>;
+            <div class="content"><div class='highlight'><pre>                result[ <span class="hljs-number">0</span> ] = s[ <span class="hljs-number">0</span> ];
+                result[ <span class="hljs-number">1</span> ] = f[ <span class="hljs-number">0</span> ];
+                result[ <span class="hljs-number">2</span> ] = u[ <span class="hljs-number">0</span> ];
+                result[ <span class="hljs-number">3</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">4</span> ] = s[ <span class="hljs-number">1</span> ];
+                result[ <span class="hljs-number">5</span> ] = f[ <span class="hljs-number">1</span> ];
+                result[ <span class="hljs-number">6</span> ] = u[ <span class="hljs-number">1</span> ];
+                result[ <span class="hljs-number">7</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">8</span> ] = s[ <span class="hljs-number">2</span> ];
+                result[ <span class="hljs-number">9</span> ] = f[ <span class="hljs-number">2</span> ];
+                result[ <span class="hljs-number">10</span> ] = u[ <span class="hljs-number">2</span> ];
+                result[ <span class="hljs-number">11</span> ] = <span class="hljs-number">0.0</span>;
+                result[ <span class="hljs-number">12</span> ] = <span class="hljs-number">0</span>;
+                result[ <span class="hljs-number">13</span> ] = <span class="hljs-number">0</span>;
+                result[ <span class="hljs-number">14</span> ] = <span class="hljs-number">0</span>;
+                result[ <span class="hljs-number">15</span> ] = <span class="hljs-number">1.0</span>;
 
-            <span class="hljs-keyword">this</span>._distance = Vec3.distance( eye, center );
-        },
+                <span class="hljs-keyword">this</span>._distance = Vec3.distance( eye, center );
+            };
+        } )(),
         computeHomePosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._node !== <span class="hljs-literal">undefined</span> ) {</pre></div></div>
             
@@ -891,17 +928,15 @@ s[2], f[2], u[2], 0.0,
         },
 
         getHomePosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            <span class="hljs-keyword">var</span> eyePos = <span class="hljs-keyword">this</span>._tmpHomePosition;
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._node !== <span class="hljs-literal">undefined</span> ) {
-
                 <span class="hljs-keyword">var</span> bs = <span class="hljs-keyword">this</span>._node.getBound();
                 <span class="hljs-keyword">var</span> distance = bs.radius() * <span class="hljs-number">1.5</span>;
 
                 <span class="hljs-keyword">var</span> target = bs.center();
 
-                <span class="hljs-keyword">this</span>.computeEyePosition( target, distance, eyePos );
+                <span class="hljs-keyword">this</span>.computeEyePosition( target, distance, <span class="hljs-keyword">this</span>._homePosition );
             }
-            <span class="hljs-keyword">return</span> eyePos;
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._homePosition;
         },
 
         setMaxDistance: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( d )</span> {</span>
@@ -916,36 +951,43 @@ s[2], f[2], u[2], 0.0,
         getDistance: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._distance;
         },
-        computePan: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( dx, dy )</span> {</span>
-            dy *= <span class="hljs-keyword">this</span>._distance;
-            dx *= <span class="hljs-keyword">this</span>._distance;
+        computePan: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> inv = Matrix.create();
+            <span class="hljs-keyword">var</span> x = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> y = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( dx, dy )</span> {</span>
+                dy *= <span class="hljs-keyword">this</span>._distance;
+                dx *= <span class="hljs-keyword">this</span>._distance;
+                Matrix.inverse( <span class="hljs-keyword">this</span>._rotation, inv );
+                x[ <span class="hljs-number">0</span> ] = Matrix.get( inv, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
+                x[ <span class="hljs-number">1</span> ] = Matrix.get( inv, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> );
+                x[ <span class="hljs-number">2</span> ] = Matrix.get( inv, <span class="hljs-number">0</span>, <span class="hljs-number">2</span> );
+                Vec3.normalize( x, x );
 
-            <span class="hljs-keyword">var</span> inv = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">16</span> );
-            <span class="hljs-keyword">var</span> x = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">3</span> );
-            <span class="hljs-keyword">var</span> y = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">3</span> );
-            Matrix.inverse( <span class="hljs-keyword">this</span>._rotation, inv );
-            x[ <span class="hljs-number">0</span> ] = Matrix.get( inv, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> );
-            x[ <span class="hljs-number">1</span> ] = Matrix.get( inv, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> );
-            x[ <span class="hljs-number">2</span> ] = Matrix.get( inv, <span class="hljs-number">0</span>, <span class="hljs-number">2</span> );
-            Vec3.normalize( x, x );
+                y[ <span class="hljs-number">0</span> ] = Matrix.get( inv, <span class="hljs-number">2</span>, <span class="hljs-number">0</span> );
+                y[ <span class="hljs-number">1</span> ] = Matrix.get( inv, <span class="hljs-number">2</span>, <span class="hljs-number">1</span> );
+                y[ <span class="hljs-number">2</span> ] = Matrix.get( inv, <span class="hljs-number">2</span>, <span class="hljs-number">2</span> );
+                Vec3.normalize( y, y );
 
-            y[ <span class="hljs-number">0</span> ] = Matrix.get( inv, <span class="hljs-number">2</span>, <span class="hljs-number">0</span> );
-            y[ <span class="hljs-number">1</span> ] = Matrix.get( inv, <span class="hljs-number">2</span>, <span class="hljs-number">1</span> );
-            y[ <span class="hljs-number">2</span> ] = Matrix.get( inv, <span class="hljs-number">2</span>, <span class="hljs-number">2</span> );
-            Vec3.normalize( y, y );
+                Vec3.mult( x, -dx, x );
+                Vec3.mult( y, dy, y );
+                Vec3.add( <span class="hljs-keyword">this</span>._target, x, <span class="hljs-keyword">this</span>._target );
+                Vec3.add( <span class="hljs-keyword">this</span>._target, y, <span class="hljs-keyword">this</span>._target );
+            };
+        } )(),
+        computeRotation: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> of = Matrix.create();
+            <span class="hljs-keyword">var</span> r = Matrix.create();
+            <span class="hljs-keyword">var</span> r2 = Matrix.create();
+            <span class="hljs-keyword">var</span> inv = Matrix.create();
+            <span class="hljs-keyword">var</span> tmp = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> tmpDist = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( dx, dy )</span> {</span>
+                Matrix.makeRotate( dx / <span class="hljs-number">10.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, of );
+                Matrix.mult( <span class="hljs-keyword">this</span>._rotation, of, r );
 
-            Vec3.mult( x, -dx, x );
-            Vec3.mult( y, dy, y );
-            Vec3.add( <span class="hljs-keyword">this</span>._target, x, <span class="hljs-keyword">this</span>._target );
-            Vec3.add( <span class="hljs-keyword">this</span>._target, y, <span class="hljs-keyword">this</span>._target );
-        },
-
-        computeRotation: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( dx, dy )</span> {</span>
-            <span class="hljs-keyword">var</span> of = Matrix.makeRotate( dx / <span class="hljs-number">10.0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, [] );
-            <span class="hljs-keyword">var</span> r = Matrix.mult( <span class="hljs-keyword">this</span>._rotation, of, [] );
-
-            of = Matrix.makeRotate( dy / <span class="hljs-number">10.0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, [] );
-            <span class="hljs-keyword">var</span> r2 = Matrix.mult( of, r, [] );</pre></div></div>
+                Matrix.makeRotate( dy / <span class="hljs-number">10.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, of );
+                Matrix.mult( of, r, r2 );</pre></div></div>
             
         </li>
         
@@ -961,15 +1003,15 @@ the rotation matrix</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> inv = [];
-            Matrix.inverse( r2, inv );
-            <span class="hljs-keyword">var</span> eye = Matrix.transformVec3( inv, [ <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>._distance, <span class="hljs-number">0</span> ], <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">3</span> ) );
+            <div class="content"><div class='highlight'><pre>                Matrix.inverse( r2, inv );
+                tmpDist[ <span class="hljs-number">1</span> ] = <span class="hljs-keyword">this</span>._distance;
+                Matrix.transformVec3( inv, tmpDist, tmp );
 
-            <span class="hljs-keyword">var</span> dir = Vec3.neg( eye, [] );
-            Vec3.normalize( dir, dir );
+                Vec3.neg( tmp, tmp );
+                Vec3.normalize( tmp, tmp );
 
-            <span class="hljs-keyword">var</span> p = Vec3.dot( dir, [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> ] );
-            <span class="hljs-keyword">if</span> ( <span class="hljs-built_in">Math</span>.abs( p ) &gt; <span class="hljs-number">0.95</span> ) {</pre></div></div>
+                <span class="hljs-keyword">var</span> p = Vec3.dot( tmp, <span class="hljs-keyword">this</span>._upz );
+                <span class="hljs-keyword">if</span> ( <span class="hljs-built_in">Math</span>.abs( p ) &gt; <span class="hljs-number">0.95</span> ) {</pre></div></div>
             
         </li>
         
@@ -984,24 +1026,24 @@ the rotation matrix</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">this</span>._rotation = r;
-                <span class="hljs-keyword">return</span>;
-            }
-            <span class="hljs-keyword">this</span>._rotation = r2;
-        },
-
+            <div class="content"><div class='highlight'><pre>                    Matrix.copy( r, <span class="hljs-keyword">this</span>._rotation );
+                    <span class="hljs-keyword">return</span>;
+                }
+                Matrix.copy( r2, <span class="hljs-keyword">this</span>._rotation );
+            };
+        } )(),
         computeZoom: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( dz )</span> {</span>
             <span class="hljs-keyword">this</span>.zoom( dz );
         },
 
         zoom: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( ratio )</span> {</span>
             <span class="hljs-keyword">var</span> newValue = <span class="hljs-keyword">this</span>._distance * ratio;
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._minDistance &gt; <span class="hljs-number">0</span> ) {
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._minDistance &gt; <span class="hljs-number">0.0</span> ) {
                 <span class="hljs-keyword">if</span> ( newValue &lt; <span class="hljs-keyword">this</span>._minDistance ) {
                     newValue = <span class="hljs-keyword">this</span>._minDistance;
                 }
             }
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._maxDistance &gt; <span class="hljs-number">0</span> ) {
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._maxDistance &gt; <span class="hljs-number">0.0</span> ) {
                 <span class="hljs-keyword">if</span> ( newValue &gt; <span class="hljs-keyword">this</span>._maxDistance ) {
                     newValue = <span class="hljs-keyword">this</span>._maxDistance;
                 }
@@ -1026,19 +1068,25 @@ the rotation matrix</p>
             <span class="hljs-keyword">this</span>.computeEyePosition( <span class="hljs-keyword">this</span>._target, <span class="hljs-keyword">this</span>._distance, eye );
         },
 
-        computeEyePosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( target, distance, eye )</span> {</span>
-            <span class="hljs-keyword">var</span> inv = <span class="hljs-keyword">this</span>._tmpInverse;
-            Matrix.inverse( <span class="hljs-keyword">this</span>._rotation, <span class="hljs-keyword">this</span>._tmpInverse );
-            Matrix.transformVec3( inv, [ <span class="hljs-number">0</span>, distance, <span class="hljs-number">0</span> ],
-                eye );
-            Vec3.add( target, eye, eye );
-        },
+        computeEyePosition: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> tmpDist = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> tmpInverse = Matrix.create();
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( target, distance, eye )</span> {</span>
+                Matrix.inverse( <span class="hljs-keyword">this</span>._rotation, tmpInverse );
+                tmpDist[ <span class="hljs-number">1</span> ] = distance;
+                Matrix.transformVec3( tmpInverse, tmpDist, eye );
+                Vec3.add( target, eye, eye );
+            };
+        } )(),
 
-        update: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( nv )</span> {</span>
-            <span class="hljs-keyword">var</span> t = nv.getFrameStamp().getSimulationTime();
-            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._lastUpdate === <span class="hljs-literal">undefined</span> ) {
-                <span class="hljs-keyword">this</span>._lastUpdate = t;
-            }</pre></div></div>
+        update: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> eye = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">var</span> tmpDist = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( nv )</span> {</span>
+                <span class="hljs-keyword">var</span> t = nv.getFrameStamp().getSimulationTime();
+                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._lastUpdate === <span class="hljs-literal">undefined</span> ) {
+                    <span class="hljs-keyword">this</span>._lastUpdate = t;
+                }</pre></div></div>
             
         </li>
         
@@ -1053,34 +1101,32 @@ the rotation matrix</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">this</span>._lastUpdate = t;
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">this</span>._lastUpdate = t;
 
-            <span class="hljs-keyword">var</span> delta;
-            <span class="hljs-keyword">var</span> mouseFactor = <span class="hljs-number">0.1</span>;
-            delta = <span class="hljs-keyword">this</span>._rotate.update();
-            <span class="hljs-keyword">this</span>.computeRotation( -delta[ <span class="hljs-number">0</span> ] * mouseFactor * <span class="hljs-keyword">this</span>._scaleMouseMotion, -delta[ <span class="hljs-number">1</span> ] * mouseFactor * <span class="hljs-keyword">this</span>._scaleMouseMotion );
-
-
-            <span class="hljs-keyword">var</span> panFactor = <span class="hljs-number">0.002</span>;
-            delta = <span class="hljs-keyword">this</span>._pan.update();
-            <span class="hljs-keyword">this</span>.computePan( -delta[ <span class="hljs-number">0</span> ] * panFactor, -delta[ <span class="hljs-number">1</span> ] * panFactor );
+                <span class="hljs-keyword">var</span> delta;
+                <span class="hljs-keyword">var</span> mouseFactor = <span class="hljs-number">0.1</span>;
+                delta = <span class="hljs-keyword">this</span>._rotate.update();
+                <span class="hljs-keyword">this</span>.computeRotation( -delta[ <span class="hljs-number">0</span> ] * mouseFactor * <span class="hljs-keyword">this</span>._scaleMouseMotion, -delta[ <span class="hljs-number">1</span> ] * mouseFactor * <span class="hljs-keyword">this</span>._scaleMouseMotion );
 
 
-            delta = <span class="hljs-keyword">this</span>._zoom.update();
-            <span class="hljs-keyword">this</span>.computeZoom( <span class="hljs-number">1.0</span> + delta[ <span class="hljs-number">0</span> ] / <span class="hljs-number">10.0</span> );
+                <span class="hljs-keyword">var</span> panFactor = <span class="hljs-number">0.002</span>;
+                delta = <span class="hljs-keyword">this</span>._pan.update();
+                <span class="hljs-keyword">this</span>.computePan( -delta[ <span class="hljs-number">0</span> ] * panFactor, -delta[ <span class="hljs-number">1</span> ] * panFactor );
 
-            <span class="hljs-keyword">var</span> target = <span class="hljs-keyword">this</span>._target;
-            <span class="hljs-keyword">var</span> distance = <span class="hljs-keyword">this</span>._distance;
 
-            <span class="hljs-keyword">var</span> eye = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>( <span class="hljs-number">3</span> );
-            Matrix.inverse( <span class="hljs-keyword">this</span>._rotation, <span class="hljs-keyword">this</span>._inverseMatrix );
-            Matrix.transformVec3( <span class="hljs-keyword">this</span>._inverseMatrix, [ <span class="hljs-number">0</span>, distance, <span class="hljs-number">0</span> ],
-                eye );
+                delta = <span class="hljs-keyword">this</span>._zoom.update();
+                <span class="hljs-keyword">this</span>.computeZoom( <span class="hljs-number">1.0</span> + delta[ <span class="hljs-number">0</span> ] / <span class="hljs-number">10.0</span> );
 
-            Matrix.makeLookAt( Vec3.add( target, eye, eye ),
-                target, [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> ],
-                <span class="hljs-keyword">this</span>._inverseMatrix );
-        },
+                <span class="hljs-keyword">var</span> target = <span class="hljs-keyword">this</span>._target;
+                <span class="hljs-keyword">var</span> distance = <span class="hljs-keyword">this</span>._distance;
+
+                Matrix.inverse( <span class="hljs-keyword">this</span>._rotation, <span class="hljs-keyword">this</span>._inverseMatrix );
+                tmpDist[ <span class="hljs-number">1</span> ] = distance;
+                Matrix.transformVec3( <span class="hljs-keyword">this</span>._inverseMatrix, tmpDist, eye );
+
+                Matrix.makeLookAt( Vec3.add( target, eye, eye ), target, <span class="hljs-keyword">this</span>._upz, <span class="hljs-keyword">this</span>._inverseMatrix );
+            };
+        } )(),
 
         getInverseMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._inverseMatrix;

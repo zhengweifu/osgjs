@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -669,7 +699,7 @@
 
     osgWrapper.Object = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( input, obj )</span> {</span>
         <span class="hljs-keyword">var</span> jsonObj = input.getJSON();
-        <span class="hljs-keyword">var</span> check = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*o*/</span> )</span> {</span>
+        <span class="hljs-keyword">var</span> check = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*o*/</span>)</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
         };
         <span class="hljs-keyword">if</span> ( !check( jsonObj ) ) {
@@ -689,11 +719,11 @@
 
         <span class="hljs-keyword">return</span> obj;
     };
-
+    <span class="hljs-comment">/* jshint newcap: false */</span>
     osgWrapper.Node = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( input, node )</span> {</span>
         <span class="hljs-keyword">var</span> jsonObj = input.getJSON();
 
-        <span class="hljs-keyword">var</span> check = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*o*/</span> )</span> {</span>
+        <span class="hljs-keyword">var</span> check = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*o*/</span>)</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
         };
         <span class="hljs-keyword">if</span> ( !check( jsonObj ) ) {
@@ -722,7 +752,6 @@
             }
         }
 
-
         <span class="hljs-keyword">if</span> ( jsonObj.StateSet ) {
             <span class="hljs-keyword">var</span> pp = input.setJSON( jsonObj.StateSet ).readObject();
             <span class="hljs-keyword">var</span> df = Q.defer();
@@ -736,32 +765,95 @@
         <span class="hljs-keyword">var</span> createChildren = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( jsonChildren )</span> {</span>
             <span class="hljs-keyword">var</span> promise = input.setJSON( jsonChildren ).readObject();
             <span class="hljs-keyword">var</span> df = Q.defer();
-            promiseArray.push( df.promise );
             Q.when( promise ).then( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( obj )</span> {</span>
-                <span class="hljs-keyword">if</span> ( obj ) {
-                    node.addChild( obj );
-                }
                 df.resolve( obj );
             } );
+            <span class="hljs-keyword">return</span> df.promise;
         };
 
-        <span class="hljs-keyword">if</span> ( jsonObj.Children ) {
-            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, k = jsonObj.Children.length; i &lt; k; i++ ) {
-                createChildren( jsonObj.Children[ i ] );
+        <span class="hljs-keyword">var</span> queue = [];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>For each url, create a function call and add it to the queue</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> ( jsonObj.Children ) {
+            <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, k = jsonObj.Children.length; i &lt; k; i++ )
+            {
+                queue.push( createChildren( jsonObj.Children[ i ] ) );
             }
-        }
+        }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Resolve first updateCallbacks and stateset.</p>
 
-        <span class="hljs-keyword">var</span> defer = Q.defer();
-        Q.all( promiseArray ).then( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            defer.resolve( node );
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> deferred = Q.defer();
+        Q.all( promiseArray ).then( <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( )</span> {</span>
+            deferred.resolve( );
         } );
+        
+        <span class="hljs-keyword">var</span> defer = Q.defer();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Need to wait until the stateset and the all the callbacks are resolved</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        Q( deferred.promise ).then( <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( )</span>{</span>
+            Q.all( queue ).then( <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( )</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>All the results from Q.all are on the argument as an array
+Now insert children in the right order</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; queue.length; i++ )
+                    node.addChild( queue[ i ] );
+                defer.resolve( node );
+            } );
+        });
         <span class="hljs-keyword">return</span> defer.promise;
     };
 
     osgWrapper.StateSet = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( input, stateSet )</span> {</span>
         <span class="hljs-keyword">var</span> jsonObj = input.getJSON();
-        <span class="hljs-keyword">var</span> check = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*o*/</span> )</span> {</span>
+        <span class="hljs-keyword">var</span> check = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*o*/</span>)</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
         };
 
@@ -948,7 +1040,7 @@
 
     osgWrapper.Texture = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( input, texture )</span> {</span>
         <span class="hljs-keyword">var</span> jsonObj = input.getJSON();
-        <span class="hljs-keyword">var</span> check = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*o*/</span> )</span> {</span>
+        <span class="hljs-keyword">var</span> check = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( <span class="hljs-comment">/*o*/</span>)</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
         };
         <span class="hljs-keyword">if</span> ( !check( jsonObj ) ) {
@@ -974,11 +1066,11 @@
         </li>
         
         
-        <li id="section-2">
+        <li id="section-6">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-2">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <p>no file return dummy texture</p>
 
@@ -1058,11 +1150,11 @@
         </li>
         
         
-        <li id="section-3">
+        <li id="section-7">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <p>var lightsource = args[ 1 ];</p>
 

@@ -2,6 +2,11 @@ define( [], function () {
 
     /** @class Vec3 Operations */
     var Vec3 = {
+
+        create: function () {
+            return [ 0.0, 0.0, 0.0 ];
+        },
+
         init: function ( a ) {
             a[ 0 ] = 0.0;
             a[ 1 ] = 0.0;
@@ -52,6 +57,13 @@ define( [], function () {
 
         length: function ( a ) {
             return Math.sqrt( a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ] );
+        },
+
+        distance2: function ( a, b ) {
+            var x = a[ 0 ] - b[ 0 ];
+            var y = a[ 1 ] - b[ 1 ];
+            var z = a[ 2 ] - b[ 2 ];
+            return x * x + y * y + z * z;
         },
 
         distance: function ( a, b ) {

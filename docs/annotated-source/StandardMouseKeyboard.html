@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -671,7 +701,7 @@
         <span class="hljs-keyword">this</span>._mouseEventNode = <span class="hljs-literal">undefined</span>;
         <span class="hljs-keyword">this</span>._wheelEventNode = <span class="hljs-literal">undefined</span>;
         <span class="hljs-keyword">this</span>._keyboardEventNode = <span class="hljs-literal">undefined</span>;
-        <span class="hljs-keyword">this</span>._eventList = [ <span class="hljs-string">'mousedown'</span>, <span class="hljs-string">'mouseup'</span>, <span class="hljs-string">'mousemove'</span>, <span class="hljs-string">'dblclick'</span> ];
+        <span class="hljs-keyword">this</span>._eventList = [ <span class="hljs-string">'mousedown'</span>, <span class="hljs-string">'mouseup'</span>, <span class="hljs-string">'mouseout'</span>, <span class="hljs-string">'mousemove'</span>, <span class="hljs-string">'dblclick'</span> ];
         <span class="hljs-keyword">this</span>._mousePosition = [ <span class="hljs-number">0</span>, <span class="hljs-number">0</span> ];
     };
 
@@ -702,6 +732,7 @@
             <span class="hljs-keyword">if</span> ( mousewheel ) {
                 mousewheel.addEventListener( <span class="hljs-string">'DOMMouseScroll'</span>, <span class="hljs-keyword">this</span>.mousewheel.bind( <span class="hljs-keyword">this</span> ), <span class="hljs-literal">false</span> );
                 mousewheel.addEventListener( <span class="hljs-string">'mousewheel'</span>, <span class="hljs-keyword">this</span>.mousewheel.bind( <span class="hljs-keyword">this</span> ), <span class="hljs-literal">false</span> );
+                mousewheel.addEventListener( <span class="hljs-string">'MozMousePixelScroll'</span>, <span class="hljs-keyword">this</span>.preventDefault.bind( <span class="hljs-keyword">this</span> ), <span class="hljs-literal">false</span> );
             }
 
             <span class="hljs-keyword">if</span> ( keyboard ) {
@@ -722,6 +753,7 @@
             <span class="hljs-keyword">if</span> ( mousewheel ) {
                 mousewheel.removeEventListener( <span class="hljs-string">'DOMMouseScroll'</span>, <span class="hljs-keyword">this</span>.mousewheel );
                 mousewheel.removeEventListener( <span class="hljs-string">'mousewheel'</span>, <span class="hljs-keyword">this</span>.mousewheel );
+                mousewheel.removeEventListener( <span class="hljs-string">'MozMousePixelScroll'</span>, <span class="hljs-keyword">this</span>.preventDefault );
             }
             <span class="hljs-keyword">if</span> ( keyboard ) {
                 keyboard.removeEventListener( <span class="hljs-string">'keydown'</span>, <span class="hljs-keyword">this</span>.keydown );
@@ -762,6 +794,13 @@
                 <span class="hljs-keyword">return</span>;
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.getManipulatorController().mouseup )
                 <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.getManipulatorController().mouseup( ev );
+        },
+
+        mouseout: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( ev )</span> {</span>
+            <span class="hljs-keyword">if</span> ( !<span class="hljs-keyword">this</span>.isValid() )
+                <span class="hljs-keyword">return</span>;
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.getManipulatorController().mouseout )
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.getManipulatorController().mouseout( ev );
         },
 
         mousemove: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( ev )</span> {</span>
@@ -923,6 +962,10 @@
             <div class="content"><div class='highlight'><pre>            args.unshift( event, delta, deltaX, deltaY );
 
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.getManipulatorController().mousewheel.apply( manipulatorAdapter, args );
+        },
+
+        preventDefault: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( event )</span> {</span>
+            event.preventDefault();
         },
 
         divGlobalOffset: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( obj )</span> {</span>

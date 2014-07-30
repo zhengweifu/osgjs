@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -661,7 +691,7 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre>define( [], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <div class="content"><div class='highlight'><pre>define( [ <span class="hljs-string">'osg/FrameStamp'</span> ], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( FrameStamp )</span> {</span>
 
     <span class="hljs-keyword">var</span> NodeVisitor = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( traversalMode )</span> {</span>
         <span class="hljs-comment">/*jshint bitwise: false */</span>
@@ -673,6 +703,15 @@
             <span class="hljs-keyword">this</span>.traversalMode = NodeVisitor.TRAVERSE_ALL_CHILDREN;
         }
         <span class="hljs-keyword">this</span>.nodePath = [];
+        <span class="hljs-keyword">this</span>.visitorType = NodeVisitor.NODE_VISITOR;
+
+        <span class="hljs-keyword">var</span> framestamp = <span class="hljs-keyword">new</span> FrameStamp();
+        <span class="hljs-keyword">this</span>.getFrameStamp = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> framestamp;
+        };
+        <span class="hljs-keyword">this</span>.setFrameStamp = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( s )</span> {</span>
+            framestamp = s;
+        };
     };</pre></div></div>
             
         </li>
@@ -689,29 +728,25 @@
             </div>
             
             <div class="content"><div class='highlight'><pre>    NodeVisitor.TRAVERSE_PARENTS = <span class="hljs-number">1</span>;
-    NodeVisitor.TRAVERSE_ALL_CHILDREN = <span class="hljs-number">2</span>;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-3">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>NodeVisitor.TRAVERSE_ACTIVE_CHILDREN = 3;</p>
+    NodeVisitor.TRAVERSE_ALL_CHILDREN = <span class="hljs-number">2</span>;
+    NodeVisitor.TRAVERSE_ACTIVE_CHILDREN = <span class="hljs-number">3</span>;
+    NodeVisitor.NODE_VISITOR = <span class="hljs-number">0</span>;
+    NodeVisitor.UPDATE_VISITOR = <span class="hljs-number">1</span>;
+    NodeVisitor.CULL_VISITOR = <span class="hljs-number">2</span>;
 
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    NodeVisitor._traversalFunctions = {};
+    
+    NodeVisitor._traversalFunctions = {};
     NodeVisitor._traversalFunctions[ NodeVisitor.TRAVERSE_PARENTS ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
         node.ascend( <span class="hljs-keyword">this</span> );
     };
     NodeVisitor._traversalFunctions[ NodeVisitor.TRAVERSE_ALL_CHILDREN ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
         node.traverse( <span class="hljs-keyword">this</span> );
     };
-
+	NodeVisitor._traversalFunctions[ NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+        node.traverse( <span class="hljs-keyword">this</span> );
+    };
+	
+	
     NodeVisitor._pushOntoNodePath = {};
     NodeVisitor._pushOntoNodePath[ NodeVisitor.TRAVERSE_PARENTS ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
         <span class="hljs-keyword">this</span>.nodePath.unshift( node );
@@ -719,12 +754,17 @@
     NodeVisitor._pushOntoNodePath[ NodeVisitor.TRAVERSE_ALL_CHILDREN ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
         <span class="hljs-keyword">this</span>.nodePath.push( node );
     };
-
+	NodeVisitor._pushOntoNodePath[ NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+        <span class="hljs-keyword">this</span>.nodePath.push( node );
+    };
     NodeVisitor._popFromNodePath = {};
     NodeVisitor._popFromNodePath[ NodeVisitor.TRAVERSE_PARENTS ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
         <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.nodePath.shift();
     };
     NodeVisitor._popFromNodePath[ NodeVisitor.TRAVERSE_ALL_CHILDREN ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">this</span>.nodePath.pop();
+    };
+	NodeVisitor._popFromNodePath[ NodeVisitor.TRAVERSE_ACTIVE_CHILDREN ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
         <span class="hljs-keyword">this</span>.nodePath.pop();
     };
 
@@ -760,6 +800,9 @@
         },
         traverse: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
             NodeVisitor._traversalFunctions[ <span class="hljs-keyword">this</span>.traversalMode ].call( <span class="hljs-keyword">this</span>, node );
+        },
+        getVisitorType: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( )</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.visitorType;
         }
     };
 

@@ -149,6 +149,16 @@
               </a>
             
               
+              <a class="source" href="Lod.html">
+                Lod.js
+              </a>
+            
+              
+              <a class="source" href="Map.html">
+                Map.js
+              </a>
+            
+              
               <a class="source" href="Material.html">
                 Material.js
               </a>
@@ -186,6 +196,11 @@
               
               <a class="source" href="Object.html">
                 Object.js
+              </a>
+            
+              
+              <a class="source" href="PagedLOD.html">
+                PagedLOD.js
               </a>
             
               
@@ -269,6 +284,11 @@
               </a>
             
               
+              <a class="source" href="TextureManager.html">
+                TextureManager.js
+              </a>
+            
+              
               <a class="source" href="Transform.html">
                 Transform.js
               </a>
@@ -316,6 +336,11 @@
               
               <a class="source" href="Viewport.html">
                 Viewport.js
+              </a>
+            
+              
+              <a class="source" href="WebGLCaps.html">
+                WebGLCaps.js
               </a>
             
               
@@ -529,6 +554,11 @@
               </a>
             
               
+              <a class="source" href="Oculus.html">
+                Oculus.js
+              </a>
+            
+              
               <a class="source" href="ParameterVisitor.html">
                 ParameterVisitor.js
               </a>
@@ -536,6 +566,11 @@
               
               <a class="source" href="TriangleIntersect.html">
                 TriangleIntersect.js
+              </a>
+            
+              
+              <a class="source" href="WebVR.html">
+                WebVR.js
               </a>
             
               
@@ -633,11 +668,6 @@
                 Q.js
               </a>
             
-              
-              <a class="source" href="vr.html">
-                vr.js
-              </a>
-            
           </div>
         </li>
       </ul>
@@ -674,16 +704,22 @@
     <span class="hljs-string">'osg/Geometry'</span>,
     <span class="hljs-string">'osg/RenderStage'</span>,
     <span class="hljs-string">'osg/Node'</span>,
+    <span class="hljs-string">'osg/Lod'</span>,
+    <span class="hljs-string">'osg/PagedLOD'</span>,
     <span class="hljs-string">'osg/Camera'</span>,
-    <span class="hljs-string">'osg/TransformEnums'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Camera, TransformEnums )</span> {</span>
+    <span class="hljs-string">'osg/TransformEnums'</span>,
+    <span class="hljs-string">'osg/Vec4'</span>,
+    <span class="hljs-string">'osg/Vec3'</span>,
+    <span class="hljs-string">'osg/ComputeMatrixFromNodePath'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, MACROUTILS, NodeVisitor, CullSettings, CullStack, Matrix, MatrixTransform, Projection, LightSource, Geometry, RenderStage, Node, Lod, PagedLOD, Camera, TransformEnums, Vec4, Vec3, ComputeMatrixFromNodePath )</span> {</span>
+
 
     <span class="hljs-comment">/**
      * CullVisitor traverse the tree and collect Matrix/State for the rendering traverse
      * @class CullVisitor
      */</span>
     <span class="hljs-keyword">var</span> CullVisitor = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-        NodeVisitor.call( <span class="hljs-keyword">this</span> );
+        NodeVisitor.call( <span class="hljs-keyword">this</span>, NodeVisitor.TRAVERSE_ACTIVE_CHILDREN);
         CullSettings.call( <span class="hljs-keyword">this</span> );
         CullStack.call( <span class="hljs-keyword">this</span> );
 
@@ -692,12 +728,12 @@
         <span class="hljs-keyword">this</span>._currentRenderBin = <span class="hljs-literal">undefined</span>;
         <span class="hljs-keyword">this</span>._currentRenderStage = <span class="hljs-literal">undefined</span>;
         <span class="hljs-keyword">this</span>._rootRenderStage = <span class="hljs-literal">undefined</span>;
-
+        <span class="hljs-keyword">this</span>._frustum = [ Vec4.create(), Vec4.create(), Vec4.create(), Vec4.create(), Vec4.create(), Vec4.create() ];
         <span class="hljs-keyword">this</span>._computedNear = <span class="hljs-built_in">Number</span>.POSITIVE_INFINITY;
         <span class="hljs-keyword">this</span>._computedFar = <span class="hljs-built_in">Number</span>.NEGATIVE_INFINITY;
-
+        <span class="hljs-keyword">this</span>._enableFrustumCulling = <span class="hljs-literal">false</span>;
         <span class="hljs-keyword">var</span> lookVector = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, -<span class="hljs-number">1.0</span> ];
-
+        <span class="hljs-keyword">this</span>._camera = <span class="hljs-literal">undefined</span>;
         <span class="hljs-comment">/*jshint bitwise: false */</span>
         <span class="hljs-keyword">this</span>._bbCornerFar = ( lookVector[ <span class="hljs-number">0</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span> ) | ( lookVector[ <span class="hljs-number">1</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">2</span> : <span class="hljs-number">0</span> ) | ( lookVector[ <span class="hljs-number">2</span> ] &gt;= <span class="hljs-number">0</span> ? <span class="hljs-number">4</span> : <span class="hljs-number">0</span> );
         <span class="hljs-keyword">this</span>._bbCornerNear = ( ~<span class="hljs-keyword">this</span>._bbCornerFar ) &amp; <span class="hljs-number">7</span>;
@@ -725,6 +761,7 @@
         <span class="hljs-keyword">this</span>._reserveLeafStack.current = <span class="hljs-number">0</span>;
 
         <span class="hljs-keyword">this</span>._renderBinStack = [];
+        <span class="hljs-keyword">this</span>.visitorType = NodeVisitor.CULL_VISITOR;
     };
 
     <span class="hljs-comment">/** @lends CullVisitor.prototype */</span>
@@ -742,7 +779,12 @@
             }
             <span class="hljs-keyword">this</span>.traverse( node );
         },
-
+        setCamera: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(camera)</span>{</span>
+            <span class="hljs-keyword">this</span>._camera = camera;
+        },
+        getCurrentCamera: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span>{</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._camera;
+        },
         updateCalculatedNearFar: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, drawable )</span> {</span>
 
             <span class="hljs-keyword">var</span> bb = drawable.getBoundingBox();
@@ -1061,8 +1103,9 @@ std::cout &lt;&lt; ‘_computed_zfar’&lt;&lt;_computed_zfar&lt;&lt;std::endl;<
         setCurrentRenderBin: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( rb )</span> {</span>
             <span class="hljs-keyword">this</span>._currentRenderBin = rb;
         },
-        addPositionedAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attribute )</span> {</span>
-            <span class="hljs-keyword">var</span> matrix = <span class="hljs-keyword">this</span>._modelviewMatrixStack[ <span class="hljs-keyword">this</span>._modelviewMatrixStack.length - <span class="hljs-number">1</span> ];
+        addPositionedAttribute: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( attribute, matrix )</span> {</span>
+            <span class="hljs-keyword">if</span> ( matrix === <span class="hljs-literal">undefined</span> )
+                matrix = <span class="hljs-keyword">this</span>._modelviewMatrixStack[ <span class="hljs-keyword">this</span>._modelviewMatrixStack.length - <span class="hljs-number">1</span> ];
             <span class="hljs-keyword">this</span>._currentRenderBin.getStage().positionedAttribute.push( [ matrix, attribute ] );
         },
 
@@ -1109,7 +1152,7 @@ std::cout &lt;&lt; ‘_computed_zfar’&lt;&lt;_computed_zfar&lt;&lt;std::endl;<
         _getReservedMatrix: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">var</span> m = <span class="hljs-keyword">this</span>._reserveMatrixStack[ <span class="hljs-keyword">this</span>._reserveMatrixStack.current++ ];
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._reserveMatrixStack.current === <span class="hljs-keyword">this</span>._reserveMatrixStack.length ) {
-                <span class="hljs-keyword">this</span>._reserveMatrixStack.push( Matrix.makeIdentity( [] ) );
+                <span class="hljs-keyword">this</span>._reserveMatrixStack.push( Matrix.create() );
             }
             <span class="hljs-keyword">return</span> m;
         },
@@ -1119,7 +1162,187 @@ std::cout &lt;&lt; ‘_computed_zfar’&lt;&lt;_computed_zfar&lt;&lt;std::endl;<
                 <span class="hljs-keyword">this</span>._reserveLeafStack.push( {} );
             }
             <span class="hljs-keyword">return</span> l;
-        }
+        },
+
+        setEnableFrustumCulling: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( value )</span> {</span>
+            <span class="hljs-keyword">this</span>._enableFrustumCulling = value;
+        },
+
+        getFrustumPlanes: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+
+            <span class="hljs-keyword">var</span> right = Vec4.create();
+            <span class="hljs-keyword">var</span> left = Vec4.create();
+            <span class="hljs-keyword">var</span> bottom = Vec4.create();
+            <span class="hljs-keyword">var</span> top = Vec4.create();
+            <span class="hljs-keyword">var</span> far = Vec4.create();
+            <span class="hljs-keyword">var</span> near = Vec4.create();
+
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( matrix, result, withNearFar )</span> {</span>
+                <span class="hljs-keyword">if</span> ( withNearFar === <span class="hljs-literal">undefined</span> )
+                    withNearFar = <span class="hljs-literal">false</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Right clipping plane.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                right[ <span class="hljs-number">0</span> ] = matrix[ <span class="hljs-number">3</span> ] - matrix[ <span class="hljs-number">0</span> ];
+                right[ <span class="hljs-number">1</span> ] = matrix[ <span class="hljs-number">7</span> ] - matrix[ <span class="hljs-number">4</span> ];
+                right[ <span class="hljs-number">2</span> ] = matrix[ <span class="hljs-number">11</span> ] - matrix[ <span class="hljs-number">8</span> ];
+                right[ <span class="hljs-number">3</span> ] = matrix[ <span class="hljs-number">15</span> ] - matrix[ <span class="hljs-number">12</span> ];
+                result[ <span class="hljs-number">0</span> ] = right;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Left clipping plane.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                left[ <span class="hljs-number">0</span> ] = matrix[ <span class="hljs-number">3</span> ] + matrix[ <span class="hljs-number">0</span> ];
+                left[ <span class="hljs-number">1</span> ] = matrix[ <span class="hljs-number">7</span> ] + matrix[ <span class="hljs-number">4</span> ];
+                left[ <span class="hljs-number">2</span> ] = matrix[ <span class="hljs-number">11</span> ] + matrix[ <span class="hljs-number">8</span> ];
+                left[ <span class="hljs-number">3</span> ] = matrix[ <span class="hljs-number">15</span> ] + matrix[ <span class="hljs-number">12</span> ];
+                result[ <span class="hljs-number">1</span> ] = left;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Bottom clipping plane.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                bottom[ <span class="hljs-number">0</span> ] = matrix[ <span class="hljs-number">3</span> ] + matrix[ <span class="hljs-number">1</span> ];
+                bottom[ <span class="hljs-number">1</span> ] = matrix[ <span class="hljs-number">7</span> ] + matrix[ <span class="hljs-number">5</span> ];
+                bottom[ <span class="hljs-number">2</span> ] = matrix[ <span class="hljs-number">11</span> ] + matrix[ <span class="hljs-number">9</span> ];
+                bottom[ <span class="hljs-number">3</span> ] = matrix[ <span class="hljs-number">15</span> ] + matrix[ <span class="hljs-number">13</span> ];
+                result[ <span class="hljs-number">2</span> ] = bottom;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Top clipping plane.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                top[ <span class="hljs-number">0</span> ] = matrix[ <span class="hljs-number">3</span> ] - matrix[ <span class="hljs-number">1</span> ];
+                top[ <span class="hljs-number">1</span> ] = matrix[ <span class="hljs-number">7</span> ] - matrix[ <span class="hljs-number">5</span> ];
+                top[ <span class="hljs-number">2</span> ] = matrix[ <span class="hljs-number">11</span> ] - matrix[ <span class="hljs-number">9</span> ];
+                top[ <span class="hljs-number">3</span> ] = matrix[ <span class="hljs-number">15</span> ] - matrix[ <span class="hljs-number">13</span> ];
+                result[ <span class="hljs-number">3</span> ] = top;
+
+                <span class="hljs-keyword">if</span>( withNearFar ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Far clipping plane.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    far[ <span class="hljs-number">0</span> ] = matrix[ <span class="hljs-number">3</span> ] - matrix[ <span class="hljs-number">2</span> ];
+                    far[ <span class="hljs-number">1</span> ] = matrix[ <span class="hljs-number">7</span> ] - matrix[ <span class="hljs-number">6</span> ];
+                    far[ <span class="hljs-number">2</span> ] = matrix[ <span class="hljs-number">11</span> ] - matrix[ <span class="hljs-number">10</span> ];
+                    far[ <span class="hljs-number">3</span> ] = matrix[ <span class="hljs-number">15</span> ] - matrix[ <span class="hljs-number">14</span> ];
+                    result[ <span class="hljs-number">4</span> ] = far;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Near clipping plane.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    near[ <span class="hljs-number">0</span> ] = matrix[ <span class="hljs-number">3</span> ] + matrix[ <span class="hljs-number">2</span> ];
+                    near[ <span class="hljs-number">1</span> ] = matrix[ <span class="hljs-number">7</span> ] + matrix[ <span class="hljs-number">6</span> ];
+                    near[ <span class="hljs-number">2</span> ] = matrix[ <span class="hljs-number">11</span> ] + matrix[ <span class="hljs-number">10</span> ];
+                    near[ <span class="hljs-number">3</span> ] = matrix[ <span class="hljs-number">15</span> ] + matrix[ <span class="hljs-number">14</span> ];
+                    result[ <span class="hljs-number">5</span> ] = near;
+                }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Normalize the planes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, j = result.length; i &lt; j; i++ ) {
+                    <span class="hljs-keyword">var</span> norm = result[ i ][ <span class="hljs-number">0</span> ] * result[ i ][ <span class="hljs-number">0</span> ] + result[ i ][ <span class="hljs-number">1</span> ] * result[ i ][ <span class="hljs-number">1</span> ] + result[ i ][ <span class="hljs-number">2</span> ] * result[ i ][ <span class="hljs-number">2</span> ];
+                    <span class="hljs-keyword">var</span> inv = <span class="hljs-number">1.0</span> / <span class="hljs-built_in">Math</span>.sqrt( norm );
+                    result[ i ][ <span class="hljs-number">0</span> ] = result[ i ][ <span class="hljs-number">0</span> ] * inv;
+                    result[ i ][ <span class="hljs-number">1</span> ] = result[ i ][ <span class="hljs-number">1</span> ] * inv;
+                    result[ i ][ <span class="hljs-number">2</span> ] = result[ i ][ <span class="hljs-number">2</span> ] * inv;
+                    result[ i ][ <span class="hljs-number">3</span> ] = result[ i ][ <span class="hljs-number">3</span> ] * inv;
+                }
+            };
+        } )(),
+
+        isCulled: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">var</span> position = Vec3.create();
+
+            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+                <span class="hljs-keyword">var</span> pos = node.getBound().center();
+                Vec3.copy( pos, position );
+                <span class="hljs-keyword">var</span> radius = - node.getBound().radius();
+                <span class="hljs-keyword">var</span> d;
+                <span class="hljs-keyword">var</span> m = ComputeMatrixFromNodePath.computeLocalToWorld( <span class="hljs-keyword">this</span>.nodePath );
+                Matrix.transformVec3( m, position, position);
+
+                <span class="hljs-keyword">for</span> ( <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, j = <span class="hljs-keyword">this</span>._frustum.length; i &lt; j; i++ ) {
+                    d = <span class="hljs-keyword">this</span>._frustum[ i ][ <span class="hljs-number">0</span> ] * position[ <span class="hljs-number">0</span> ] + <span class="hljs-keyword">this</span>._frustum[ i ][ <span class="hljs-number">1</span> ] * position[ <span class="hljs-number">1</span> ] + <span class="hljs-keyword">this</span>._frustum[ i ][ <span class="hljs-number">2</span> ] * position[ <span class="hljs-number">2</span> ] + <span class="hljs-keyword">this</span>._frustum[ i ][ <span class="hljs-number">3</span> ];
+                    <span class="hljs-keyword">if</span> ( d &lt;= radius )
+                    {
+                        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+                    }
+                }
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+        };
+    } )()
     } ) ) );
 
     CullVisitor.prototype[ Camera.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( camera )</span> {</span>
@@ -1136,11 +1359,11 @@ std::cout &lt;&lt; ‘_computed_zfar’&lt;&lt;_computed_zfar&lt;&lt;std::endl;<
         </li>
         
         
-        <li id="section-17">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p>never used
 var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.length - 1 ];</p>
@@ -1161,11 +1384,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-18">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p>absolute</p>
 
@@ -1184,11 +1407,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-19">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p>save current state of the camera</p>
 
@@ -1206,11 +1429,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-20">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>nested camera</p>
 
@@ -1225,11 +1448,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-21">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <p>not tested</p>
 
@@ -1241,11 +1464,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-22">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
               <p>use render to texture stage</p>
 
@@ -1269,11 +1492,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-23">
+        <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
               <p>skip positional state for now
 …</p>
@@ -1306,11 +1529,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-24">
+        <li id="section-31">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-31">&#182;</a>
               </div>
               <p>restore previous state of the camera</p>
 
@@ -1338,11 +1561,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-25">
+        <li id="section-32">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
               <p>absolute</p>
 
@@ -1393,7 +1616,22 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         <span class="hljs-keyword">this</span>.popProjectionMatrix();
     };
 
-    CullVisitor.prototype[ Node.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
+    CullVisitor.prototype[ Node.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>We need the frame stamp &gt; 0 to do the frustum culling, otherwise the projection matrix is not correct</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._enableFrustumCulling === <span class="hljs-literal">true</span> &amp;&amp; node.isCullingActive() &amp;&amp; <span class="hljs-keyword">this</span>.getFrameStamp().getFrameNumber() !== <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-keyword">this</span>.isCulled ( node ) ) <span class="hljs-keyword">return</span>;
 
         <span class="hljs-keyword">var</span> stateset = node.getStateSet();
         <span class="hljs-keyword">if</span> ( stateset ) {
@@ -1408,7 +1646,38 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         <span class="hljs-keyword">if</span> ( stateset ) {
             <span class="hljs-keyword">this</span>.popStateSet();
         }
-    };
+    };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>same code like Node</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    CullVisitor.prototype[ Lod.typeID ] = CullVisitor.prototype[ Node.typeID ];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>same code like Node</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    CullVisitor.prototype[ PagedLOD.typeID ] = CullVisitor.prototype[ Node.typeID ];
+
     CullVisitor.prototype[ LightSource.typeID ] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( node )</span> {</span>
 
         <span class="hljs-keyword">var</span> stateset = node.getStateSet();
@@ -1461,11 +1730,11 @@ var originalModelView = this._modelviewMatrixStack[ this._modelviewMatrixStack.l
         </li>
         
         
-        <li id="section-26">
+        <li id="section-36">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
               <p>leaf.id = this._reserveLeafStack.current;</p>
 

@@ -10,7 +10,9 @@ define( [
     'osg/TransformEnums'
 ], function ( MACROUTILS, Object, BoundingBox, BoundingSphere, StateSet, NodeVisitor, Matrix, ComputeMatrixFromNodePath, TransformEnums ) {
 
-        /**
+    'use strict';
+
+    /**
      *  Node that can contains child node
      *  @class Node
      */
@@ -27,6 +29,8 @@ define( [
         this.boundingSphereComputed = false;
         this._updateCallbacks = [];
         this._cullCallback = undefined;
+        this._cullingActive = true;
+        this._numChildrenWithCullingDisabled = 0;
     };
 
     /** @lends Node.prototype */
@@ -62,7 +66,7 @@ define( [
         setNodeMask: function ( mask ) {
             this.nodeMask = mask;
         },
-        getNodeMask: function ( ) {
+        getNodeMask: function () {
             return this.nodeMask;
         },
         setStateSet: function ( s ) {
@@ -92,7 +96,10 @@ define( [
         @param Oject callback
      */
         setUpdateCallback: function ( cb ) {
-            this._updateCallbacks[ 0 ] = cb;
+            if ( !this._updateCallbacks.length )
+                this.addUpdateCallback( cb );
+            else
+                this._updateCallbacks[ 0 ] = cb;
         },
         /** Get update node callback, called during update traversal.
         @type Oject
@@ -268,14 +275,55 @@ define( [
             for ( var i = 0, l = collected.nodePaths.length; i < l; i++ ) {
                 var np = collected.nodePaths[ i ];
                 if ( np.length === 0 ) {
-                    matrixList.push( Matrix.makeIdentity( [] ) );
+                    matrixList.push( Matrix.create() );
                 } else {
                     matrixList.push( ComputeMatrixFromNodePath.computeLocalToWorld( np ) );
                 }
             }
             return matrixList;
-        }
+        },
 
+        setCullingActive: function ( value ) {
+            if ( this._cullingActive === value ) return;
+            if ( this._numChildrenWithCullingDisabled === 0 && this.parents.length > 0 ) {
+                var delta = 0;
+                if ( !this._cullingActive )--delta;
+                if ( !value )++delta;
+                if ( delta !== 0 ) {
+                    for ( var i = 0, k = this.parents.length; i < k; i++ ) {
+                        this.parents[ i ].setNumChildrenWithCullingDisabled( this.parents[ i ].getNumChildrenWithCullingDisabled() + delta );
+                    }
+                }
+            }
+            this._cullingActive = value;
+        },
+
+        getCullingActive: function () {
+            return this._cullingActive;
+        },
+
+        isCullingActive: function () {
+            return this._numChildrenWithCullingDisabled === 0 && this._cullingActive && this.getBound().valid();
+        },
+
+        setNumChildrenWithCullingDisabled: function ( num ) {
+            if ( this._numChildrenWithCullingDisabled === num ) return;
+            if ( this._cullingActive && this.parents.length > 0 ) {
+                var delta = 0;
+                if ( this._numChildrenWithCullingDisabled > 0 )--delta;
+                if ( num > 0 )++delta;
+                if ( delta !== 0 ) {
+                    for ( var i = 0, k = this.parents.length; i < k; i++ ) {
+                        this.parents[ i ].setNumChildrenWithCullingDisabled( this.parents[ i ].getNumChildrenWithCullingDisabled() + delta );
+                    }
+                }
+            }
+            this._numChildrenWithCullingDisabled = num;
+        },
+
+        getNumChildrenWithCullingDisabled: function () {
+            return this._numChildrenWithCullingDisabled;
+        }
 
     } ), 'osg', 'Node' );
     MACROUTILS.setTypeID( Node );
