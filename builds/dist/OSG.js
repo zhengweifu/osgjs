@@ -418,7 +418,7 @@ var requirejs, require, define;
     };
 }());
 
-define("../tools/build/almond", function(){});
+define("..\tools\build\almond", function(){});
 
 define( 'osgNameSpace',[
 ], function ( ) {
