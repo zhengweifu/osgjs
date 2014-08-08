@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -1680,7 +1700,7 @@ in the composer pipeline</p>
                 <span class="hljs-string">'  vec4 rowx = -fac0*texel5 + fac0*texel1 +  -fac1*texel6 + fac1*texel0 + -fac1*texel4 + fac1*texel2;'</span>,
                 <span class="hljs-string">'  vec4 rowy = -fac0*texel3 + fac0*texel7 +  -fac1*texel4 + fac1*texel6 + -fac1*texel2 + fac1*texel0;'</span>,
                 <span class="hljs-string">'  float mag = sqrt(dot(rowy,rowy)+dot(rowx,rowx));'</span>,
-                <span class="hljs-string">'  if (mag &lt; 1.0/255.0) { discard; return; }'</span>,
+                <span class="hljs-string">'  if (mag &lt; 1.0/255.0) discard;'</span>,
                 <span class="hljs-string">'  mag *= factor;'</span>,
                 <span class="hljs-string">'  mag = min(1.0, mag);'</span>,
                 <span class="hljs-string">'  gl_FragColor = vec4(color*mag,mag);'</span>,

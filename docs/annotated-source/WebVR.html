@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -1002,8 +1022,37 @@
             },
         };
         <span class="hljs-keyword">if</span> ( hmdDevice.getRecommendedRenderTargetSize )
-            hmd.rttResolution = hmdDevice.getRecommendedRenderTargetSize();
+            hmd.rttResolution = hmdDevice.getRecommendedRenderTargetSize();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>On Mac (FF+Chromium), the Left and Right angles of both eyes are inverted
+Left Eye must see more to the Left than to the Right (Left angle &gt; Right angle)
+Right Eye must see more to the Right than to the Left (Right angle &gt; Left angle)
+This is because of the nose blocking the view</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> swapLeftAndRight = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( fov )</span> {</span>
+            <span class="hljs-keyword">var</span> temp = fov.leftDegrees;
+            fov.leftDegrees = fov.rightDegrees;
+            fov.rightDegrees = temp;
+        };
+
+        <span class="hljs-keyword">if</span> ( hmd.fovLeft.leftDegrees &lt; hmd.fovLeft.rightDegrees ) {
+            swapLeftAndRight( hmd.fovLeft );
+        }
+        <span class="hljs-keyword">if</span> ( hmd.fovRight.rightDegrees &lt; hmd.fovRight.leftDegrees ) {
+            swapLeftAndRight( hmd.fovRight );
+        }
+        
         <span class="hljs-keyword">return</span> hmd;
     }
 

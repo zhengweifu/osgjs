@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -699,8 +719,13 @@
     <span class="hljs-string">'osgGA/OrbitManipulatorLeapMotionController'</span>,
     <span class="hljs-string">'osgGA/OrbitManipulatorMouseKeyboardController'</span>,
     <span class="hljs-string">'osgGA/OrbitManipulatorHammerController'</span>,
-    <span class="hljs-string">'osgGA/OrbitManipulatorGamePadController'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Vec3, Matrix, Manipulator, OrbitManipulatorLeapMotionController, OrbitManipulatorMouseKeyboardController, OrbitManipulatorHammerController, OrbitManipulatorGamePadController )</span> {</span>
+    <span class="hljs-string">'osgGA/OrbitManipulatorGamePadController'</span>,
+    <span class="hljs-string">'osgGA/OrbitManipulatorDeviceOrientationController'</span>,
+    <span class="hljs-string">'osgGA/OrbitManipulatorOculusController'</span>,
+
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Vec3, Matrix, Manipulator, OrbitManipulatorLeapMotionController, OrbitManipulatorMouseKeyboardController, OrbitManipulatorHammerController, OrbitManipulatorGamePadController, OrbitManipulatorDeviceOrientationController, OrbitManipulatorOculusController )</span> {</span><span class="hljs-pi">
+    
+    'use strict'</span>;
 
     <span class="hljs-comment">/**
      *  OrbitManipulator
@@ -776,13 +801,17 @@
     OrbitManipulator.AvailableControllerList = [ <span class="hljs-string">'StandardMouseKeyboard'</span>,
         <span class="hljs-string">'LeapMotion'</span>,
         <span class="hljs-string">'GamePad'</span>,
-        <span class="hljs-string">'Hammer'</span>
+        <span class="hljs-string">'Hammer'</span>,
+        <span class="hljs-string">'DeviceOrientation'</span>,
+        <span class="hljs-string">'Oculus'</span>,
     ];
 
     OrbitManipulator.ControllerList = [ <span class="hljs-string">'StandardMouseKeyboard'</span>,
         <span class="hljs-string">'LeapMotion'</span>,
         <span class="hljs-string">'GamePad'</span>,
-        <span class="hljs-string">'Hammer'</span>
+        <span class="hljs-string">'Hammer'</span>,
+        <span class="hljs-string">'DeviceOrientation'</span>,
+        <span class="hljs-string">'Oculus'</span>,
     ];
 
     <span class="hljs-comment">/** @lends OrbitManipulator.prototype */</span>
@@ -798,6 +827,7 @@
             <span class="hljs-keyword">this</span>._rotation = Matrix.create();
             Matrix.mult( rot1, rot2, <span class="hljs-keyword">this</span>._rotation );
             <span class="hljs-keyword">this</span>._time = <span class="hljs-number">0.0</span>;
+            <span class="hljs-keyword">this</span>._rotBase = Matrix.create();
 
             <span class="hljs-keyword">this</span>._rotate = <span class="hljs-keyword">new</span> OrbitManipulator.Interpolator( <span class="hljs-number">2</span> );
             <span class="hljs-keyword">this</span>._pan = <span class="hljs-keyword">new</span> OrbitManipulator.Interpolator( <span class="hljs-number">2</span> );
@@ -951,6 +981,9 @@ s[2], f[2], u[2], 0.0,
         getDistance: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._distance;
         },
+        setRotationBaseFromQuat: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( quat )</span> {</span>
+            Matrix.makeRotateFromQuat( quat, <span class="hljs-keyword">this</span>._rotBase );
+        },
         computePan: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">var</span> inv = Matrix.create();
             <span class="hljs-keyword">var</span> x = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
@@ -1066,6 +1099,7 @@ the rotation matrix</p>
         },
         getEyePosition: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( eye )</span> {</span>
             <span class="hljs-keyword">this</span>.computeEyePosition( <span class="hljs-keyword">this</span>._target, <span class="hljs-keyword">this</span>._distance, eye );
+            <span class="hljs-keyword">return</span> eye;
         },
 
         computeEyePosition: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
@@ -1120,7 +1154,43 @@ the rotation matrix</p>
                 <span class="hljs-keyword">var</span> target = <span class="hljs-keyword">this</span>._target;
                 <span class="hljs-keyword">var</span> distance = <span class="hljs-keyword">this</span>._distance;
 
+                <span class="hljs-comment">/* 1. Works but bypass other manipulators */</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Matrix.copy( this._rotBase, this._inverseMatrix );</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+                <span class="hljs-comment">/* 2. Works but gets broken by other manipulators */</span>
                 Matrix.inverse( <span class="hljs-keyword">this</span>._rotation, <span class="hljs-keyword">this</span>._inverseMatrix );
+                Matrix.postMult( <span class="hljs-keyword">this</span>._rotBase, <span class="hljs-keyword">this</span>._inverseMatrix );
+
+                <span class="hljs-comment">/* 3. Doesnt' work */</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Matrix.preMult( this._rotBase, this._rotation );
+Matrix.inverse( this._rotBase, this._inverseMatrix );</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
                 tmpDist[ <span class="hljs-number">1</span> ] = distance;
                 Matrix.transformVec3( <span class="hljs-keyword">this</span>._inverseMatrix, tmpDist, eye );
 
@@ -1137,11 +1207,9 @@ the rotation matrix</p>
         module.LeapMotion = OrbitManipulatorLeapMotionController;
     } )( OrbitManipulator );
 
-
     ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
         module.StandardMouseKeyboard = OrbitManipulatorMouseKeyboardController;
     } )( OrbitManipulator );
-
 
     ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
         module.Hammer = OrbitManipulatorHammerController;
@@ -1149,6 +1217,14 @@ the rotation matrix</p>
 
     ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
         module.GamePad = OrbitManipulatorGamePadController;
+    } )( OrbitManipulator );
+
+    ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
+        module.DeviceOrientation = OrbitManipulatorDeviceOrientationController;
+    } )( OrbitManipulator );
+
+    ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
+        module.Oculus = OrbitManipulatorOculusController;
     } )( OrbitManipulator );
 
     <span class="hljs-keyword">return</span> OrbitManipulator;

@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -694,7 +714,9 @@
             <div class="content"><div class='highlight'><pre>define( [
     <span class="hljs-string">'osg/Vec3'</span>,
     <span class="hljs-string">'osg/Notify'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Vec3, Notify )</span> {</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Vec3, Notify )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
 
     <span class="hljs-comment">/** @class Quaternion Operations */</span>
     <span class="hljs-keyword">var</span> Quat = {
@@ -835,9 +857,14 @@
             <span class="hljs-keyword">return</span> result;
         },
 
-        transformVec3: ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            <span class="hljs-keyword">var</span> uv = [ <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span> ];
-            <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( q, vec, result )</span> {</span></pre></div></div>
+        transformVec3: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( q, a, result )</span> {</span>
+            <span class="hljs-keyword">var</span> x = a[ <span class="hljs-number">0</span> ];
+            <span class="hljs-keyword">var</span> y = a[ <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">var</span> z = a[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">var</span> qx = q[ <span class="hljs-number">0</span> ];
+            <span class="hljs-keyword">var</span> qy = q[ <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">var</span> qz = q[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">var</span> qw = q[ <span class="hljs-number">3</span> ];</pre></div></div>
             
         </li>
         
@@ -848,19 +875,33 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>nVidia SDK implementation</p>
+              <p>calculate quat * vec</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                Vec3.cross( q, vec, uv );
-                Vec3.cross( q, uv, result );
-                Vec3.mult( uv, <span class="hljs-number">2.0</span> * q[ <span class="hljs-number">3</span> ], uv );
-                Vec3.mult( result, <span class="hljs-number">2.0</span>, result );
-                Vec3.add( result, uv, result );
-                Vec3.add( result, vec, result );
-                <span class="hljs-keyword">return</span> result;
-            };
-        } )(),
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">var</span> ix = qw * x + qy * z - qz * y;
+            <span class="hljs-keyword">var</span> iy = qw * y + qz * x - qx * z;
+            <span class="hljs-keyword">var</span> iz = qw * z + qx * y - qy * x;
+            <span class="hljs-keyword">var</span> iw = -qx * x - qy * y - qz * z;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>calculate result * inverse quat</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            result[ <span class="hljs-number">0</span> ] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+            result[ <span class="hljs-number">1</span> ] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+            result[ <span class="hljs-number">2</span> ] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+            <span class="hljs-keyword">return</span> result;
+        },
 
         normalize: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( q, qr )</span> {</span>
             <span class="hljs-keyword">var</span> div = <span class="hljs-number">1.0</span> / <span class="hljs-keyword">this</span>.length2( q );
@@ -874,11 +915,11 @@
         </li>
         
         
-        <li id="section-4">
+        <li id="section-5">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
               <p>we suppose to have unit quaternion</p>
 
@@ -905,11 +946,11 @@
         </li>
         
         
-        <li id="section-5">
+        <li id="section-6">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <p>we suppose to have unit quaternion
 multiply 2 quaternions</p>
@@ -917,11 +958,21 @@ multiply 2 quaternions</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>        mult: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a, b, result )</span> {</span>
-            result[ <span class="hljs-number">0</span> ] = a[ <span class="hljs-number">0</span> ] * b[ <span class="hljs-number">3</span> ] + a[ <span class="hljs-number">1</span> ] * b[ <span class="hljs-number">2</span> ] - a[ <span class="hljs-number">2</span> ] * b[ <span class="hljs-number">1</span> ] + a[ <span class="hljs-number">3</span> ] * b[ <span class="hljs-number">0</span> ];
-            result[ <span class="hljs-number">1</span> ] = -a[ <span class="hljs-number">0</span> ] * b[ <span class="hljs-number">2</span> ] + a[ <span class="hljs-number">1</span> ] * b[ <span class="hljs-number">3</span> ] + a[ <span class="hljs-number">2</span> ] * b[ <span class="hljs-number">0</span> ] + a[ <span class="hljs-number">3</span> ] * b[ <span class="hljs-number">1</span> ];
-            result[ <span class="hljs-number">2</span> ] = a[ <span class="hljs-number">0</span> ] * b[ <span class="hljs-number">1</span> ] - a[ <span class="hljs-number">1</span> ] * b[ <span class="hljs-number">0</span> ] + a[ <span class="hljs-number">2</span> ] * b[ <span class="hljs-number">3</span> ] + a[ <span class="hljs-number">3</span> ] * b[ <span class="hljs-number">2</span> ];
-            result[ <span class="hljs-number">3</span> ] = -a[ <span class="hljs-number">0</span> ] * b[ <span class="hljs-number">0</span> ] - a[ <span class="hljs-number">1</span> ] * b[ <span class="hljs-number">1</span> ] - a[ <span class="hljs-number">2</span> ] * b[ <span class="hljs-number">2</span> ] + a[ <span class="hljs-number">3</span> ] * b[ <span class="hljs-number">3</span> ];
-            <span class="hljs-keyword">return</span> result;
+            <span class="hljs-keyword">var</span> ax = a[ <span class="hljs-number">0</span> ];
+            <span class="hljs-keyword">var</span> ay = a[ <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">var</span> az = a[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">var</span> aw = a[ <span class="hljs-number">3</span> ];
+
+            <span class="hljs-keyword">var</span> bx = b[ <span class="hljs-number">0</span> ];
+            <span class="hljs-keyword">var</span> by = b[ <span class="hljs-number">1</span> ];
+            <span class="hljs-keyword">var</span> bz = b[ <span class="hljs-number">2</span> ];
+            <span class="hljs-keyword">var</span> bw = b[ <span class="hljs-number">3</span> ];
+
+            result[ <span class="hljs-number">0</span> ] = ax * bw + ay * bz - az * by + aw * bx;
+            result[ <span class="hljs-number">1</span> ] = -ax * bz + ay * bw + az * bx + aw * by;
+            result[ <span class="hljs-number">2</span> ] = ax * by - ay * bx + az * bw + aw * bz;
+            result[ <span class="hljs-number">3</span> ] = -ax * bx - ay * by - az * bz + aw * bw;
+            <span class="hljs-keyword">return</span> result;
         },
         div: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( a, b, result )</span> {</span>
             <span class="hljs-keyword">var</span> d = <span class="hljs-number">1.0</span> / b;
@@ -971,11 +1022,11 @@ multiply 2 quaternions</p>
         </li>
         
         
-        <li id="section-6">
+        <li id="section-7">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <p><a href="http://theory.org/software/qfa/writeup/node12.html">http://theory.org/software/qfa/writeup/node12.html</a>
 <a href="http://www.ece.uwaterloo.ca/~dwharder/C++/CQOST/src/">http://www.ece.uwaterloo.ca/~dwharder/C++/CQOST/src/</a>
@@ -986,11 +1037,11 @@ multiply 2 quaternions</p>
         </li>
         
         
-        <li id="section-7">
+        <li id="section-8">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>a is computeTangent(q1-1,q1,q2)
 b is computeTangent(q2-1,q2,q2+1)</p>
@@ -1006,11 +1057,11 @@ b is computeTangent(q2-1,q2,q2+1)</p>
         </li>
         
         
-        <li id="section-8">
+        <li id="section-9">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
               <p>qcur is current
 q0 is qcur-1
@@ -1024,11 +1075,11 @@ compute tangent in of q1</p>
         </li>
         
         
-        <li id="section-9">
+        <li id="section-10">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p>first step</p>
 

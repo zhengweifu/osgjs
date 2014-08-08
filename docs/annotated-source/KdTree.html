@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -698,7 +718,9 @@
     <span class="hljs-string">'osg/TriangleIndexFunctor'</span>,
     <span class="hljs-string">'osgUtil/TriangleIntersect'</span>,
     <span class="hljs-string">'osg/PrimitiveSet'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( MACROUTILS, BoundingBox, Vec3, TriangleIndexFunctor, TriangleIntersect, PrimitiveSet )</span> {</span></pre></div></div>
+], <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( MACROUTILS, BoundingBox, Vec3, TriangleIndexFunctor, TriangleIntersect, PrimitiveSet )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;</pre></div></div>
             
         </li>
         
@@ -1392,10 +1414,24 @@ of triangles indices that will refer to the main triangles array</p>
             <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>;
             <span class="hljs-keyword">for</span> ( i = <span class="hljs-number">0</span>; i &lt; nbPrimitives; i++ ) {
                 <span class="hljs-keyword">var</span> prim = geomPrimitives[ i ];
-                <span class="hljs-keyword">var</span> mode = prim.getMode();
-                <span class="hljs-keyword">if</span> ( mode === PrimitiveSet.TRIANGLES )
+                <span class="hljs-keyword">var</span> mode = prim.getMode();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>ignore points and line stuffs</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> ( mode === PrimitiveSet.TRIANGLES )
                     totalLenArray += prim.getCount();
-                <span class="hljs-keyword">else</span>
+                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( mode === PrimitiveSet.TRIANGLE_STRIP || mode === PrimitiveSet.TRIANGLE_FAN )
                     totalLenArray += ( prim.getCount() - <span class="hljs-number">2</span> ) * <span class="hljs-number">3</span>;
             }
             <span class="hljs-keyword">var</span> indices = <span class="hljs-keyword">new</span> MACROUTILS.Uint32Array( totalLenArray );
@@ -1432,11 +1468,11 @@ of triangles indices that will refer to the main triangles array</p>
         </li>
         
         
-        <li id="section-31">
+        <li id="section-32">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-31">&#182;</a>
+                <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
               <p>discard degenerate points</p>
 
@@ -1486,11 +1522,11 @@ of triangles indices that will refer to the main triangles array</p>
         </li>
         
         
-        <li id="section-32">
+        <li id="section-33">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-32">&#182;</a>
+                <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
               <p>We set the cutting order (longest edge aabb first)</p>
 
@@ -1505,11 +1541,11 @@ of triangles indices that will refer to the main triangles array</p>
         </li>
         
         
-        <li id="section-33">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-33">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <p>The core function of the kdtree building
 It checks if the node need to be subdivide or not
@@ -1539,11 +1575,11 @@ On the same time it reorder the triangle index array</p>
         </li>
         
         
-        <li id="section-34">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-34">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <p>leaf is done, now compute bound on it.</p>
 
@@ -1560,11 +1596,11 @@ On the same time it reorder the triangle index array</p>
         </li>
         
         
-        <li id="section-35">
+        <li id="section-36">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-35">&#182;</a>
+                <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
               <p>leaf node as first &lt; 0, so look at dividing it.</p>
 
@@ -1653,11 +1689,11 @@ On the same time it reorder the triangle index array</p>
         </li>
         
         
-        <li id="section-36">
+        <li id="section-37">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-36">&#182;</a>
+                <a class="pilcrow" href="#section-37">&#182;</a>
               </div>
               <p>It computes the bounding box of the node so that the box contains all the triangles
 of the cell</p>

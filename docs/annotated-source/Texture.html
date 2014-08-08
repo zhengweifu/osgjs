@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -861,6 +881,7 @@
             <span class="hljs-keyword">this</span>._textureHeight = <span class="hljs-number">0</span>;
             <span class="hljs-keyword">this</span>._unrefImageDataAfterApply = <span class="hljs-literal">false</span>;
             <span class="hljs-keyword">this</span>._internalFormat = <span class="hljs-literal">undefined</span>;
+            <span class="hljs-keyword">this</span>._mipmapDirty = <span class="hljs-literal">false</span>;
             <span class="hljs-keyword">this</span>._textureTarget = Texture.TEXTURE_2D;
             <span class="hljs-keyword">this</span>._type = Texture.UNSIGNED_BYTE;
         },
@@ -996,7 +1017,27 @@
         getInternalFormat: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._internalFormat;
         },
+        isMipmapDirty: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._mipmapDirty;
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Will cause the mipmaps to be regenerated on the next bind of the texture
+Nothing will be done if the minFilter is not of the form XXX_MIPMAP_XXX</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        mipmapDirty: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">this</span>._mipmapDirty = <span class="hljs-literal">true</span>;
+        },
         applyFilterParameter: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( gl, target )</span> {</span>
 
             <span class="hljs-keyword">var</span> powerOfTwo = isPowerOf2( <span class="hljs-keyword">this</span>._textureWidth ) &amp;&amp; isPowerOf2( <span class="hljs-keyword">this</span>._textureHeight );
@@ -1021,7 +1062,8 @@
                  <span class="hljs-keyword">this</span>._minFilter === gl.LINEAR_MIPMAP_NEAREST ||
                  <span class="hljs-keyword">this</span>._minFilter === gl.NEAREST_MIPMAP_LINEAR ||
                  <span class="hljs-keyword">this</span>._minFilter === gl.LINEAR_MIPMAP_LINEAR ) {
-                     gl.generateMipmap( target );
+                    gl.generateMipmap( target );
+                    <span class="hljs-keyword">this</span>._mipmapDirty = <span class="hljs-literal">false</span>;
                  }
         },
         applyTexImage2D: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( gl )</span> {</span>
@@ -1032,11 +1074,11 @@
         </li>
         
         
-        <li id="section-7">
+        <li id="section-8">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>call a callback when upload is done if there is one</p>
 
@@ -1062,21 +1104,41 @@
             <span class="hljs-keyword">var</span> gl = state.getGraphicContext();
 
             <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>._textureObject !== <span class="hljs-literal">undefined</span> &amp;&amp; !<span class="hljs-keyword">this</span>.isDirty() ) {
-                <span class="hljs-keyword">this</span>._textureObject.bind( gl );
+                <span class="hljs-keyword">this</span>._textureObject.bind( gl );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>If we have modified the texture via Rtt or texSubImage2D and <em>need</em> updated mipmaps,
+then we must regenerate the mipmaps explicitely.
+In all other cases, don’t set this flag because it can be costly</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.isMipmapDirty() ) {
+                    <span class="hljs-keyword">this</span>.generateMipmap( gl, <span class="hljs-keyword">this</span>._textureTarget );
+                }
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">this</span>.defaultType ) {
                 gl.bindTexture( <span class="hljs-keyword">this</span>._textureTarget, <span class="hljs-literal">null</span> );
             } <span class="hljs-keyword">else</span> {
+
                 <span class="hljs-keyword">var</span> image = <span class="hljs-keyword">this</span>._image;
                 <span class="hljs-keyword">if</span> ( image !== <span class="hljs-literal">undefined</span> ) {</pre></div></div>
             
         </li>
         
         
-        <li id="section-8">
+        <li id="section-10">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p>when data is ready we will upload it to the gpu</p>
 
@@ -1087,11 +1149,11 @@
         </li>
         
         
-        <li id="section-9">
+        <li id="section-11">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <p>must be called before init</p>
 
@@ -1148,11 +1210,11 @@
         </li>
         
         
-        <li id="section-10">
+        <li id="section-12">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-10">&#182;</a>
+                <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
               <p>must be called before init</p>
 

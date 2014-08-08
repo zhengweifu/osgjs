@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -699,8 +719,9 @@
     <span class="hljs-string">'osg/Vec2'</span>,
     <span class="hljs-string">'osg/Vec3'</span>,
     <span class="hljs-string">'osgGA/FirstPersonManipulatorMouseKeyboardController'</span>,
-    <span class="hljs-string">'osgGA/FirstPersonManipulatorOculusController'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Manipulator, OrbitManipulator, Matrix, Vec2, Vec3, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController )</span> {</span>
+    <span class="hljs-string">'osgGA/FirstPersonManipulatorOculusController'</span>,
+    <span class="hljs-string">'osgGA/FirstPersonManipulatorDeviceOrientationController'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( MACROUTILS, Manipulator, OrbitManipulator, Matrix, Vec2, Vec3, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController, FirstPersonManipulatorDeviceOrientationController )</span> {</span>
 
     <span class="hljs-comment">/**
      * Authors:
@@ -717,8 +738,8 @@
         <span class="hljs-keyword">this</span>.init();
     };
 
-    FirstPersonManipulator.AvailableControllerList = [ <span class="hljs-string">'StandardMouseKeyboard'</span>, <span class="hljs-string">'Oculus'</span>];
-    FirstPersonManipulator.ControllerList = [ <span class="hljs-string">'StandardMouseKeyboard'</span>, <span class="hljs-string">'Oculus'</span> ];
+    FirstPersonManipulator.AvailableControllerList = [ <span class="hljs-string">'StandardMouseKeyboard'</span>, <span class="hljs-string">'Oculus'</span>, <span class="hljs-string">'DeviceOrientation'</span>];
+    FirstPersonManipulator.ControllerList = [ <span class="hljs-string">'StandardMouseKeyboard'</span>, <span class="hljs-string">'Oculus'</span>, <span class="hljs-string">'DeviceOrientation'</span> ];
 
     <span class="hljs-comment">/** @lends FirstPersonManipulator.prototype */</span>
     FirstPersonManipulator.prototype = MACROUTILS.objectInehrit( Manipulator.prototype, {
@@ -800,6 +821,7 @@
             }
             <span class="hljs-keyword">var</span> dir = Vec3.mult( <span class="hljs-keyword">this</span>._direction, distance, <span class="hljs-keyword">this</span>._tmpGetTargetDir );
             Vec3.add( <span class="hljs-keyword">this</span>._eye, dir, pos );
+            <span class="hljs-keyword">return</span> pos;
         },
 
         setTarget: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( pos )</span> {</span>
@@ -843,9 +865,7 @@
                 <span class="hljs-keyword">var</span> rotMat = <span class="hljs-keyword">this</span>._tmpComputeRotation3;
                 Matrix.makeRotate( <span class="hljs-keyword">this</span>._angleVertical, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, first );
                 Matrix.makeRotate( <span class="hljs-keyword">this</span>._angleHorizontal, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, second );
-                Matrix.mult( second, first, rotMat );
-
-                <span class="hljs-keyword">var</span> rotBase = <span class="hljs-keyword">this</span>._rotBase;</pre></div></div>
+                Matrix.mult( second, first, rotMat );</pre></div></div>
             
         </li>
         
@@ -860,7 +880,7 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                Matrix.preMult( rotMat, rotBase );
+            <div class="content"><div class='highlight'><pre>                Matrix.preMult( rotMat, <span class="hljs-keyword">this</span>._rotBase );
 
                 <span class="hljs-keyword">this</span>._direction = Matrix.transformVec3( rotMat, upy, <span class="hljs-keyword">this</span>._direction );
                 Vec3.normalize( <span class="hljs-keyword">this</span>._direction, <span class="hljs-keyword">this</span>._direction );
@@ -943,6 +963,10 @@
 
     ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
         module.Oculus = FirstPersonManipulatorOculusController;
+    } )( FirstPersonManipulator );
+
+    ( <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( module )</span> {</span>
+        module.DeviceOrientation = FirstPersonManipulatorDeviceOrientationController;
     } )( FirstPersonManipulator );
 
     <span class="hljs-keyword">return</span> FirstPersonManipulator;

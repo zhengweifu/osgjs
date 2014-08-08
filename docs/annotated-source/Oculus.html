@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -691,9 +711,10 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre>define( [ 
+            <div class="content"><div class='highlight'><pre>define( [
     <span class="hljs-string">'osg/Notify'</span>,
-    <span class="hljs-string">'osg/Quat'</span> ], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, Quat )</span> {</span><span class="hljs-pi">
+    <span class="hljs-string">'osg/Quat'</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Notify, Quat )</span> {</span><span class="hljs-pi">
 
     'use strict'</span>;
 
@@ -852,6 +873,10 @@ On osgjs the up vector is [0,0,1]</p>
 
                 manipulatorAdapter.update( <span class="hljs-keyword">this</span>._quat );
             }
+        },
+
+        getHmd: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._hmd;
         }
     };
     <span class="hljs-keyword">return</span> Oculus;

@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -696,15 +716,20 @@
     <span class="hljs-string">'osgGA/FirstPersonManipulator'</span>,
     <span class="hljs-string">'osgGA/FirstPersonManipulatorMouseKeyboardController'</span>,
     <span class="hljs-string">'osgGA/FirstPersonManipulatorOculusController'</span>,
+    <span class="hljs-string">'osgGA/FirstPersonManipulatorDeviceOrientationController'</span>,
     <span class="hljs-string">'osgGA/Manipulator'</span>,
     <span class="hljs-string">'osgGA/OrbitManipulator'</span>,
     <span class="hljs-string">'osgGA/OrbitManipulatorGamePadController'</span>,
     <span class="hljs-string">'osgGA/OrbitManipulatorHammerController'</span>,
     <span class="hljs-string">'osgGA/OrbitManipulatorLeapMotionController'</span>,
     <span class="hljs-string">'osgGA/OrbitManipulatorMouseKeyboardController'</span>,
+    <span class="hljs-string">'osgGA/OrbitManipulatorDeviceOrientationController'</span>,
+    <span class="hljs-string">'osgGA/OrbitManipulatorOculusController'</span>,
     <span class="hljs-string">'osgGA/SwitchManipulator'</span>,
     <span class="hljs-string">'osgGA/OrbitManipulatorEnums'</span>
-], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Hammer, FirstPersonManipulator, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController, Manipulator, OrbitManipulator, OrbitManipulatorGamePadController, OrbitManipulatorHammerController, OrbitManipulatorLeapMotionController, OrbitManipulatorMouseKeyboardController, SwitchManipulator, OrbitManipulatorEnums )</span> {</span>
+], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( Hammer, FirstPersonManipulator, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController, FirstPersonManipulatorDeviceOrientationController, Manipulator, OrbitManipulator, OrbitManipulatorGamePadController, OrbitManipulatorHammerController, OrbitManipulatorLeapMotionController, OrbitManipulatorMouseKeyboardController, OrbitManipulatorDeviceOrientationController, OrbitManipulatorOculusController, SwitchManipulator, OrbitManipulatorEnums )</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
 
     <span class="hljs-keyword">var</span> osgGA = {};
 
@@ -716,6 +741,9 @@
     };
     osgGA.getFirstPersonOculusControllerClass = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
         <span class="hljs-keyword">return</span> FirstPersonManipulatorOculusController;
+    };
+    osgGA.getFirstPersonDeviceOrientationController = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> FirstPersonManipulatorDeviceOrientationController;
     };
     osgGA.Manipulator = Manipulator;
     osgGA.OrbitManipulator = OrbitManipulator;
@@ -731,6 +759,13 @@
     osgGA.getOrbitManipulatorMouseKeyboardController = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
         <span class="hljs-keyword">return</span> OrbitManipulatorMouseKeyboardController;
     };
+    osgGA.getOrbitManipulatorDeviceOrientationController = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> OrbitManipulatorDeviceOrientationController;
+    };
+    osgGA.getOrbitManipulatorOculusController = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">return</span> OrbitManipulatorOculusController;
+    };
+
     osgGA.SwitchManipulator = SwitchManipulator;
 
     osgGA.OrbitManipulator.Rotate = OrbitManipulatorEnums.ROTATE;

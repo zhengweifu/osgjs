@@ -2321,6 +2321,8 @@ define( 'osg/Quat',[
     'osg/Notify'
 ], function ( Vec3, Notify ) {
 
+    
+
     /** @class Quaternion Operations */
     var Quat = {
         create: function () {
@@ -2447,19 +2449,26 @@ define( 'osg/Quat',[
             return result;
         },
 
-        transformVec3: ( function () {
-            var uv = [ 0.0, 0.0, 0.0 ];
-            return function ( q, vec, result ) {
-                // nVidia SDK implementation
-                Vec3.cross( q, vec, uv );
-                Vec3.cross( q, uv, result );
-                Vec3.mult( uv, 2.0 * q[ 3 ], uv );
-                Vec3.mult( result, 2.0, result );
-                Vec3.add( result, uv, result );
-                Vec3.add( result, vec, result );
-                return result;
-            };
-        } )(),
+        transformVec3: function ( q, a, result ) {
+            var x = a[ 0 ];
+            var y = a[ 1 ];
+            var z = a[ 2 ];
+            var qx = q[ 0 ];
+            var qy = q[ 1 ];
+            var qz = q[ 2 ];
+            var qw = q[ 3 ];
+            // calculate quat * vec
+            var ix = qw * x + qy * z - qz * y;
+            var iy = qw * y + qz * x - qx * z;
+            var iz = qw * z + qx * y - qy * x;
+            var iw = -qx * x - qy * y - qz * z;
+
+            // calculate result * inverse quat
+            result[ 0 ] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+            result[ 1 ] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+            result[ 2 ] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+            return result;
+        },
 
         normalize: function ( q, qr ) {
             var div = 1.0 / this.length2( q );
@@ -2492,11 +2501,21 @@ define( 'osg/Quat',[
         // we suppose to have unit quaternion
         // multiply 2 quaternions
         mult: function ( a, b, result ) {
-            result[ 0 ] = a[ 0 ] * b[ 3 ] + a[ 1 ] * b[ 2 ] - a[ 2 ] * b[ 1 ] + a[ 3 ] * b[ 0 ];
-            result[ 1 ] = -a[ 0 ] * b[ 2 ] + a[ 1 ] * b[ 3 ] + a[ 2 ] * b[ 0 ] + a[ 3 ] * b[ 1 ];
-            result[ 2 ] = a[ 0 ] * b[ 1 ] - a[ 1 ] * b[ 0 ] + a[ 2 ] * b[ 3 ] + a[ 3 ] * b[ 2 ];
-            result[ 3 ] = -a[ 0 ] * b[ 0 ] - a[ 1 ] * b[ 1 ] - a[ 2 ] * b[ 2 ] + a[ 3 ] * b[ 3 ];
-            return result;
+            var ax = a[ 0 ];
+            var ay = a[ 1 ];
+            var az = a[ 2 ];
+            var aw = a[ 3 ];
+
+            var bx = b[ 0 ];
+            var by = b[ 1 ];
+            var bz = b[ 2 ];
+            var bw = b[ 3 ];
+
+            result[ 0 ] = ax * bw + ay * bz - az * by + aw * bx;
+            result[ 1 ] = -ax * bz + ay * bw + az * bx + aw * by;
+            result[ 2 ] = ax * by - ay * bx + az * bw + aw * bz;
+            result[ 3 ] = -ax * bx - ay * by - az * bz + aw * bw;
+            return result;
         },
         div: function ( a, b, result ) {
             var d = 1.0 / b;
@@ -6657,8 +6676,9 @@ define( 'osg/Depth',[
     return Depth;
 } );
 
-define( 'osg/DrawArrayLengths',[
-], function () {
+define( 'osg/DrawArrayLengths',[], function () {
+
+    
 
     /**
      * DrawArrayLengths manage rendering primitives
@@ -6693,6 +6713,9 @@ define( 'osg/DrawArrayLengths',[
                 count += array[ i ];
             }
             return count;
+        },
+        getCount: function () {
+            return this.getNumIndices();
         },
         getArrayLengths: function () {
             return this._arrayLengths;
@@ -7360,6 +7383,8 @@ define( 'osg/KdTree',[
     'osg/PrimitiveSet'
 ], function( MACROUTILS, BoundingBox, Vec3, TriangleIndexFunctor, TriangleIntersect, PrimitiveSet ) {
 
+    
+
     // **** GENERAL INFO ON KDTREE ****
     // A KdTree is a Spatial Partitionning Tree (http://en.wikipedia.org/wiki/Space_partitioning)
     // The type of tree is sort of defined by the splitting axis method:
@@ -7687,9 +7712,10 @@ define( 'osg/KdTree',[
             for ( i = 0; i < nbPrimitives; i++ ) {
                 var prim = geomPrimitives[ i ];
                 var mode = prim.getMode();
+                // ignore points and line stuffs
                 if ( mode === PrimitiveSet.TRIANGLES )
                     totalLenArray += prim.getCount();
-                else
+                else if ( mode === PrimitiveSet.TRIANGLE_STRIP || mode === PrimitiveSet.TRIANGLE_FAN )
                     totalLenArray += ( prim.getCount() - 2 ) * 3;
             }
             var indices = new MACROUTILS.Uint32Array( totalLenArray );
@@ -7976,6 +8002,7 @@ define( 'osg/KdTree',[
 
     return KdTree;
 } );
+
 define( 'osg/KdTreeBuilder',[
     'osg/Utils',
     'osg/NodeVisitor',
@@ -12176,6 +12203,7 @@ define( 'osg/Texture',[
             this._textureHeight = 0;
             this._unrefImageDataAfterApply = false;
             this._internalFormat = undefined;
+            this._mipmapDirty = false;
             this._textureTarget = Texture.TEXTURE_2D;
             this._type = Texture.UNSIGNED_BYTE;
         },
@@ -12311,7 +12339,14 @@ define( 'osg/Texture',[
         getInternalFormat: function () {
             return this._internalFormat;
         },
-
+        isMipmapDirty: function () {
+            return this._mipmapDirty;
+        },
+        // Will cause the mipmaps to be regenerated on the next bind of the texture
+        // Nothing will be done if the minFilter is not of the form XXX_MIPMAP_XXX
+        mipmapDirty: function () {
+            this._mipmapDirty = true;
+        },
         applyFilterParameter: function ( gl, target ) {
 
             var powerOfTwo = isPowerOf2( this._textureWidth ) && isPowerOf2( this._textureHeight );
@@ -12336,7 +12371,8 @@ define( 'osg/Texture',[
                  this._minFilter === gl.LINEAR_MIPMAP_NEAREST ||
                  this._minFilter === gl.NEAREST_MIPMAP_LINEAR ||
                  this._minFilter === gl.LINEAR_MIPMAP_LINEAR ) {
-                     gl.generateMipmap( target );
+                    gl.generateMipmap( target );
+                    this._mipmapDirty = false;
                  }
         },
         applyTexImage2D: function ( gl ) {
@@ -12366,9 +12402,16 @@ define( 'osg/Texture',[
 
             if ( this._textureObject !== undefined && !this.isDirty() ) {
                 this._textureObject.bind( gl );
+                // If we have modified the texture via Rtt or texSubImage2D and _need_ updated mipmaps,
+                // then we must regenerate the mipmaps explicitely.
+                // In all other cases, don't set this flag because it can be costly
+                if ( this.isMipmapDirty() ) {
+                    this.generateMipmap( gl, this._textureTarget );
+                }
             } else if ( this.defaultType ) {
                 gl.bindTexture( this._textureTarget, null );
             } else {
+
                 var image = this._image;
                 if ( image !== undefined ) {
 
@@ -15829,6 +15872,146 @@ define( 'osgGA/OrbitManipulatorGamePadController',[], function () {
     return OrbitManipulatorGamePadController;
 } );
 
+define( 'osgGA/OrbitManipulatorDeviceOrientationController',['osg/Quat'], function (Quat) {
+
+    
+
+    var OrbitManipulatorDeviceOrientationController = function ( manipulator ) {
+        this._manipulator = manipulator;
+        this.init();
+    };
+
+    var degtorad = Math.PI / 180.0; // Degree-to-Radian conversion
+
+    OrbitManipulatorDeviceOrientationController.prototype = {
+        init: function () {
+            this._stepFactor = 1.0; // meaning radius*stepFactor to move
+            this._quat = Quat.create();
+        },
+        update: function ( deviceOrientation, screenOrientation ) {
+
+            // If the user goes in landscape mode, he rotates his device with a certain angle
+            // around the Z axis counterclockwise and the DeviceOrientation contains this rotation
+            // To compensate this, we apply a rotation of the same angle in the opposite way
+
+            computeQuaternion(this._quat, deviceOrientation, screenOrientation);
+            this._manipulator.setRotationBaseFromQuat(this._quat);
+        },
+
+    };
+    var computeQuaternion = (function () {
+
+        var screenTransform = Quat.create();
+        var worldTransform = [-Math.sqrt( 0.5 ), 0, 0, Math.sqrt( 0.5 ) ]; // - PI/2 around the x-axis
+        var minusHalfAngle = 0;
+
+        return function (quat, deviceOrientation, screenOrientation ) {
+
+            var alpha = deviceOrientation.alpha * degtorad;
+            var beta = deviceOrientation.beta * degtorad;
+            var gamma = deviceOrientation.gamma * degtorad;
+            var screenAngle = screenOrientation * degtorad;
+
+            setQuatFromEuler(quat, beta, alpha, -gamma, 'YXZ');
+
+            minusHalfAngle = -screenAngle / 2.0;
+            screenTransform[1] = Math.sin( minusHalfAngle );
+            screenTransform[2] = Math.cos( minusHalfAngle );
+
+            Quat.mult(quat, screenTransform, quat );
+            Quat.mult(quat, worldTransform, quat );
+
+            var yTemp = quat[1];
+            quat[1] = -quat[2];
+            quat[2] = yTemp;
+
+            return quat;
+        };
+
+    })();
+
+    var setQuatFromEuler = function ( quat, x, y, z, order ) {
+
+        // http://www.mathworks.com/matlabcentral/fileexchange/
+        // 20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/
+        // content/SpinCalc.m
+
+        var c1 = Math.cos( x / 2 );
+        var c2 = Math.cos( y / 2 );
+        var c3 = Math.cos( z / 2 );
+        var s1 = Math.sin( x / 2 );
+        var s2 = Math.sin( y / 2 );
+        var s3 = Math.sin( z / 2 );
+
+        if ( order === 'XYZ' ) {
+
+            quat[0] = s1 * c2 * c3 + c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 - s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 + s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 - s1 * s2 * s3;
+
+        } else if ( order === 'YXZ' ) {
+
+            quat[0] = s1 * c2 * c3 + c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 - s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 - s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 + s1 * s2 * s3;
+
+        } else if ( order === 'ZXY' ) {
+
+            quat[0] = s1 * c2 * c3 - c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 + s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 + s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 - s1 * s2 * s3;
+
+        } else if ( order === 'ZYX' ) {
+
+            quat[0] = s1 * c2 * c3 - c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 + s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 - s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 + s1 * s2 * s3;
+
+        } else if ( order === 'YZX' ) {
+
+            quat[0] = s1 * c2 * c3 + c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 + s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 - s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 - s1 * s2 * s3;
+
+        } else if ( order === 'XZY' ) {
+
+            quat[0] = s1 * c2 * c3 - c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 - s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 + s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 + s1 * s2 * s3;
+
+        }
+    };
+
+    return OrbitManipulatorDeviceOrientationController;
+} );
+
+define( 'osgGA/OrbitManipulatorOculusController',[], function () {
+
+    
+
+    var OrbitManipulatorOculusController = function ( manipulator ) {
+        this._manipulator = manipulator;
+        this.init();
+    };
+
+    OrbitManipulatorOculusController.prototype = {
+        init: function () {},
+        update: function ( quaternion ) {
+
+            this._manipulator.setRotationBaseFromQuat( quaternion );
+        },
+
+    };
+
+    return OrbitManipulatorOculusController;
+} );
+
 define( 'osgGA/OrbitManipulator',[
     'osg/Utils',
     'osg/Vec3',
@@ -15837,8 +16020,13 @@ define( 'osgGA/OrbitManipulator',[
     'osgGA/OrbitManipulatorLeapMotionController',
     'osgGA/OrbitManipulatorMouseKeyboardController',
     'osgGA/OrbitManipulatorHammerController',
-    'osgGA/OrbitManipulatorGamePadController'
-], function ( MACROUTILS, Vec3, Matrix, Manipulator, OrbitManipulatorLeapMotionController, OrbitManipulatorMouseKeyboardController, OrbitManipulatorHammerController, OrbitManipulatorGamePadController ) {
+    'osgGA/OrbitManipulatorGamePadController',
+    'osgGA/OrbitManipulatorDeviceOrientationController',
+    'osgGA/OrbitManipulatorOculusController',
+
+], function ( MACROUTILS, Vec3, Matrix, Manipulator, OrbitManipulatorLeapMotionController, OrbitManipulatorMouseKeyboardController, OrbitManipulatorHammerController, OrbitManipulatorGamePadController, OrbitManipulatorDeviceOrientationController, OrbitManipulatorOculusController ) {
+    
+    
 
     /**
      *  OrbitManipulator
@@ -15914,13 +16102,17 @@ define( 'osgGA/OrbitManipulator',[
     OrbitManipulator.AvailableControllerList = [ 'StandardMouseKeyboard',
         'LeapMotion',
         'GamePad',
-        'Hammer'
+        'Hammer',
+        'DeviceOrientation',
+        'Oculus',
     ];
 
     OrbitManipulator.ControllerList = [ 'StandardMouseKeyboard',
         'LeapMotion',
         'GamePad',
-        'Hammer'
+        'Hammer',
+        'DeviceOrientation',
+        'Oculus',
     ];
 
     /** @lends OrbitManipulator.prototype */
@@ -15936,6 +16128,7 @@ define( 'osgGA/OrbitManipulator',[
             this._rotation = Matrix.create();
             Matrix.mult( rot1, rot2, this._rotation );
             this._time = 0.0;
+            this._rotBase = Matrix.create();
 
             this._rotate = new OrbitManipulator.Interpolator( 2 );
             this._pan = new OrbitManipulator.Interpolator( 2 );
@@ -16052,6 +16245,9 @@ define( 'osgGA/OrbitManipulator',[
         getDistance: function () {
             return this._distance;
         },
+        setRotationBaseFromQuat: function ( quat ) {
+            Matrix.makeRotateFromQuat( quat, this._rotBase );
+        },
         computePan: ( function () {
             var inv = Matrix.create();
             var x = [ 0.0, 0.0, 0.0 ];
@@ -16142,6 +16338,7 @@ define( 'osgGA/OrbitManipulator',[
         },
         getEyePosition: function ( eye ) {
             this.computeEyePosition( this._target, this._distance, eye );
+            return eye;
         },
 
         computeEyePosition: ( function () {
@@ -16183,7 +16380,17 @@ define( 'osgGA/OrbitManipulator',[
                 var target = this._target;
                 var distance = this._distance;
 
+                /* 1. Works but bypass other manipulators */
+                // Matrix.copy( this._rotBase, this._inverseMatrix );
+
+                /* 2. Works but gets broken by other manipulators */
                 Matrix.inverse( this._rotation, this._inverseMatrix );
+                Matrix.postMult( this._rotBase, this._inverseMatrix );
+
+                /* 3. Doesnt' work */
+                // Matrix.preMult( this._rotBase, this._rotation );
+                // Matrix.inverse( this._rotBase, this._inverseMatrix );
+
                 tmpDist[ 1 ] = distance;
                 Matrix.transformVec3( this._inverseMatrix, tmpDist, eye );
 
@@ -16200,11 +16407,9 @@ define( 'osgGA/OrbitManipulator',[
         module.LeapMotion = OrbitManipulatorLeapMotionController;
     } )( OrbitManipulator );
 
-
     ( function ( module ) {
         module.StandardMouseKeyboard = OrbitManipulatorMouseKeyboardController;
     } )( OrbitManipulator );
-
 
     ( function ( module ) {
         module.Hammer = OrbitManipulatorHammerController;
@@ -16212,6 +16417,14 @@ define( 'osgGA/OrbitManipulator',[
 
     ( function ( module ) {
         module.GamePad = OrbitManipulatorGamePadController;
+    } )( OrbitManipulator );
+
+    ( function ( module ) {
+        module.DeviceOrientation = OrbitManipulatorDeviceOrientationController;
+    } )( OrbitManipulator );
+
+    ( function ( module ) {
+        module.Oculus = OrbitManipulatorOculusController;
     } )( OrbitManipulator );
 
     return OrbitManipulator;
@@ -16326,15 +16539,15 @@ define( 'osgGA/FirstPersonManipulatorMouseKeyboardController',[], function () {
 
 define( 'osgGA/FirstPersonManipulatorOculusController',[], function () {
 
+    
+
     var FirstPersonManipulatorOculusController = function ( manipulator ) {
         this._manipulator = manipulator;
         this.init();
     };
 
     FirstPersonManipulatorOculusController.prototype = {
-        init: function () {
-            this._stepFactor = 1.0; // meaning radius*stepFactor to move
-        },
+        init: function () {},
         update: function ( quaternion ) {
 
             this._manipulator.setRotationBaseFromQuat( quaternion );
@@ -16344,6 +16557,124 @@ define( 'osgGA/FirstPersonManipulatorOculusController',[], function () {
 
     return FirstPersonManipulatorOculusController;
 } );
+
+define( 'osgGA/FirstPersonManipulatorDeviceOrientationController',['osg/Quat'], function (Quat) {
+
+    var FirstPersonManipulatorDeviceOrientationController = function ( manipulator ) {
+        this._manipulator = manipulator;
+        this.init();
+    };
+
+    var degtorad = Math.PI / 180.0; // Degree-to-Radian conversion
+
+    FirstPersonManipulatorDeviceOrientationController.prototype = {
+        init: function () {
+            this._stepFactor = 1.0; // meaning radius*stepFactor to move
+            this._quat = Quat.create();
+        },
+        update: function ( deviceOrientation, screenOrientation ) {
+
+            // If the user goes in landscape mode, he rotates his device with a certain angle
+            // around the Z axis counterclockwise and the DeviceOrientation contains this rotation
+            // To compensate this, we apply a rotation of the same angle in the opposite way
+
+            computeQuaternion(this._quat, deviceOrientation, screenOrientation);
+            this._manipulator.setRotationBaseFromQuat(this._quat);
+        },
+
+    };
+    var computeQuaternion = (function () {
+
+        var screenTransform = Quat.create();
+        var worldTransform = [-Math.sqrt( 0.5 ), 0, 0, Math.sqrt( 0.5 ) ]; // - PI/2 around the x-axis
+        var minusHalfAngle = 0;
+
+        return function (quat, deviceOrientation, screenOrientation ) {
+
+            var alpha = deviceOrientation.alpha * degtorad;
+            var beta = deviceOrientation.beta * degtorad;
+            var gamma = deviceOrientation.gamma * degtorad;
+            var screenAngle = screenOrientation * degtorad;
+
+            setQuatFromEuler(quat, beta, alpha, -gamma, 'YXZ');
+
+            minusHalfAngle = -screenAngle / 2.0;
+            screenTransform[1] = Math.sin( minusHalfAngle );
+            screenTransform[3] = Math.cos( minusHalfAngle );
+
+            Quat.mult(quat, screenTransform, quat );
+            Quat.mult(quat, worldTransform, quat );
+
+            var yTemp = quat[1];
+            quat[1] = -quat[2];
+            quat[2] = yTemp;
+
+            return quat;
+        };
+
+    })();
+
+    var setQuatFromEuler = function ( quat, x, y, z, order ) {
+
+        // http://www.mathworks.com/matlabcentral/fileexchange/
+        // 20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/
+        // content/SpinCalc.m
+
+        var c1 = Math.cos( x / 2 );
+        var c2 = Math.cos( y / 2 );
+        var c3 = Math.cos( z / 2 );
+        var s1 = Math.sin( x / 2 );
+        var s2 = Math.sin( y / 2 );
+        var s3 = Math.sin( z / 2 );
+
+        if ( order === 'XYZ' ) {
+
+            quat[0] = s1 * c2 * c3 + c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 - s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 + s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 - s1 * s2 * s3;
+
+        } else if ( order === 'YXZ' ) {
+
+            quat[0] = s1 * c2 * c3 + c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 - s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 - s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 + s1 * s2 * s3;
+
+        } else if ( order === 'ZXY' ) {
+
+            quat[0] = s1 * c2 * c3 - c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 + s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 + s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 - s1 * s2 * s3;
+
+        } else if ( order === 'ZYX' ) {
+
+            quat[0] = s1 * c2 * c3 - c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 + s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 - s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 + s1 * s2 * s3;
+
+        } else if ( order === 'YZX' ) {
+
+            quat[0] = s1 * c2 * c3 + c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 + s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 - s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 - s1 * s2 * s3;
+
+        } else if ( order === 'XZY' ) {
+
+            quat[0] = s1 * c2 * c3 - c1 * s2 * s3;
+            quat[1] = c1 * s2 * c3 - s1 * c2 * s3;
+            quat[2] = c1 * c2 * s3 + s1 * s2 * c3;
+            quat[3] = c1 * c2 * c3 + s1 * s2 * s3;
+
+        }
+    };
+
+    return FirstPersonManipulatorDeviceOrientationController;
+} );
+
 define( 'osgGA/FirstPersonManipulator',[
     'osg/Utils',
     'osgGA/Manipulator',
@@ -16352,8 +16683,9 @@ define( 'osgGA/FirstPersonManipulator',[
     'osg/Vec2',
     'osg/Vec3',
     'osgGA/FirstPersonManipulatorMouseKeyboardController',
-    'osgGA/FirstPersonManipulatorOculusController'
-], function ( MACROUTILS, Manipulator, OrbitManipulator, Matrix, Vec2, Vec3, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController ) {
+    'osgGA/FirstPersonManipulatorOculusController',
+    'osgGA/FirstPersonManipulatorDeviceOrientationController'
+], function ( MACROUTILS, Manipulator, OrbitManipulator, Matrix, Vec2, Vec3, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController, FirstPersonManipulatorDeviceOrientationController ) {
 
     /**
      * Authors:
@@ -16370,8 +16702,8 @@ define( 'osgGA/FirstPersonManipulator',[
         this.init();
     };
 
-    FirstPersonManipulator.AvailableControllerList = [ 'StandardMouseKeyboard', 'Oculus'];
-    FirstPersonManipulator.ControllerList = [ 'StandardMouseKeyboard', 'Oculus' ];
+    FirstPersonManipulator.AvailableControllerList = [ 'StandardMouseKeyboard', 'Oculus', 'DeviceOrientation'];
+    FirstPersonManipulator.ControllerList = [ 'StandardMouseKeyboard', 'Oculus', 'DeviceOrientation' ];
 
     /** @lends FirstPersonManipulator.prototype */
     FirstPersonManipulator.prototype = MACROUTILS.objectInehrit( Manipulator.prototype, {
@@ -16441,6 +16773,7 @@ define( 'osgGA/FirstPersonManipulator',[
             }
             var dir = Vec3.mult( this._direction, distance, this._tmpGetTargetDir );
             Vec3.add( this._eye, dir, pos );
+            return pos;
         },
 
         setTarget: function ( pos ) {
@@ -16486,9 +16819,8 @@ define( 'osgGA/FirstPersonManipulator',[
                 Matrix.makeRotate( this._angleHorizontal, 0.0, 0.0, 1.0, second );
                 Matrix.mult( second, first, rotMat );
 
-                var rotBase = this._rotBase;
                 // TOTO refactor the way the rotation matrix is managed
-                Matrix.preMult( rotMat, rotBase );
+                Matrix.preMult( rotMat, this._rotBase );
 
                 this._direction = Matrix.transformVec3( rotMat, upy, this._direction );
                 Vec3.normalize( this._direction, this._direction );
@@ -16571,6 +16903,10 @@ define( 'osgGA/FirstPersonManipulator',[
 
     ( function ( module ) {
         module.Oculus = FirstPersonManipulatorOculusController;
+    } )( FirstPersonManipulator );
+
+    ( function ( module ) {
+        module.DeviceOrientation = FirstPersonManipulatorDeviceOrientationController;
     } )( FirstPersonManipulator );
 
     return FirstPersonManipulator;
@@ -16656,15 +16992,20 @@ define( 'osgGA/osgGA',[
     'osgGA/FirstPersonManipulator',
     'osgGA/FirstPersonManipulatorMouseKeyboardController',
     'osgGA/FirstPersonManipulatorOculusController',
+    'osgGA/FirstPersonManipulatorDeviceOrientationController',
     'osgGA/Manipulator',
     'osgGA/OrbitManipulator',
     'osgGA/OrbitManipulatorGamePadController',
     'osgGA/OrbitManipulatorHammerController',
     'osgGA/OrbitManipulatorLeapMotionController',
     'osgGA/OrbitManipulatorMouseKeyboardController',
+    'osgGA/OrbitManipulatorDeviceOrientationController',
+    'osgGA/OrbitManipulatorOculusController',
     'osgGA/SwitchManipulator',
     'osgGA/OrbitManipulatorEnums'
-], function ( Hammer, FirstPersonManipulator, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController, Manipulator, OrbitManipulator, OrbitManipulatorGamePadController, OrbitManipulatorHammerController, OrbitManipulatorLeapMotionController, OrbitManipulatorMouseKeyboardController, SwitchManipulator, OrbitManipulatorEnums ) {
+], function ( Hammer, FirstPersonManipulator, FirstPersonManipulatorMouseKeyboardController, FirstPersonManipulatorOculusController, FirstPersonManipulatorDeviceOrientationController, Manipulator, OrbitManipulator, OrbitManipulatorGamePadController, OrbitManipulatorHammerController, OrbitManipulatorLeapMotionController, OrbitManipulatorMouseKeyboardController, OrbitManipulatorDeviceOrientationController, OrbitManipulatorOculusController, SwitchManipulator, OrbitManipulatorEnums ) {
+
+    
 
     var osgGA = {};
 
@@ -16676,6 +17017,9 @@ define( 'osgGA/osgGA',[
     };
     osgGA.getFirstPersonOculusControllerClass = function () {
         return FirstPersonManipulatorOculusController;
+    };
+    osgGA.getFirstPersonDeviceOrientationController = function () {
+        return FirstPersonManipulatorDeviceOrientationController;
     };
     osgGA.Manipulator = Manipulator;
     osgGA.OrbitManipulator = OrbitManipulator;
@@ -16691,6 +17035,13 @@ define( 'osgGA/osgGA',[
     osgGA.getOrbitManipulatorMouseKeyboardController = function () {
         return OrbitManipulatorMouseKeyboardController;
     };
+    osgGA.getOrbitManipulatorDeviceOrientationController = function () {
+        return OrbitManipulatorDeviceOrientationController;
+    };
+    osgGA.getOrbitManipulatorOculusController = function () {
+        return OrbitManipulatorOculusController;
+    };
+
     osgGA.SwitchManipulator = SwitchManipulator;
 
     osgGA.OrbitManipulator.Rotate = OrbitManipulatorEnums.ROTATE;
@@ -17439,7 +17790,7 @@ define( 'osgUtil/Composer',[
                 '  vec4 rowx = -fac0*texel5 + fac0*texel1 +  -fac1*texel6 + fac1*texel0 + -fac1*texel4 + fac1*texel2;',
                 '  vec4 rowy = -fac0*texel3 + fac0*texel7 +  -fac1*texel4 + fac1*texel6 + -fac1*texel2 + fac1*texel0;',
                 '  float mag = sqrt(dot(rowy,rowy)+dot(rowx,rowx));',
-                '  if (mag < 1.0/255.0) { discard; return; }',
+                '  if (mag < 1.0/255.0) discard;',
                 '  mag *= factor;',
                 '  mag = min(1.0, mag);',
                 '  gl_FragColor = vec4(color*mag,mag);',
@@ -18723,16 +19074,14 @@ define( 'osgUtil/Oculus',[
         return quad;
     };
 
-    var createOrthoRtt = function ( left, viewportSize, canvasSize ) {
+    var createOrthoRtt = function ( left, canvasSize ) {
         var orthoCamera = new Camera();
-        var vw = viewportSize[ 0 ];
-        var vh = viewportSize[ 1 ];
         var cw = canvasSize[ 0 ];
         var ch = canvasSize[ 1 ];
         if ( left )
-            orthoCamera.setViewport( new Viewport( 0.5 * cw - vw, 0.5 * ( ch - vh ), vw, vh ) );
+            orthoCamera.setViewport( new Viewport( 0.0, 0.0, cw / 2.0, ch ) );
         else
-            orthoCamera.setViewport( new Viewport( 0.5 * cw, 0.5 * ( ch - vh ), vw, vh ) );
+            orthoCamera.setViewport( new Viewport( cw / 2.0, 0.0, cw / 2.0, ch ) );
         Matrix.makeOrtho( -0.5, 0.5, -0.5, 0.5, -5, 5, orthoCamera.getProjectionMatrix() );
         orthoCamera.setRenderOrder( Camera.NESTED_RENDER, 0 );
         orthoCamera.setReferenceFrame( Transform.ABSOLUTE_RF );
@@ -18744,7 +19093,7 @@ define( 'osgUtil/Oculus',[
         camera.setName( 'rtt camera' );
         camera.setViewport( new Viewport( 0, 0, texture.getWidth(), texture.getHeight() ) );
         camera.setProjectionMatrix( projMatrix );
-        camera.setClearColor( [ 0.0, 0.0, 0.0, 0.0 ] );
+        camera.setClearColor( [ 0.3, 0.3, 0.3, 0.0 ] );
         camera.setRenderOrder( Camera.POST_RENDER, 0 );
         camera.attachTexture( FrameBufferObject.COLOR_ATTACHMENT0, texture, 0 );
         camera.attachRenderBuffer( FrameBufferObject.DEPTH_ATTACHMENT, FrameBufferObject.DEPTH_COMPONENT16 );
@@ -18757,9 +19106,8 @@ define( 'osgUtil/Oculus',[
     Oculus.createScene = function ( viewer, rttScene, HMDconfig ) {
         var HMD = Oculus.getDefaultConfig( HMDconfig );
         var rttSize = [ HMD.hResolution, HMD.vResolution ];
-        var viewportSize = [ HMD.hResolution * 0.5, HMD.vResolution ];
-        var vp = viewer.getCamera().getViewport();
-        var canvasSize = [ vp.width(), vp.height() ];
+        var canvas = viewer.getGraphicContext().canvas;
+        var canvasSize = [ canvas.width, canvas.height ];
 
         var worldFactor = 1.0; //world unit
         var oculusUniforms = {};
@@ -18773,13 +19121,13 @@ define( 'osgUtil/Oculus',[
         var rttTextureLeft = createTextureRtt( rttSize );
         var rttCamLeft = createCameraRtt( rttTextureLeft, oculusMatrices.projectionLeft );
         var quadTextLeft = createQuadRtt( true, rttTextureLeft, oculusUniforms );
-        var orthoCameraLeft = createOrthoRtt( true, viewportSize, canvasSize );
+        var orthoCameraLeft = createOrthoRtt( true, canvasSize );
         rttCamLeft.setUpdateCallback( new UpdateRttCameraCallback( rootViewMatrix, oculusMatrices.viewLeft ) );
 
         var rttTextureRight = createTextureRtt( rttSize );
         var rttCamRight = createCameraRtt( rttTextureRight, oculusMatrices.projectionRight );
         var quadTextRight = createQuadRtt( false, rttTextureRight, oculusUniforms );
-        var orthoCameraRight = createOrthoRtt( false, viewportSize, canvasSize );
+        var orthoCameraRight = createOrthoRtt( false, canvasSize );
         rttCamRight.setUpdateCallback( new UpdateRttCameraCallback( rootViewMatrix, oculusMatrices.viewRight ) );
 
         rttCamLeft.addChild( rttScene );
@@ -19061,6 +19409,23 @@ define( 'osgUtil/WebVR',[
         if ( hmdDevice.getRecommendedRenderTargetSize )
             hmd.rttResolution = hmdDevice.getRecommendedRenderTargetSize();
 
+        // On Mac (FF+Chromium), the Left and Right angles of both eyes are inverted
+        // Left Eye must see more to the Left than to the Right (Left angle > Right angle)
+        // Right Eye must see more to the Right than to the Left (Right angle > Left angle)
+        // This is because of the nose blocking the view
+        var swapLeftAndRight = function ( fov ) {
+            var temp = fov.leftDegrees;
+            fov.leftDegrees = fov.rightDegrees;
+            fov.rightDegrees = temp;
+        };
+
+        if ( hmd.fovLeft.leftDegrees < hmd.fovLeft.rightDegrees ) {
+            swapLeftAndRight( hmd.fovLeft );
+        }
+        if ( hmd.fovRight.rightDegrees < hmd.fovRight.leftDegrees ) {
+            swapLeftAndRight( hmd.fovRight );
+        }
+        
         return hmd;
     }
 
@@ -19736,9 +20101,10 @@ define( 'osgViewer/eventProxy/StandardMouseKeyboard',[], function () {
     return StandardMouseKeyboard;
 } );
 
-define( 'osgViewer/eventProxy/Oculus',[ 
+define( 'osgViewer/eventProxy/Oculus',[
     'osg/Notify',
-    'osg/Quat' ], function ( Notify, Quat ) {
+    'osg/Quat'
+], function ( Notify, Quat ) {
 
     
 
@@ -19837,9 +20203,85 @@ define( 'osgViewer/eventProxy/Oculus',[
 
                 manipulatorAdapter.update( this._quat );
             }
+        },
+
+        getHmd: function() {
+            return this._hmd;
         }
     };
     return Oculus;
+} );
+
+define( 'osgViewer/eventProxy/DeviceOrientation',[], function () {
+
+    
+
+    var DeviceOrientation = function ( viewer ) {
+        this._viewer = viewer;
+        this._type = 'DeviceOrientation';
+        this._enable = false;
+
+        // Landscape mobile orientation testing defaults
+        this._deviceOrientation = {
+            alpha: 90, // angle of rotation around Z axis
+            beta: 0, // angle of rotation around X axis
+            gamma: -90 // angle of rotation around Y axis
+        };
+        this._screenOrientation = window.orientation || 90;
+    };
+
+    DeviceOrientation.prototype = {
+
+        init: function () {
+
+            var self = this;
+
+            // Check because Chrome send _one_ event with all angles to null
+            window.addEventListener( 'deviceorientation', function ( rawEvtData ) {
+                if ( rawEvtData.alpha !== null && rawEvtData.alpha !== undefined )
+                    self._deviceOrientation = rawEvtData;
+            }, false );
+
+            window.addEventListener( 'orientationchange', function () {
+                if ( window.orientation !== null && window.orientation !== undefined )
+                    self._screenOrientation = window.orientation;
+            }, false );
+
+        },
+
+        getManipulatorController: function () {
+            return this._viewer.getManipulator().getControllerList()[ this._type ];
+        },
+
+        isValid: function () {
+            if ( !this._enable )
+                return false;
+
+            var manipulator = this._viewer.getManipulator();
+            if ( !manipulator )
+                return false;
+
+            if ( !manipulator.getControllerList()[ this._type ] )
+                return false;
+
+            return true;
+        },
+
+        update: function () {
+
+            if ( !this.isValid() )
+                return;
+
+            // update the manipulator with the rotation of the device
+            var manipulatorAdapter = this.getManipulatorController();
+            if ( manipulatorAdapter.update ) {
+                manipulatorAdapter.update( this._deviceOrientation, this._screenOrientation );
+            }
+        }
+
+    };
+
+    return DeviceOrientation;
 } );
 
 define( 'osgViewer/eventProxy/EventProxy',[
@@ -19847,17 +20289,20 @@ define( 'osgViewer/eventProxy/EventProxy',[
     'osgViewer/eventProxy/Hammer',
     'osgViewer/eventProxy/LeapMotion',
     'osgViewer/eventProxy/StandardMouseKeyboard',
-    'osgViewer/eventProxy/Oculus'
-], function ( GamePad, HammerOsg, LeapMotion, StandardMouseKeyboard, Oculus ) {
+    'osgViewer/eventProxy/Oculus',
+    'osgViewer/eventProxy/DeviceOrientation'
+], function ( GamePad, HammerOsg, LeapMotion, StandardMouseKeyboard, Oculus, DeviceOrientation ) {
 
     return {
         GamePad: GamePad,
         Hammer: HammerOsg,
         LeapMotion: LeapMotion,
         StandardMouseKeyboard: StandardMouseKeyboard,
-        Oculus: Oculus
+        Oculus: Oculus,
+        DeviceOrientation: DeviceOrientation,
     };
 } );
+
 /* jshint ignore:start */
 
 define( 'osgViewer/webgl-utils',[], function () {

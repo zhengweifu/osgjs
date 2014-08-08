@@ -484,6 +484,11 @@
               </a>
             
               
+              <a class="source" href="FirstPersonManipulatorDeviceOrientationController.html">
+                FirstPersonManipulatorDeviceOrientationController.js
+              </a>
+            
+              
               <a class="source" href="FirstPersonManipulatorMouseKeyboardController.html">
                 FirstPersonManipulatorMouseKeyboardController.js
               </a>
@@ -501,6 +506,11 @@
               
               <a class="source" href="OrbitManipulator.html">
                 OrbitManipulator.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorDeviceOrientationController.html">
+                OrbitManipulatorDeviceOrientationController.js
               </a>
             
               
@@ -526,6 +536,11 @@
               
               <a class="source" href="OrbitManipulatorMouseKeyboardController.html">
                 OrbitManipulatorMouseKeyboardController.js
+              </a>
+            
+              
+              <a class="source" href="OrbitManipulatorOculusController.html">
+                OrbitManipulatorOculusController.js
               </a>
             
               
@@ -591,6 +606,11 @@
               
               <a class="source" href="Viewer.html">
                 Viewer.js
+              </a>
+            
+              
+              <a class="source" href="DeviceOrientation.html">
+                DeviceOrientation.js
               </a>
             
               
@@ -691,7 +711,9 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre>define( [], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+            <div class="content"><div class='highlight'><pre>define( [], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span><span class="hljs-pi">
+
+    'use strict'</span>;
 
     <span class="hljs-keyword">var</span> FirstPersonManipulatorOculusController = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( manipulator )</span> {</span>
         <span class="hljs-keyword">this</span>._manipulator = manipulator;
@@ -699,9 +721,7 @@
     };
 
     FirstPersonManipulatorOculusController.prototype = {
-        init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
-            <span class="hljs-keyword">this</span>._stepFactor = <span class="hljs-number">1.0</span>; <span class="hljs-comment">// meaning radius*stepFactor to move</span>
-        },
+        init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>},
         update: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( quaternion )</span> {</span>
 
             <span class="hljs-keyword">this</span>._manipulator.setRotationBaseFromQuat( quaternion );
