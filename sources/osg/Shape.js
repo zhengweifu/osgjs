@@ -5,16 +5,17 @@ define( [
     'osg/Uniform',
     'osg/BufferArray',
     'osg/Geometry',
+    'osg/Matrix',
+    'osg/MatrixTransform',
     'osg/PrimitiveSet',
     'osg/DrawArrays',
     'osg/DrawElements',
     'osg/Program',
     'osg/Shader',
     'osg/Utils'
-], function ( Notify, StateAttribute, Vec3, Uniform, BufferArray, Geometry, PrimitiveSet, DrawArrays, DrawElements, Program, Shader, MACROUTILS ) {
+], function ( Notify, StateAttribute, Vec3, Uniform, BufferArray, Geometry, Matrix, MatrixTransform, PrimitiveSet, DrawArrays, DrawElements, Program, Shader, MACROUTILS ) {
 
     'use strict';
-
     /**
      * Create a Textured Box on the given center with given size
      * @name createTexturedBox
@@ -460,18 +461,15 @@ define( [
             createAxisGeometry.getShader = function () {
                 if ( createAxisGeometry.getShader.program === undefined ) {
                     var vertexshader = [
-                        '#ifdef GL_ES',
-                        'precision highp float;',
-                        '#endif',
                         'attribute vec3 Vertex;',
                         'attribute vec4 Color;',
                         'uniform mat4 ModelViewMatrix;',
                         'uniform mat4 ProjectionMatrix;',
                         '',
-                        'varying vec4 FragColor;',
+                        'varying lowp vec4 FragColor;',
                         '',
                         'vec4 ftransform() {',
-                        'return ProjectionMatrix * ModelViewMatrix * vec4(Vertex, 1.0);',
+                        'return ProjectionMatrix * (ModelViewMatrix * vec4(Vertex, 1.0));',
                         '}',
                         '',
                         'void main(void) {',
@@ -481,9 +479,7 @@ define( [
                     ].join( '\n' );
 
                     var fragmentshader = [
-                        '#ifdef GL_ES',
-                        'precision highp float;',
-                        '#endif',
+                        'precision lowp float;',
                         'varying vec4 FragColor;',
 
                         'void main(void) {',
@@ -735,6 +731,131 @@ define( [
         return g;
     };
 
+    var createBoundingBoxGeometry = function ( col ) {
+
+        var g = new Geometry();
+        //unit cube centered on 0
+        var vertices = new Float32Array( [ -0.5, -0.5, -0.5,
+            0.5, -0.5, -0.5,
+            0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5,
+            0.5, -0.5, 0.5,
+            0.5, 0.5, 0.5, -0.5, 0.5, 0.5
+        ] );
+        g.getAttributes().Vertex = new BufferArray( BufferArray.ARRAY_BUFFER, vertices, 3 );
+
+        // use color or red
+        if ( !col ) col = [ 1.0, 0.0, 0.0, 1.0 ];
+        var colors = new MACROUTILS.Float32Array( 8 * 4 );
+        for ( var i = 0; i < 8; i++ ) {
+            for ( var k = 0; k < 4; k++ ) {
+                colors[ i * 3 + k ] = col[ k ];
+            }
+        }
+
+        g.getAttributes().Color = new BufferArray( BufferArray.ARRAY_BUFFER, colors, 4 );
+
+        var indexes = new MACROUTILS.Uint16Array(
+            [
+                //up
+                0, 1,
+                1, 2,
+                2, 3,
+                3, 0,
+                //down
+                4, 5,
+                5, 6,
+                6, 7,
+                7, 4,
+                // side
+                0, 4,
+                1, 5,
+                2, 6,
+                3, 7
+
+            ] );
+
+
+        g.getPrimitives().push( new DrawElements( PrimitiveSet.LINES, new BufferArray( 'ELEMENT_ARRAY_BUFFER', indexes, 1 ) ) );
+
+        return g;
+    };
+
+    var updateBoundingBoxGeometry = function ( g, updateFuncCallback ) {
+        var vBuff = g.getAttributes().Vertex;
+        var v = vBuff.getElements();
+        updateFuncCallback( v );
+        vBuff.dirty();
+    };
+    /*
+     * Given a Camera, create a wireframe representation of its
+     * view frustum
+     * @param Geom g frustum geometry
+     * @param Matrix proj Projection
+     * @param Array dR depthRange (optional, only if proj is infinite)
+     */
+    var updateBoundingBoxGeometryWithPerspectiveFrustum = function ( g, proj, dR ) {
+
+        var near, far;
+        if ( !dR ) {
+            // Get near and far from the Projection matrix.
+            near = Matrix.get( proj, 3, 2 ) / ( Matrix.get( proj, 2, 2 ) - 1.0 );
+            far = Matrix.get( proj, 3, 2 ) / ( 1.0 + Matrix.get( proj, 2, 2 ) );
+        } else {
+            near = dR[ 0 ];
+            far = dR[ 1 ];
+        }
+        // Get the sides of the near plane.
+        var nLeft = near * ( Matrix.get( proj, 2, 0 ) - 1.0 ) / Matrix.get( proj, 0, 0 );
+        var nRight = near * ( 1.0 + Matrix.get( proj, 2, 0 ) ) / Matrix.get( proj, 0, 0 );
+        var nTop = near * ( 1.0 + Matrix.get( proj, 2, 1 ) ) / Matrix.get( proj, 1, 1 );
+        var nBottom = near * ( Matrix.get( proj, 2, 1 ) - 1.0 ) / Matrix.get( proj, 1, 1 );
+
+        // Get the sides of the far plane.
+        var fLeft = far * ( Matrix.get( proj, 2, 0 ) - 1.0 ) / Matrix.get( proj, 0, 0 );
+        var fRight = far * ( 1.0 + Matrix.get( proj, 2, 0 ) ) / Matrix.get( proj, 0, 0 );
+        var fTop = far * ( 1.0 + Matrix.get( proj, 2, 1 ) ) / Matrix.get( proj, 1, 1 );
+        var fBottom = far * ( Matrix.get( proj, 2, 1 ) - 1.0 ) / Matrix.get( proj, 1, 1 );
+
+        updateBoundingBoxGeometry( g, function ( v ) {
+            // the
+            // eight corners of the near and far planes.
+            v[ 0 ] = nLeft;
+            v[ 1 ] = nBottom;
+            v[ 2 ] = -near;
+
+            v[ 3 ] = nRight;
+            v[ 4 ] = nBottom;
+            v[ 5 ] = -near;
+
+
+            v[ 6 ] = nRight;
+            v[ 7 ] = nTop;
+            v[ 8 ] = -near;
+
+            v[ 9 ] = nLeft;
+            v[ 10 ] = nTop;
+            v[ 11 ] = -near;
+
+            v[ 12 ] = fLeft;
+            v[ 13 ] = fBottom;
+            v[ 14 ] = -far;
+
+            v[ 15 ] = fRight;
+            v[ 16 ] = fBottom;
+            v[ 17 ] = -far;
+
+            v[ 18 ] = fRight;
+            v[ 19 ] = fTop;
+            v[ 20 ] = -far;
+
+            v[ 21 ] = fLeft;
+            v[ 22 ] = fTop;
+            v[ 23 ] = -far;
+        } );
+
+
+    };
+
     return {
         createTexturedBoxGeometry: createTexturedBoxGeometry,
         createTexturedQuadGeometry: createTexturedQuadGeometry,
@@ -744,6 +865,10 @@ define( [
         createTexturedQuad: createTexturedQuad,
         createAxisGeometry: createAxisGeometry,
         createTexturedSphere: createTexturedSphere,
-        createGridGeometry: createGridGeometry
+        createGridGeometry: createGridGeometry,
+        createBoundingBoxGeometry: createBoundingBoxGeometry,
+        updateBoundingBoxGeometry: updateBoundingBoxGeometry,
+        updateBoundingBoxGeometryWithPerspectiveFrustum: updateBoundingBoxGeometryWithPerspectiveFrustum
+
     };
 } );

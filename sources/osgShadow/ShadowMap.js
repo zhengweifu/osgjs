@@ -3,14 +3,20 @@ define( [
     'osg/BlendFunc',
     'osg/Camera',
     'osg/ComputeBoundsVisitor',
+    'osg/Depth',
     'osg/FrameBufferObject',
     'osg/Light',
     'osg/LightSource',
     'osg/Matrix',
+    'osg/MatrixTransform',
     'osg/Notify',
     'osg/NodeVisitor',
+    'osg/Polytope',
+    'osg/Plane',
+    'osg/PrimitiveSet',
     'osg/Program',
     'osg/Shader',
+    'osg/Shape',
     'osg/StateAttribute',
     'osg/StateSet',
     'osg/Texture',
@@ -25,7 +31,7 @@ define( [
     'osgShadow/ShadowFrustumIntersection',
     'osgShadow/ShadowTechnique',
     'osgShadow/ShadowTexture'
-], function ( BoundingBox, BlendFunc, Camera, ComputeBoundsVisitor, FrameBufferObject, Light, LightSource, Matrix, Notify, NodeVisitor, Program, Shader, StateAttribute, StateSet, Texture, Transform, Uniform, MACROUTILS, Vec3, Vec4, Viewport, ShaderProcessor, ShadowAttribute, ShadowFrustumIntersection, ShadowTechnique, ShadowTexture ) {
+], function ( BoundingBox, BlendFunc, Camera, ComputeBoundsVisitor, Depth, FrameBufferObject, Light, LightSource, Matrix, MatrixTransform, Notify, NodeVisitor, Polytope, Plane, PrimitiveSet, Program, Shader, Shape, StateAttribute, StateSet, Texture, Transform, Uniform, MACROUTILS, Vec3, Vec4, Viewport, ShaderProcessor, ShadowAttribute, ShadowFrustumIntersection, ShadowTechnique, ShadowTexture ) {
 
     'use strict';
 
@@ -211,7 +217,9 @@ define( [
         this._computeBoundsVisitor = new ComputeBoundsVisitor();
         this._removeNodesNeverCastingVisitor = new RemoveNodesNeverCastingVisitor( this._castsShadowTraversalMask );
 
+        this._frustum = new Polytope();
 
+        this._debug = false;
         this._infiniteFrustum = true;
     };
 
@@ -237,6 +245,41 @@ define( [
             return this._dirty;
         },
 
+
+        setDebug: function ( a ) {
+            if ( a ) {
+                if ( !this._debugNode ) {
+
+                    this._debugGeomFrustum = Shape.createBoundingBoxGeometry();
+
+                    this._debugGeomSceneCast = Shape.createBoundingBoxGeometry();
+
+                    this._debugGeomSceneCast.getPrimitives()[ 0 ].mode = PrimitiveSet.LINES;
+
+
+                    this._debugNode = new MatrixTransform();
+                    this._debugNodeFrustum = new MatrixTransform();
+                    this._debugNodeSceneCast = new MatrixTransform();
+
+
+                    this._debugNodeFrustum.addChild( this._debugGeomFrustum );
+                    this._debugNodeSceneCast.addChild( this._debugGeomSceneCast );
+
+                    this._debugNode.addChild( this._debugNodeFrustum );
+                    this._debugNode.addChild( this._debugNodeSceneCast );
+
+                    var st = this._debugNode.getOrCreateStateSet();
+                    // early z problems...
+                    //st.setAttributeAndModes( new Depth( Depth.DISABLE ) );
+
+
+                }
+            }
+            this._debug = a;
+        },
+        getDebug: function () {
+            return this.debug;
+        },
 
         setShadowCasterShaderProgram: function ( prg ) {
             this._casterStateSet.setAttributeAndModes( prg, StateAttribute.ON | StateAttribute.OVERRIDE );
@@ -705,29 +748,29 @@ define( [
             this._depthRange[ 1 ] = zFar;
         },
 
-        makePerspectiveFromBoundingBox: function ( bbox, fov, eyePos, eyeDir, view, projection ) {
-            var center = bbox.center( this._tmpVec );
-            var radius = bbox.radius();
+        pointDistanceToPlane: function ( planePoint, planeDir, point ) {
+            Vec3.copy( planeDir, this._tmpVecBis );
+            Vec3.neg( this._tmpVecBis, this._tmpVecBis );
+            Vec3.normalize( this._tmpVecBis, this._tmpVecBis );
+
+            // Plane Equation
+            // E = eyeDir + d
+            var d = Vec3.dot( planePoint, this._tmpVecBis );
+            // then distance to point
+            // perpendicular to eyedir
+            return Vec3.dot( point, this._tmpVecBis ) + d;
+        },
+
+        planeSphereDistanceCheck: function ( distance, radius ) {
             var epsilon = ShadowMap.EPSILON;
             var zNear = epsilon;
             var zFar = 1.0;
 
-            Vec3.copy( eyeDir, this._tmpVecBis );
-            Vec3.neg( this._tmpVecBis, this._tmpVecBis );
-            Vec3.normalize( this._tmpVecBis, this._tmpVecBis );
-
-            // light Near Plane Equation
-            // E = eyeDir + d
-            var d = Vec3.dot( eyePos, this._tmpVecBis );
-            // then distance to center point of sphere
-            // perpendicular to lightdir
-            var distance = Vec3.dot( center, this._tmpVecBis ) + d;
-
-            // inside or not have unfluence
-            // on using radius for fov
+            var canReduce = false;
             if ( distance < -radius ) {
-                // won't render anything the object  is behind..
+                // won't render anything the object is behind..
                 this._emptyCasterScene = true;
+
             } else if ( distance <= 0.0 ) {
                 // shhh.. we're inside !
                 // sphere center is behind
@@ -744,27 +787,62 @@ define( [
                 // we must make a nicer zNear here!
                 zNear = distance - radius;
                 zFar = distance + radius;
+                canReduce = true;
             }
 
             this._depthRange[ 0 ] = zNear;
             this._depthRange[ 1 ] = zFar;
             this.nearFarBounding();
+            return canReduce;
+        },
+        makePerspectiveFromBoundingBox: function ( bbox, fov, eyePos, eyeDir, view, projection ) {
+
+            var center = bbox.center( this._tmpVec );
+            var radius = bbox.radius();
+
+            var radFov = fov * 0.01745329252; //( Math.PI / 180.0 );
+
+
+            // now check basic case
+            var frustumDir = eyeDir;
+            var distance = this.pointDistanceToPlane( eyePos, frustumDir, center );
+
+            // is Spot  inside Bbox
+            // or not have unfluence
+            // on using radius for fov
+            var canReduce = this.planeSphereDistanceCheck( distance, radius );
+            if ( this._emptyCasterScene ) return;
 
             // positional light: spot, point, area
             //  fov < 180.0
             // statically defined by spot, only needs zNear zFar estimates
-            var fovRadius = this._depthRange[ 0 ] * Math.tan( fov * Math.PI / 180.0 );
-            // if scene radius is smaller than fov on scene
-            // Tighten and enhance precision
-            fovRadius = fovRadius > radius ? radius : fovRadius;
+            var fovRadius = this._depthRange[ 0 ] * Math.tan( radFov );
+
+
+            // outside the bbox, attempt making
+            // tightest Frustum
+            if ( canReduce ) {
+                // light to scene bbox dir
+                var sceneDir = this._tmpVecTercio;
+                Vec3.sub( center, eyePos, sceneDir );
+                Vec3.normalize( sceneDir, sceneDir );
+
+                // new near/far
+                distance = this.pointDistanceToPlane( eyePos, frustumDir, center );
+                canReduce = this.planeSphereDistanceCheck( distance, radius );
+                if ( this._emptyCasterScene ) return;
+
+                // only works if we make light direction look at the center of the bbox
+                // like we just did
+                fovRadius = fovRadius > radius ? radius : fovRadius;
+            }
+
 
             var ymax = fovRadius;
             var ymin = -ymax;
-
             var xmax = fovRadius;
             var xmin = -xmax;
 
-            var up = this.getUp( eyeDir );
 
             if ( this._infiniteFrustum ) {
                 Matrix.makeFrustumInfinite( xmin, xmax, ymin, ymax, this._depthRange[ 0 ], this._depthRange[ 1 ], projection );
@@ -772,7 +850,64 @@ define( [
                 Matrix.makeFrustum( xmin, xmax, ymin, ymax, this._depthRange[ 0 ], this._depthRange[ 1 ], projection );
             }
 
-            Matrix.makeLookFromDirection( eyePos, eyeDir, up, view );
+
+            var up = this.getUp( frustumDir );
+            Matrix.makeLookFromDirection( eyePos, frustumDir, up, view );
+
+            canReduce = true;
+            if ( canReduce ) {
+                // now we have a bbox, and near/far/side Planes
+                // for the Three Following case
+                // * Box entirely in: we benefit from early fovRadius that made smaller xmax,xmin,ymin,ymax
+                // * Box out: could return early out
+                // * Box intersect some planes: compute some xmax, xmin, ymax
+                // * Box intersect All planes (most likely the case if camera inside or near bbox): keep fovradius
+
+                // without near/far planes, we're taking for sides here
+                var planes = this._frustum.getPlanes();
+                Matrix.getFrustumPlanes( projection, view, this._frustum.getPlanes(), false );
+
+
+                //var dist = Plane.distance( planes[0 ], center );
+                // if ( dist < -radius ) this._emptyCasterScene = true;// out
+                // else if ( dist <= radius ) intersect
+                // else if ( dist > radius) inside
+
+                // planes is left,right,bottom,top
+                var d;
+                d = Plane.distanceToPlane( planes[ 0 ], center );
+                if ( d < -radius ) {
+                    this._emptyCasterScene = true;
+                    return;
+                }
+                if ( d > radius ) xmin = xmin + d - radius;
+                d = Plane.distanceToPlane( planes[ 1 ], center );
+                if ( d < -radius ) {
+                    this._emptyCasterScene = true;
+                    return;
+                }
+                if ( d > radius ) xmax = xmax - d + radius;
+                d = Plane.distanceToPlane( planes[ 2 ], center );
+                if ( d < -radius ) {
+                    this._emptyCasterScene = true;
+                    return;
+                }
+                if ( d > radius ) ymin = ymin + d - radius;
+                d = Plane.distanceToPlane( planes[ 3 ], center );
+                if ( d < -radius ) {
+                    this._emptyCasterScene = true;
+                    return;
+                }
+                if ( d > radius ) ymax = ymax - d + radius;
+
+                // Now we have tightened frustum
+                if ( this._infiniteFrustum ) {
+                    Matrix.makeFrustumInfinite( xmin, xmax, ymin, ymax, this._depthRange[ 0 ], this._depthRange[ 1 ], projection );
+                } else {
+                    Matrix.makeFrustum( xmin, xmax, ymin, ymax, this._depthRange[ 0 ], this._depthRange[ 1 ], projection );
+                }
+
+            }
         },
 
         makeOrthoFromBoundingBox: function ( bbox, eyeDir, view, projection ) {
@@ -843,8 +978,6 @@ define( [
 
             // inject camera world matrix.
             // from light current world/pos and camera eye pos.
-            // inject camera world matrix.
-            // from light current world/pos
             // NEED same camera eye pos
             var positionedAttribute = cullVisitor.getCurrentRenderBin().getPositionedAttribute();
 
@@ -867,6 +1000,7 @@ define( [
 
             //  light pos & lightTarget in World Space
             if ( light.getPosition()[ 3 ] !== 0.0 && light.getSpotCutoff() < 180 ) {
+
                 //TODO: check when spot light is camera attached?
                 Matrix.mult( eyeToWorld, lightMatrix, this._tmpMatrix );
                 var worldMatrix = this._tmpMatrix;
@@ -885,6 +1019,18 @@ define( [
 
                 // and compute a perspective frustum
                 this.makePerspectiveFromBoundingBox( frustumBound, light.getSpotCutoff(), worldLightPos, worldLightDir, view, projection );
+
+                if ( this._debug ) {
+
+                    Shape.updateBoundingBoxGeometryWithPerspectiveFrustum(
+                        this._debugGeomFrustum,
+                        this._projectionMatrix,
+                        this._depthRange );
+
+                    Matrix.inverse( this._viewMatrix, this._debugNodeFrustum.getMatrix() );
+
+                }
+
             } else {
                 Matrix.transformVec4( lightMatrix, light.getPosition(), worldLightPos );
                 Matrix.transformVec4( eyeToWorld, worldLightPos, worldLightPos );
@@ -895,6 +1041,11 @@ define( [
                 Vec3.mult( worldLightPos, -1.0, worldLightPos );
                 Vec3.normalize( worldLightPos, worldLightPos );
                 this.makeOrthoFromBoundingBox( frustumBound, worldLightPos, view, projection );
+
+                if ( this._debug ) {
+                    // project box by view to get projection debug bbox
+                    Matrix.inverse( view, this._debugNodeFrustum.getMatrix() );
+                }
             }
 
             Matrix.copy( this._projectionMatrix, camera.getProjectionMatrix() );
@@ -913,8 +1064,8 @@ define( [
             if ( !this._infiniteFrustum ) {
                 this.nearFarBounding();
                 Matrix.clampProjectionMatrix( this._projectionMatrix, this._depthRange[ 0 ], this._depthRange[ 1 ], cullVisitor.getNearFarRatio(), this._depthRange );
-                this.setShadowUniformsDepthValue();
             }
+            this.setShadowUniformsDepthValue();
 
             // overwrite any cullvisitor wrongness
             var camera = this._cameraShadow;
@@ -991,6 +1142,26 @@ define( [
                 return;
             }
 
+
+            if ( this._debug ) {
+
+                var min = bbox.getMin();
+                var max = bbox.getMax();
+                bbox.center( this._tmpVec );
+                var matrix = this._debugNodeSceneCast.getMatrix();
+
+                Matrix.makeScale( max[ 0 ] - min[ 0 ],
+                    max[ 1 ] - min[ 1 ],
+                    max[ 2 ] - min[ 2 ],
+                    matrix );
+
+                Matrix.setTrans( matrix,
+                    this._tmpVec[ 0 ],
+                    this._tmpVec[ 1 ],
+                    this._tmpVec[ 2 ] );
+
+            }
+
             // HERE we get the shadowedScene Current World Matrix
             // to get any world transform ABOVE the shadowedScene
             var worldMatrix = cullVisitor.getCurrentModelWorldMatrix();
@@ -1012,6 +1183,7 @@ define( [
             }
 
 
+
             // get renderer to make the cull program
             // record the traversal mask on entry so we can reapply it later.
             var traversalMask = cullVisitor.getTraversalMask();
@@ -1028,6 +1200,9 @@ define( [
             this._cameraShadow.setComputeNearFar( needNearFar );
 
 
+            if ( this._debug ) {
+                this._debugNode.accept( cullVisitor );
+            }
 
             // do RTT from the camera traversal mimicking light pos/orient
             this._cameraShadow.accept( cullVisitor );

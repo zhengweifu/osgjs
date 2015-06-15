@@ -16,6 +16,7 @@
         // sample default parameters
         // at start most can be changed by the UI
         this._config = {
+            'debugBounds': false,
             'textureSize': 1024,
             'shadow': 'PCF',
             'textureType': 'UNSIGNED_BYTE',
@@ -225,9 +226,9 @@
                     osg.Vec3.normalize( lightDir, lightDir );
                     break;
                 case 'Translate':
-                    lightPos[ 0 ] = x * this._positionZ;
-                    //lightPos[ 1 ] = y * this._position_y;
-                    //lightPos[ 2 ] = this._position_z;
+                    lightPos[ 0 ] = x * this._positionX;
+                    lightPos[ 1 ] = lightDist;
+                    lightPos[ 2 ] = lightHeight;
                     lightDir = [ 0.0, -15.0, -1.0 ];
                     break;
                 case 'Nod':
@@ -265,9 +266,10 @@
             }
 
             var lightTargetDebug = this._lightTarget;
-            //osg.Vec3.mult( lightDir, 50, lightTargetDebug );
-            //osg.Vec3.add( lightPos, lightTargetDebug, lightTargetDebug );
-
+            if ( this._example._config[ 'lightMovement' ] !== 'Rotate' ) {
+                osg.Vec3.mult( lightDir, 50, lightTargetDebug );
+                osg.Vec3.add( lightPos, lightTargetDebug, lightTargetDebug );
+            }
             var lightMatrix = this._debugNode.getMatrix();
             osg.Matrix.makeLookAt( lightPos, lightTargetDebug, up, lightMatrix );
             osg.Matrix.inverse( lightMatrix, lightMatrix );
@@ -362,6 +364,8 @@
             controller.onChange( this.updateShadow.bind( this ) );
 
             controller = gui.add( this._config, 'disableShadows' );
+
+            controller = gui.add( this._config, 'debugBounds' );
             controller.onChange( this.updateShadow.bind( this ) );
 
 
@@ -798,6 +802,7 @@
                 this._previousDisable = this._config[ 'disableShadows' ];
             }
 
+
             this.updateShadowStatic();
 
             this.updateLightsAmbient();
@@ -819,6 +824,7 @@
             while ( l-- ) {
                 var shadowMap = this._shadowTechnique[ l ];
                 shadowMap.setShadowSettings( this._shadowSettings[ l ] );
+                shadowMap.setDebug( this._config[ 'debugBounds' ] );
             }
 
             // Iterate over all controllers
@@ -1174,6 +1180,7 @@
 
             this._shadowSettings.push( shadowSettings );
             var shadowMap = new osgShadow.ShadowMap( shadowSettings );
+
             this._lightAndShadowScene.addShadowTechnique( shadowMap );
             shadowMap.setShadowSettings( shadowSettings );
             this._shadowTechnique.push( shadowMap );
