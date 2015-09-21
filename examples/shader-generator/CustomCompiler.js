@@ -1,4 +1,5 @@
 ( function () {
+
     'use strict';
 
     var osgShader = window.OSG.osgShader;
@@ -8,12 +9,35 @@
     // this compiler use basic lighting and add a node to demonstrate how to
     // customize the shader compiler
     var CustomCompiler = function () {
+
         osgShader.Compiler.apply( this, arguments );
+
     };
 
 
     CustomCompiler.prototype = osg.objectInherit( osgShader.Compiler.prototype, {
 
+        getFragmentShaderName(){
+            var str = 'default';
+
+            var rampAttribute = this.getAttributeType( 'Ramp' );
+
+            if ( rampAttribute && rampAttribute.getAttributeEnable() )
+                str = 'ramp';
+
+            var negatifAttribute = this.getAttributeType( 'Negatif' );
+
+            if ( negatifAttribute )
+                str = 'negatif';
+
+            var sssAttribute = this.getAttributeType( 'SubSurfaceScattering' );
+
+            if ( sssAttribute && sssAttribute.getAttributeEnable() )
+                str = 'sss';
+
+            return str;
+
+        },
 
         // this is the main code that instanciate and link nodes together
         // it's a simplified version of the curent osgjs compiler
@@ -72,31 +96,68 @@
                 } );
 
                 // ======================================================
-                // my custom attribute ramp
-                // it's here I connect ouput of light result with my ramp
+                // my custom attribute Sub-Surface Scattering
+                // it's here I connect
                 // ======================================================
-                var rampResult = this.createVariable( 'vec3' );
-                var rampAttribute = this.getAttributeType( 'Ramp' );
-                if ( rampAttribute && rampAttribute.getAttributeEnable() ) {
+                var sssResult = this.createVariable( 'vec3' );
+                var sssAttribute = this.getAttributeType( 'SubSurfaceScattering' );
 
-                    this.getNode( 'Ramp' ).inputs( {
-                        color: lightedOutput
+                if ( sssAttribute ) {
+
+                    var lightNDL = this.getVariable(  'lightNDL' );
+                    var normal = this.getOrCreateFrontNormal();
+                    var vertex = this.getOrCreateInputPosition();
+
+                    this.getNode( 'SubSurfaceScattering' ).inputs( {
+                        color: lightedOutput,
+                        normal: normal,
+                        vertex: vertex,
+                        ndl: lightNDL,
+                        sssScale: this.getOrCreateUniform( sssAttribute.getOrCreateUniforms().sssScale ),
+                        sssDiffuse: this.getOrCreateUniform( sssAttribute.getOrCreateUniforms().sssDiffuse ),
+                        enable: this.getOrCreateUniform( sssAttribute.getOrCreateUniforms().enable )
                     } ).outputs( {
-                        color: rampResult
+                        color: sssResult
                     } );
 
                 } else {
-                    rampResult = lightedOutput;
+
+                    sssResult = lightedOutput;
+
                 }
                 // ======================================================
 
 
                 // ======================================================
-                // my custom attribute negatif
+                // my custom attribute ramp
                 // it's here I connect ouput of light result with my ramp
+                // ======================================================
+                var rampResult = this.createVariable( 'vec3' );
+                var rampAttribute = this.getAttributeType( 'Ramp' );
+
+                if ( rampAttribute && rampAttribute.getAttributeEnable() ) {
+
+                    this.getNode( 'Ramp' ).inputs( {
+                        color: sssResult
+                    } ).outputs( {
+                        color: rampResult
+                    } );
+
+                } else {
+
+                    rampResult = sssResult;
+
+                }
+                // ======================================================
+
+
+                // my custom attribute negatif
+                // ======================================================
+                // it's here I connect output to the invert of input
                 // ======================================================
                 var negatifResult = this.createVariable( 'vec3' );
                 var negatifAttribute = this.getAttributeType( 'Negatif' );
+
                 if ( negatifAttribute ) {
 
                     this.getNode( 'Negatif' ).inputs( {
@@ -107,9 +168,12 @@
                     } );
 
                 } else {
+
                     negatifResult = rampResult;
+
                 }
                 // ======================================================
+
 
 
                 // get final color
@@ -135,6 +199,7 @@
 
             roots.push( fragColor );
             return roots;
+
         }
 
     } );
