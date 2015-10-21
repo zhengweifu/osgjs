@@ -708,7 +708,6 @@ define( [
             var vtx = Composer.Filter.defaultVertexShader;
             var fgt = [
                 Composer.Filter.defaultFragmentShaderHeader,
-                'uniform float width;',
 
                 this._unpack || 'vec4 unpack(const in sampler2D tex, const in vec2 uv) { return texture2D(tex, uv); }',
                 this._pack || 'vec4 pack(vec4 pix) { return pix; }',
@@ -822,7 +821,6 @@ define( [
             var fgt = [
                 Composer.Filter.defaultFragmentShaderHeader,
                 'uniform sampler2D Texture1;',
-                'uniform float width;',
                 'uniform mat4 projection;',
                 'uniform float radius;',
                 'uniform float pixelSize;',
@@ -990,7 +988,6 @@ define( [
             }
             var fgt = [
                 Composer.Filter.defaultFragmentShaderHeader,
-                'uniform float width;',
 
                 this._unpack || 'vec4 unpack(const in sampler2D tex, const in vec2 uv) { return texture2D(tex, uv); }',
                 this._pack || 'vec4 pack(vec4 pix) { return pix; }',
@@ -1591,6 +1588,94 @@ define( [
 
             stateSet.setAttributeAndModes( program );
             this._dirty = false;
+        }
+    } );
+
+    // http://community.arm.com/servlet/JiveServlet/download/96891546-19462/siggraph2015-mmg-marius-notes.pdf
+    Composer.Filter.DualBlurDownsample = function ( uniformDistance, unpack, pack ) {
+        Composer.Filter.call( this );
+        this._unpack = unpack;
+        this._pack = pack;
+        this._fragmentName = 'DualBlurDownsample';
+        this._uBlurDistance = uniformDistance || Uniform.createFloat1( 1.0, 'uBlurDistance' );
+    };
+
+    Composer.Filter.DualBlurDownsample.prototype = MACROUTILS.objectInherit( Composer.Filter.prototype, {
+        _getFragment: function () {
+            var uDist = this._uBlurDistance.getName();
+            return [
+                Composer.Filter.defaultFragmentShaderHeader,
+                'uniform float ' + uDist + ';',
+
+                this._unpack || 'vec4 unpack(const in sampler2D tex, const in vec2 uv) { return texture2D(tex, uv); }',
+                this._pack || 'vec4 pack(vec4 pix) { return pix; }',
+
+                'void main (void)',
+                '{',
+                '  vec2 offset = ' + uDist + ' / RenderSize.xy;',
+                '  vec3 sum = unpack(Texture0, FragTexCoord0).rgb * 4.0;',
+                '  sum += unpack(Texture0, FragTexCoord0 - offset.xy).rgb;',
+                '  sum += unpack(Texture0, FragTexCoord0 + offset.xy).rgb;',
+                '  sum += unpack(Texture0, FragTexCoord0 + vec2(offset.x, -offset.y)).rgb;',
+                '  sum += unpack(Texture0, FragTexCoord0 - vec2(offset.x, -offset.y)).rgb;',
+                '  gl_FragColor = pack(vec4(sum / 8.0, 1.0));',
+                '}',
+                ''
+            ].join( '\n' );
+        },
+        build: function () {
+            var tex = this._stateSet.getTextureAttribute( 0, 'Texture' );
+            if ( tex ) {
+                tex.setMinFilter( 'LINEAR' );
+                tex.setMagFilter( 'LINEAR' );
+            }
+
+            var vtx = Composer.Filter.defaultVertexShader;
+            var fgt = this._getFragment();
+
+            var program = new Program(
+                new Shader( Shader.VERTEX_SHADER, vtx + this.getDefineVertexName() ),
+                new Shader( Shader.FRAGMENT_SHADER, fgt + this.getDefineFragmentName() ) );
+
+            if ( this._stateSet.getUniform( 'Texture0' ) === undefined ) {
+                this._stateSet.addUniform( Uniform.createInt1( 0, 'Texture0' ) );
+            }
+
+            this._stateSet.setAttributeAndModes( program );
+            this._dirty = false;
+        }
+    } );
+
+    Composer.Filter.DualBlurUpsample = function ( uniformDistance, unpack, pack ) {
+        Composer.Filter.DualBlurDownsample.call( this, uniformDistance, unpack, pack );
+        this._fragmentName = 'DualBlurUpsample';
+    };
+
+    Composer.Filter.DualBlurUpsample.prototype = MACROUTILS.objectInherit( Composer.Filter.DualBlurDownsample.prototype, {
+        _getFragment: function () {
+            var uDist = this._uBlurDistance.getName();
+            return [
+                Composer.Filter.defaultFragmentShaderHeader,
+                'uniform float ' + uDist + ';',
+
+                this._unpack || 'vec4 unpack(const in sampler2D tex, const in vec2 uv) { return texture2D(tex, uv); }',
+                this._pack || 'vec4 pack(vec4 pix) { return pix; }',
+
+                'void main (void)',
+                '{',
+                '  vec2 offset = ' + uDist + ' / RenderSize.xy;',
+                '  vec3 sum = unpack(Texture0, FragTexCoord0 + vec2(-offset.x * 2.0, 0.0)).rgb;',
+                '  sum += unpack(Texture0, FragTexCoord0 + vec2(-offset.x, offset.y)).rgb * 2.0;',
+                '  sum += unpack(Texture0, FragTexCoord0 + vec2(0.0, offset.y * 2.0)).rgb;',
+                '  sum += unpack(Texture0, FragTexCoord0 + vec2(offset.x, offset.y)).rgb * 2.0;',
+                '  sum += unpack(Texture0, FragTexCoord0 + vec2(offset.x * 2.0, 0.0)).rgb;',
+                '  sum += unpack(Texture0, FragTexCoord0 + vec2(offset.x, -offset.y)).rgb * 2.0;',
+                '  sum += unpack(Texture0, FragTexCoord0 + vec2(0.0, -offset.y * 2.0)).rgb;',
+                '  sum += unpack(Texture0, FragTexCoord0 + vec2(-offset.x, -offset.y)).rgb * 2.0;',
+                '  gl_FragColor = pack(vec4(sum / 12.0, 1.0));',
+                '}',
+                ''
+            ].join( '\n' );
         }
     } );
 
