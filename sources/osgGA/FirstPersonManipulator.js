@@ -5,6 +5,9 @@ var OrbitManipulator = require( 'osgGA/OrbitManipulator' );
 var Matrix = require( 'osg/Matrix' );
 var Vec2 = require( 'osg/Vec2' );
 var Vec3 = require( 'osg/Vec3' );
+var IntersectionVisitor = require( 'osgUtil/IntersectionVisitor' );
+var SphereIntersector = require( 'osgUtil/SphereIntersector' );
+var ComputeMatrixFromNodePath = require( 'osg/ComputeMatrixFromNodePath' );
 var FirstPersonManipulatorDeviceOrientationController = require( 'osgGA/FirstPersonManipulatorDeviceOrientationController' );
 var FirstPersonManipulatorHammerController = require( 'osgGA/FirstPersonManipulatorHammerController' );
 var FirstPersonManipulatorWebVRController = require( 'osgGA/FirstPersonManipulatorWebVRController' );
@@ -49,6 +52,8 @@ FirstPersonManipulator.prototype = MACROUTILS.objectInherit( Manipulator.prototy
         this._forward = new OrbitManipulator.Interpolator( 1 );
         this._side = new OrbitManipulator.Interpolator( 1 );
         this._lookPosition = new OrbitManipulator.Interpolator( 2 );
+
+        this._velocity = Vec3.create();
 
         // direct pan interpolator (not based on auto-move)
         this._pan = new OrbitManipulator.Interpolator( 2 );
@@ -213,15 +218,80 @@ FirstPersonManipulator.prototype = MACROUTILS.objectInherit( Manipulator.prototy
             var timeFactor = this._stepFactor * factor * vFov * dt;
             var directFactor = this._stepFactor * factor * vFov * 0.005;
 
+            var oldEye = Vec3.createAndSet( this._eye[ 0 ], this._eye[ 1 ], this._eye[ 2 ] );
+
             this.moveForward( vec[ 0 ] * timeFactor - zoom[ 0 ] * directFactor * 20.0 );
             this.strafe( vec[ 1 ] * timeFactor - pan[ 0 ] * directFactor );
             this.strafeVertical( -pan[ 1 ] * directFactor );
+
+            this.handleCollision( oldEye );
+
+            Vec3.copy( this._eye, oldEye );
+            // gravity
+            this._velocity[ 2 ] -= 1.0 * dt;
+            Vec3.add( this._eye, this._velocity, this._eye );
+            this.handleCollision( oldEye, true );
 
             Vec3.add( this._eye, this._direction, this._target );
 
             Matrix.makeLookAt( this._eye, this._target, this._up, this._inverseMatrix );
         };
     } )(),
+
+    handleCollision: function ( oldEye, gravityResponse ) {
+        var si = new SphereIntersector();
+        var radius = Math.max( this._node.getBound().radius() * 0.1, 2.0 * Vec3.distance( oldEye, this._eye ) );
+        si.set( this._eye, radius );
+
+        var iv = new IntersectionVisitor();
+        iv.setIntersector( si );
+        this._node.accept( iv );
+
+        var hits = si.getIntersections();
+        if ( hits.length === 0 )
+            return;
+        Vec3.init( this._velocity );
+
+        hits.sort( function ( a, b ) {
+            return a.ratio - b.ratio;
+        } );
+        var hit = hits[ 0 ];
+
+        var mat = Matrix.create();
+        ComputeMatrixFromNodePath.computeLocalToWorld( hit.nodepath, true, mat );
+
+        var inter = Vec3.create();
+        Matrix.transformVec3( mat, hit.point, inter );
+
+        // normal matrix
+        mat[ 12 ] = mat[ 13 ] = mat[ 14 ] = 0.0;
+        Matrix.inverse( mat, mat );
+        Matrix.transpose( mat, mat );
+        var offset = Vec3.create();
+        Matrix.transformVec3( mat, hit.TriangleIntersection.normal, offset );
+        Vec3.normalize( offset, offset );
+
+        var dirMove = Vec3.create();
+        Vec3.sub( this._eye, oldEye, dirMove );
+        Vec3.normalize( dirMove, dirMove );
+        var dot = -Vec3.dot( dirMove, offset );
+
+        // direct-block of eye position with low degree slope
+        if ( gravityResponse === true && ( dot > 0.9 || dot < 0.0 ) ) {
+            Vec3.copy( oldEye, this._eye );
+            return;
+        }
+
+        // check which side of triangle we are in
+        if ( dot < 0.0 )
+            return;
+
+        Vec3.sub( this._eye, inter, offset );
+        Vec3.normalize( offset, offset );
+
+        Vec3.mult( offset, radius, offset );
+        Vec3.add( inter, offset, this._eye );
+    },
     setRotationBaseFromQuat: function ( quat ) {
         Matrix.makeRotateFromQuat( quat, this._rotBase );
     },
@@ -229,7 +299,9 @@ FirstPersonManipulator.prototype = MACROUTILS.objectInherit( Manipulator.prototy
     moveForward: ( function () {
         var tmp = Vec3.create();
         return function ( distance ) {
-            Vec3.normalize( this._direction, tmp );
+            Vec3.copy( this._direction, tmp );
+            tmp[ 2 ] = 0.0;
+            Vec3.normalize( tmp, tmp );
             Vec3.mult( tmp, distance, tmp );
             Vec3.add( this._eye, tmp, this._eye );
         };
@@ -252,7 +324,8 @@ FirstPersonManipulator.prototype = MACROUTILS.objectInherit( Manipulator.prototy
             Vec3.mult( tmp, distance, tmp );
             Vec3.add( this._eye, tmp, this._eye );
         };
-    } )(),
+    } )()
+
 } );
 
 FirstPersonManipulator.DeviceOrientation = FirstPersonManipulatorDeviceOrientationController;

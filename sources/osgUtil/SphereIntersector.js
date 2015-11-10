@@ -7,7 +7,7 @@ var TriangleSphereIntersector = require( 'osgUtil/TriangleSphereIntersector' );
 var SphereIntersector = function () {
     this._center = Vec3.create();
     this._iCenter = Vec3.create();
-    this._radius = 1.0;
+    this._iRadius = 1.0;
     this._intersections = [];
 };
 
@@ -34,8 +34,10 @@ SphereIntersector.prototype = {
     // Intersection Sphere/Sphere 
     intersects: function ( bsphere ) {
         if ( !bsphere.valid() ) return false;
-        var r = this._radius + bsphere.radius();
-        return Vec3.distance2( this._iCenter, bsphere.center() ) <= r * r;
+        // TODO
+        return true;
+        // var r = this._iRadius + bsphere.radius();
+        // return Vec3.distance2( this._iCenter, bsphere.center() ) <= r * r;
     },
 
     intersect: ( function () {
@@ -43,25 +45,24 @@ SphereIntersector.prototype = {
         var ti = new TriangleSphereIntersector();
 
         return function ( iv, node ) {
+
             var kdtree = node.getShape();
-            if ( kdtree ) {
-                // Use KDTREES
-                return kdtree.intersectSphere( this._iCenter, this._radius, this._intersections, iv.nodePath );
-            } else {
-                ti.setNodePath( iv.nodePath );
-                ti.set( this._iCenter, this._radius );
-                ti.apply( node );
-                var l = ti._intersections.length;
-                if ( l > 0 ) {
-                    // Intersection/s exists
-                    for ( var i = 0; i < l; i++ ) {
-                        this._intersections.push( ti._intersections[ i ] );
-                    }
-                    return true;
+            if ( kdtree )
+                return kdtree.intersectSphere( this._iCenter, this._iRadius, this._intersections, iv.nodePath );
+
+            ti.setNodePath( iv.nodePath );
+            ti.set( this._iCenter, this._radius );
+            ti.apply( node );
+            var l = ti._intersections.length;
+            if ( l > 0 ) {
+                // Intersection/s exists
+                for ( var i = 0; i < l; i++ ) {
+                    this._intersections.push( ti._intersections[ i ] );
                 }
-                // No intersection found
-                return false;
+                return true;
             }
+
+            // No intersection found
             return false;
         };
     } )(),
@@ -71,6 +72,7 @@ SphereIntersector.prototype = {
     setCurrentTransformation: function ( matrix ) {
         Matrix.inverse( matrix, matrix );
         Matrix.transformVec3( matrix, this._center, this._iCenter );
+        this._iRadius = this._radius * Matrix.getScale( matrix, [] )[ 0 ];
     }
 };
 
