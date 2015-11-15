@@ -106,10 +106,10 @@
                 return osgDB.readImageURL( path );
             } );
 
-            return images;
+            //            return images;
 
             // wait for all images
-            //P.all( images ).then( function ( args ) {}
+            return P.all( images ); //.then( function ( args ) {}
 
         },
 
