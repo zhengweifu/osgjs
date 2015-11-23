@@ -124,8 +124,9 @@ WebGLCaps.prototype = {
             ];
 
             var ext = WebGLCaps._instance.getWebGLExtensions();
+            var dummyFunc = function () {};
             for ( var i = 0, l = nativeExtension.length; i < l; i++ ) {
-                ext[ nativeExtension[ i ] ] = function () {};
+                ext[ nativeExtension[ i ] ] = dummyFunc;
             }
         }
 
