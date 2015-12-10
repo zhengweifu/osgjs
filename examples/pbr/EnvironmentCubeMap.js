@@ -149,6 +149,7 @@ window.EnvironmentCubeMap = ( function () {
                     this.createRGBA8Packed();
 
 
+                this.computeDirection();
                 defer.resolve();
 
             }.bind( this );

@@ -227,6 +227,59 @@ TextureCubeMap.prototype = MACROUTILS.objectLibraryClass( MACROUTILS.objectInher
                 this.generateMipmap( gl, this._textureTarget );
             }
         } // render to cubemap not yet implemented
+    },
+
+    computeDirection: function ( packedImages, maxMip ) {
+
+        //TODO handle if luv/float, bla
+        // try all face at min mipmap
+
+        var pixels;
+        //   var currentMip;
+        var maxLum = -1;
+        var maxFace = -1;
+
+        // find brightest face
+        for ( var j = 0; j < 6; j++ ) {
+
+            var f = Texture.TEXTURE_CUBE_MAP_POSITIVE_X + j;
+            pixels = packedImages[ f ][ 0 ];
+
+            if ( pixels[ 0 ] > maxLum ) {
+                maxLum = pixels[ 0 ];
+                maxFace = j;
+            }
+        }
+
+        // now recurse on that face to get most precise direction
+        var textures = packedImages[ Texture.TEXTURE_CUBE_MAP_POSITIVE_X + maxFace ];
+        var maxPixel = 0,
+            lastPixel = 0;
+        for ( var k = 1; k < maxMip; k++ ) {
+
+            // start at around last pixel zone
+            maxLum = -1;
+            pixels = textures[ k ];
+
+            // * 4 once for 4channel texture, *4 for mipmap level change
+            lastPixel = maxPixel * 4;
+
+            for ( var m = 0; m < 4; m++ ) {
+
+                // each Mipmap, check brightest
+                if ( pixels[ lastPixel + m * 4 ] > maxLum ) {
+                    maxLum = pixels[ 0 ];
+                    maxPixel = lastPixel + m * 4;
+                }
+            }
+        }
+
+        //Compute Direction from Pixel Position on cubemap
+        return {
+            maxPixel: maxPixel,
+            maxLum: maxLum,
+            direction: [ 0, 0, 1 ]
+        };
     }
 
 } ), 'osg', 'TextureCubeMap' );
