@@ -390,6 +390,10 @@ Viewer.prototype = MACROUTILS.objectInherit( View.prototype, {
         }
 
         this.endFrame();
+
+        // submit frame to vr headset
+        if ( this._hmd && this._hmd.isPresenting )
+            this._hmd.submitFrame( this._eventProxy.WebVR._lastPose );
     },
 
     setDone: function ( bool ) {
@@ -404,18 +408,12 @@ Viewer.prototype = MACROUTILS.objectInherit( View.prototype, {
         var self = this;
         var render = function () {
             if ( !self.done() ) {
-
-                var isPresentingVR = self._hmd && self._hmd.isPresenting;
-
-                if ( isPresentingVR )
+                if ( self._hmd && self._hmd.isPresenting )
                     self._requestID = self._hmd.requestAnimationFrame( render );
                 else
                     self._requestID = window.requestAnimationFrame( render, self.getGraphicContext().canvas );
 
                 self.frame();
-
-                if ( isPresentingVR )
-                    self._hmd.submitFrame( self._eventProxy.WebVR._lastPose );
             }
         };
         render();
