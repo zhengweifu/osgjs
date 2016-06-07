@@ -7,8 +7,11 @@ var TriangleIntersector = require( 'osgUtil/TriangleIntersector' );
 var LineSegmentIntersector = function () {
     this._start = Vec3.create();
     this._end = Vec3.create();
-    this._iStart = Vec3.create();
-    this._iEnd = Vec3.create();
+
+    // same comment as the one in the getTransformation function in IntersectionVisitor 
+    this._iStart = new Float64Array( 3 );
+    this._iEnd = new Float64Array( 3 );
+
     this._intersections = [];
 };
 
